@@ -48,7 +48,7 @@ type
     OnClick : TNotifyEvent;
 
   public
-    ModalResult : integer;
+    FModalResult : integer;
 
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -90,6 +90,8 @@ type
 
     property GroupIndex : integer read FGroupIndex write FGroupIndex;
     property AllowAllUp : boolean read FAllowAllUp write SetAllowAllUp;
+
+    property ModalResult : integer read FModalResult write FModalResult;
 
   end;
 
@@ -187,7 +189,7 @@ begin
   FShowImage := true;
   FImageMargin := 3;
   FImageSpacing := -1;
-  ModalResult := 0;
+  FModalResult := 0;
 end;
 
 destructor TwgButton.Destroy;
