@@ -2376,6 +2376,8 @@ begin
     Windows.FillRect(Fgc, wr, FBrush);
 {$else}
 begin
+  if (r.Height <= 0) or (r.Width <= 0) then Exit;
+  
      if DrawOnBuffer then
         XFillRectangle(display, FBufferWin, Fgc, r.Left, r.Top, r.Width, r.Height)
      else

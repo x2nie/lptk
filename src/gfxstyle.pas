@@ -127,7 +127,7 @@ begin
   LabelFont2 := GfxGetFont('Arial-10:bold');
 
   EditFont1 := GfxGetFont('Arial-10');
-  EditFont2 := GfxGetFont('Courier-10');
+  EditFont2 := GfxGetFont('Courier New-10');
 
   ListFont  := GfxGetFont('Arial-10');
 
