@@ -2273,6 +2273,8 @@ procedure TGfxCanvas.FillRect(r: TGfxRect);
 var
   wr : windows.TRect;
 begin
+  if (r.Height <= 0) or (r.Width <= 0) then Exit;
+  
   wr.Left := r.Left;
   wr.Top  := r.Top;
   wr.Right := r.left + r.Width;
