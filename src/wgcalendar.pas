@@ -245,7 +245,6 @@ var
     hilite : boolean;
     rh : integer;
 begin
-    writeln('RePaint');
     if not Windowed then exit;
 //    inherited RePaint;
     Canvas.ClearClipRect;
