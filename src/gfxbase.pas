@@ -23,6 +23,8 @@ uses
 const
   LINEFEEDSTRING = #13#10;
 
+{$INCLUDE lptkstrings.inc}
+
 type
   TGfxCoord = integer;     // Maybe we will use floating point coordinates in the future...
 
@@ -374,6 +376,8 @@ type
     property MaskDataSize : integer read FMaskDataSize;
 
     property Masked : boolean read FMasked;
+
+    procedure LoadFromFile(AFileName : String);
 
 {$ifdef Win32}
     procedure SetWindowsBitmap(pdata, pinfoheader : pointer; startscan, scanlines : longword);
@@ -2525,6 +2529,33 @@ begin
   FMaskHandle := 0;
 {$endif}
 
+end;
+
+procedure TgfxImage.LoadFromFile(AFileName : String);
+// Added by aegluke
+var
+    AFile : File of Char;
+    AImageData : Pointer;
+    AImageDataSize : Longint;
+begin
+    if not FileExists(AFileName) then
+    begin
+	raise Exception.Create(Format(CEFileNotExist,[AFileName]));
+	exit;
+    end;
+    AssignFile(AFile,AFileName);
+    Reset(AFile);
+    AImageDataSize := FileSize(AFile);
+    GetMem(AImageData,AImageDataSize);
+    BlockRead(AFile,AImageData^,AImageDataSize);
+    CloseFile(AFile);
+    if AImageData = nil then
+    begin
+	raise Exception.Create(CENotEnoughImageMemory);
+	exit;
+    end;
+    ReadImage_BMP(self, AImageData, AImageDataSize);
+    FreeMem(AImageData);
 end;
 
 procedure TGfxImage.AllocateRGBImage(awidth, aheight: integer);
