@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.6  2004/01/09 17:29:56  aegluke
+// Windows-Drive support - Update
+//
 // Revision 1.5  2004/01/09 14:29:31  aegluke
 // Windows-Drive support
 //
@@ -77,7 +80,7 @@ begin
     ANumber := Windows.GetDriveType(PChar(ADrive));
     if ANumber <> 1 then
     begin
-      RootNode.AppendText8(ADrive+':');
+      RootNode.AppendText8(ADrive[1]+':');
     end;
   end;
 end;
@@ -223,7 +226,7 @@ begin
 	    FActiveDirectory := aValue;
 	    RootNode.Clear;
       {$IFDEF win32}
-      ReadDriveNames;
+        ReadDriveNames;
       {$ELSE}
 	      RootNode.AppendText8(copy(aValue,1,pos(cDirSeparator,aValue)-1));
       {$ENDIF}
