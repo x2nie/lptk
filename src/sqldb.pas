@@ -1,7 +1,7 @@
-{ sqldb.pas: Easy ODBC access objects
-  File maintainer: nvitya@freemail.hu
+{
+  Easy ODBC access objects
 
-History:
+  $Id$
 }
 
 {$ifdef FPC}
@@ -215,6 +215,12 @@ function CreateDriverNameList : TStringList;
 implementation
 
 uses Math, schar16, gfxdialogs;
+
+const
+  SQL_SIGNED_OFFSET   = -20;
+  SQL_UNSIGNED_OFFSET = -22;
+  SQL_C_SBIGINT = SQL_BIGINT + SQL_SIGNED_OFFSET;
+  SQL_C_UBIGINT = SQL_BIGINT + SQL_UNSIGNED_OFFSET;
 
 Function ODBCSuccess(Res : Integer) : Boolean;
 begin
@@ -871,7 +877,7 @@ begin
   
     SqlDescribeCol(FHandle, n, PChar(@(f.FieldName[1])), FieldNameMaxLength, nlen,
     f.SQLType, longword(f.FieldSize), f.Decimals, nullable);
-
+    
     case f.SQLType of
       SQL_CHAR,SQL_VARCHAR,SQL_LONGVARCHAR,
       SQL_BINARY,SQL_VARBINARY, SQL_LONGVARBINARY,
@@ -884,7 +890,7 @@ begin
          f.FieldType := ftInteger;
 
       SQL_BIGINT:
-
+      
          f.FieldType := ftBigInt;
 
       SQL_FLOAT, SQL_REAL, SQL_DOUBLE:
@@ -961,7 +967,7 @@ var
   buflen : integer;
 
   sqlts : SQL_TIMESTAMP_STRUCT;
-
+  
   irow : PRowIndexItem;
   
   f : TSqlField;
@@ -1024,7 +1030,7 @@ begin
 
       ftBigInt:
 
-          r := SQLGetData(FHandle, n, SQL_BIGINT, @(f.FbigintValue), SizeOf(f.FbigintValue), @len);
+          r := SQLGetData(FHandle, n, SQL_C_SBIGINT, @(f.FbigintValue), SizeOf(f.FbigintValue), @len);
 
       ftDouble:
 
@@ -1522,5 +1528,13 @@ finalization
 begin
   if ODBCEnvHandle <> 0 then SQLFreeHandle(SQL_HANDLE_ENV, ODBCEnvHandle);
 end;
+
+{--------------------------------------------------------------------------------
+  $Log$
+  Revision 1.4  2004/01/02 00:06:26  nvitya
+  bigint bugfix
+
+
+}
 
 end.
