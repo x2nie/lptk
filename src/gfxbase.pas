@@ -1910,8 +1910,8 @@ begin
     lfPitchAndFamily := DEFAULT_PITCH;
   end;
 
-  cp := 1;
-  c := desc[1];
+  cp := 0;
+  NextC;
 
   NextToken;
 
