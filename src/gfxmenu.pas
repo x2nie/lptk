@@ -40,6 +40,8 @@ type
     procedure DrawText(canvas : TGfxCanvas; x,y : TGfxCoord);
   end;
 
+  TMenuBar = class;
+
   TPopupMenu = class(TPopupWindow)
   private
     FMargin : TGfxCoord;
@@ -60,6 +62,7 @@ type
 
   public
     OpenerPopup : TPopupMenu;
+    OpenerMenuBar : TMenuBar;
 
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -126,10 +129,14 @@ type
     procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
 
+    procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
+
     procedure DoSelect;
     procedure CloseSubmenus;
 
     function MenuFocused : boolean;
+
+    function SearchItemByAccel(s : string16) : integer;
 
   public
 
@@ -188,7 +195,7 @@ procedure TMenuItem.DrawText(canvas: TGfxCanvas; x,y : TGfxCoord);
 var
   s16 : string;
   p : integer;
-  achar, ch : string16;
+  achar : string16;
 begin
   if not Enabled
     then Canvas.SetFont(guistyle.MenuDisabledFont)
@@ -256,6 +263,7 @@ begin
   BeforeShow := nil;
   FFocusItem := 1;
   OpenerPopup := nil;
+  OpenerMenubar := nil;
 end;
 
 destructor TPopupMenu.Destroy;
@@ -335,7 +343,6 @@ end;
 procedure TPopupMenu.Repaint;
 var
   n : integer;
-  mi : TMenuItem;
 begin
   inherited Repaint;
 
@@ -410,7 +417,7 @@ begin
   if (mi <> nil) and (not MenuFocused) and (mi.SubMenu <> nil) and mi.SubMenu.Windowed
     then mi.SubMenu.Close
     else DoSelect;
-    
+
 end;
 
 procedure TPopupMenu.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
@@ -419,6 +426,7 @@ var
   i : integer;
   s : string16;
   op : TPopupMenu;
+  trycnt : integer;
 
   procedure FollowFocus;
   begin
@@ -438,20 +446,35 @@ begin
   case keycode of
     KEY_UP:
            begin // up
+             trycnt := 2;
              i := FFocusItem-1;
-             while (i >= 1) and not VisibleItem(i).Selectable do dec(i);
+             repeat
+               while (i >= 1) and not VisibleItem(i).Selectable do dec(i);
+
+               if i >= 1 then break;
+
+               i := VisibleCount;
+               dec(trycnt);
+             until trycnt > 0;
 
              if i >= 1 then FFocusItem := i;
            end;
     KEY_DOWN:
            begin // down
-             if FFocusItem < VisibleCount then
-             begin
-               i := FFocusItem+1;
+
+             trycnt := 2;
+             i := FFocusItem+1;
+             repeat
                while (i <= VisibleCount) and not VisibleItem(i).Selectable do inc(i);
 
-               if i <= VisibleCount then FFocusItem := i;
-             end;
+               if i <= VisibleCount then break;
+
+               i := 1;
+               dec(trycnt);
+             until trycnt > 0;
+
+             if i <= VisibleCount then FFocusItem := i;
+
            end;
     KEY_ENTER:
            begin
@@ -460,12 +483,19 @@ begin
 
     KEY_LEFT:
            begin
-             if self.OpenerPopup <> nil then Close;
+             if OpenerMenubar <> nil then OpenerMenubar.HandleKeyPress(keycode, shiftstate, consumed);
            end;
 
     KEY_RIGHT:
            begin
-             if VisibleItem(FFocusItem).SubMenu <> nil then DoSelect;
+             if OpenerMenubar <> nil then OpenerMenubar.HandleKeyPress(keycode, shiftstate, consumed);
+             // VisibleItem(FFocusItem).SubMenu <> nil then DoSelect;
+           end;
+
+    KEY_BACKSPACE:
+           begin
+             //if self.OpenerPopup <> nil then
+             Close;
            end;
 
     KEY_ESC:
@@ -506,7 +536,6 @@ procedure TPopupMenu.DoSelect;
 var
   mi : TMenuItem;
   op : TPopupMenu;
-  n : integer;
 begin
   mi := VisibleItem(FFocusItem);
 
@@ -517,6 +546,7 @@ begin
     // showing the submenu
     mi.SubMenu.ShowAt(self.WinHandle,Width,GetItemPosY(FFocusItem));
     mi.SubMenu.OpenerPopup := self;
+    mi.SubMenu.OpenerMenuBar := self.OpenerMenuBar;
 
     FocusedPopupMenu := mi.SubMenu;
     self.Repaint;
@@ -554,6 +584,7 @@ begin
 
   FocusedPopupMenu := OpenerPopup;
   if (FocusedPopupMenu <> nil) and FocusedPopupMenu.Windowed then FocusedPopupMenu.Repaint;
+  if (OpenerMenuBar <> nil) and OpenerMenuBar.Windowed then OpenerMenuBar.Repaint; 
 end;
 
 function TPopupMenu.SearchItemByAccel(s: string16): integer;
@@ -578,8 +609,6 @@ procedure TPopupMenu.DrawItem(mi : TMenuItem; rect: TGfxRect);
 var
   s16 : string;
   x : integer;
-  p : integer;
-  achar, ch : string16;
 begin
   if mi.Separator then
   begin
@@ -588,39 +617,9 @@ begin
   end
   else
   begin
-    if not mi.Enabled
-      then Canvas.SetFont(FMenuDisabledFont)
-      else Canvas.SetFont(FMenuFont);
-    
     x := rect.Left + FSymbolWidth + FTextMargin;
-    achar := u8('&');
-    
-    s16 := mi.Text;
-    
-    repeat
-       p := Pos16(achar, s16);
-       if p > 0 then
-       begin
-         Canvas.DrawString16(x, rect.Top, copy16(s16,1,p-1));
-         inc(x, FMenuFont.TextWidth16(copy16(s16,1,p-1)) );
-         if copy16(s16,p+1,1) = achar then
-         begin
-           Canvas.DrawString16(x,rect.Top,achar);
-           inc(x, FMenuFont.TextWidth16(achar) );
-         end
-         else
-         begin
-           if mi.Enabled then Canvas.SetFont(FMenuAccelFont);
-           //Canvas.SetTextColor(clMenuAccel);
-           Canvas.DrawString16(x,rect.Top,copy16(s16,p+1,1));
-           inc(x, Canvas.Font.TextWidth16(copy16(s16,p+1,1)) );
-           if mi.Enabled then Canvas.SetFont(FMenuFont);
-         end;
-         s16 := copy16(s16,p+2,length16(s16));
-       end;
-    until p < 1;
 
-    if Length16(s16) > 0 then Canvas.DrawString16(x, rect.Top, s16);
+    mi.DrawText(Canvas,x,rect.top);
 
     if mi.HotKeyDef8 <> '' then
     begin
@@ -643,7 +642,6 @@ end;
 
 procedure TPopupMenu.DrawRow(line: integer; focus: boolean);
 var
-  h : integer;
   n : integer;
   r : TGfxRect;
   mi : TMenuItem;
@@ -790,8 +788,6 @@ end;
 procedure TMenuBar.DoSelect;
 var
   mi : TMenuItem;
-  op : TPopupMenu;
-  n : integer;
 begin
   mi := VisibleItem(FFocusItem);
 
@@ -802,6 +798,7 @@ begin
     // showing the submenu
     mi.SubMenu.ShowAt(self.WinHandle,GetItemPosX(FFocusItem)+2, guistyle.MenuFont.Height+4);
     mi.SubMenu.OpenerPopup := nil;
+    mi.SubMenu.OpenerMenuBar := self;
 
     FocusedPopupMenu := mi.SubMenu;
 
@@ -821,7 +818,6 @@ end;
 
 procedure TMenuBar.DrawColumn(col: integer; focus: boolean);
 var
-  h : integer;
   n : integer;
   r : TGfxRect;
   mi : TMenuItem;
@@ -888,6 +884,108 @@ begin
   end;
 end;
 
+procedure TMenuBar.HandleKeyPress(var keycode, shiftstate: word; var consumed: boolean);
+var
+  oldf : integer;
+  i,trycnt : integer;
+  s : string16;
+
+  procedure FollowFocus;
+  begin
+    if oldf <> FFocusItem then
+    begin
+      DrawColumn(oldf,false);
+      DrawColumn(FFocusItem,true);
+    end;
+  end;
+
+begin
+  inherited HandleKeyPress(keycode, shiftstate, consumed);
+
+  oldf := FFocusItem;
+
+  consumed := true;
+  case keycode of
+    KEY_LEFT:
+           begin // left
+             CloseSubmenus;
+
+             trycnt := 2;
+             i := FFocusItem-1;
+             repeat
+               while (i >= 1) and not VisibleItem(i).Selectable do dec(i);
+
+               if i >= 1 then break;
+
+               i := VisibleCount;
+               dec(trycnt);
+             until trycnt > 0;
+
+             if i >= 1 then FFocusItem := i;
+
+             if VisibleItem(FFocusItem).SubMenu <> nil then DoSelect;
+           end;
+
+    KEY_RIGHT:
+           begin // down
+             CloseSubmenus;
+
+             trycnt := 2;
+             i := FFocusItem+1;
+             repeat
+               while (i <= VisibleCount) and not VisibleItem(i).Selectable do inc(i);
+
+               if i <= VisibleCount then break;
+
+               i := 1;
+               dec(trycnt);
+             until trycnt > 0;
+
+             if i <= VisibleCount then FFocusItem := i;
+
+             if VisibleItem(FFocusItem).SubMenu <> nil then DoSelect;
+           end;
+
+    KEY_ENTER:
+           begin
+             DoSelect;
+           end;
+
+    KEY_BACKSPACE:
+           begin
+             if (VisibleItem(FFocusItem).SubMenu <> nil) and VisibleItem(FFocusItem).SubMenu.Windowed
+               then VisibleItem(FFocusItem).SubMenu.Close;
+           end;
+{
+    KEY_ESC:
+           begin
+           end;
+}
+  else
+    consumed := false;
+  end;
+
+  FollowFocus;
+
+  if (not consumed) and ((keycode and $8000) <> $8000) then
+  begin
+    // normal char
+    s := chr(keycode and $00FF) + chr((keycode and $FF00) shr 8);
+    i := SearchItemByAccel(s);
+    if i > 0 then
+    begin
+      FFocusItem := i;
+      FollowFocus;
+
+      Consumed := true;
+      
+      CloseSubmenus;
+      DoSelect;
+    end;
+  end;
+
+end;
+
 procedure TMenuBar.HandleMouseMove(x, y: integer; btnstate,shiftstate: word);
 var
   newf : integer;
@@ -945,6 +1043,7 @@ begin
     mi := VisibleItem(n);
     if (mi.SubMenu <> nil) and (mi.SubMenu.Windowed) then
     begin
+      //Writeln('Visible menu: ',u16noesc(mi.Text));
       result := false;
       break;
     end;
@@ -953,7 +1052,7 @@ end;
 
 procedure TMenuBar.PrepareToShow;
 var
-  n,h,tw,hkw,x : integer;
+  n : integer;
   mi : TMenuItem;
 begin
   if Assigned(BeforeShow) then BeforeShow(self);
@@ -976,7 +1075,6 @@ end;
 procedure TMenuBar.Repaint;
 var
   n : integer;
-  mi : TMenuItem;
 begin
   inherited Repaint;
 
@@ -986,7 +1084,24 @@ begin
   begin
     DrawColumn(n,n = FFocusItem);
   end;
+end;
 
+function TMenuBar.SearchItemByAccel(s: string16): integer;
+var
+  n : integer;
+begin
+  result := -1;
+  for n:=1 to VisibleCount do
+  begin
+    with VisibleItem(n) do
+    begin
+      if Enabled and (UpCase16(s) = UpCase16(GetAccelChar)) then
+      begin
+        result := n;
+        Exit;
+      end;
+    end;
+  end;
 end;
 
 function TMenuBar.VisibleCount: integer;

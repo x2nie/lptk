@@ -8,7 +8,7 @@ program menutest;
 {$ENDIF}
 
 uses SysUtils, Classes, gfxbase, gfxform, gfxbmpimage, schar16, gfxstyle, gfxstdimg,
-  popupwindow, gfxmenu;
+  popupwindow, gfxmenu, wgedit;
 
 type
 
@@ -22,6 +22,8 @@ type
     subm, subsubm : TPopupMenu;
 
     sub2, sub3 : TPopupMenu;
+
+    ed : TwgEdit;
 
     procedure AfterCreate; override;
 
@@ -43,7 +45,7 @@ begin
 
   WindowTitle8 := 'Menu test';
 
-  pmenu := TPopupMenu.Create(nil);
+  pmenu := TPopupMenu.Create(self);
   pmenu.AddMenuItem8('This is a &very long && menu item','',nil);
   pmenu.AddMenuItem8('-','',nil);
   pmenu.AddMenuItem8('First is invisible','',{$ifdef FPC}@{$endif}MenuSelect).Visible := false;
@@ -51,16 +53,16 @@ begin
   pmenu.AddMenuItem8('&Third is disabled','',{$ifdef FPC}@{$endif}MenuSelect).Enabled := false;
   pmenu.AddMenuItem8('Unicode: bend&^337','',{$ifdef FPC}@{$endif}MenuSelect);
   pmenu.AddMenuItem8('-','',nil);
-  subm := TPopupMenu.Create(nil);
+  subm := TPopupMenu.Create(self);
   pmenu.AddMenuItem8('Sub&Menu','',nil).SubMenu := subm;
     subm.AddMenuItem8('Sub1','',nil);
     subm.AddMenuItem8('Sub2','',nil);
-    subsubm := TPopupMenu.Create(nil);
+    subsubm := TPopupMenu.Create(self);
     subm.AddMenuItem8('Sub&3','',nil).SubMenu := subsubm;
       subsubm.AddMenuItem8('SubSub1','',nil);
       subsubm.AddMenuItem8('SubSub2','',nil);
   pmenu.AddMenuItem8('-','',nil);
-  sub2 := TPopupMenu.Create(nil);
+  sub2 := TPopupMenu.Create(self);
   pmenu.AddMenuItem8('SubMenu2','',nil).SubMenu := sub2;
     sub2.AddMenuItem8('Sub1','',nil);
     sub2.AddMenuItem8('Sub2','',nil);
@@ -76,6 +78,8 @@ begin
     sub3.AddMenuItem8('Menu3 - 2','',nil);
   mbar.AddMenuItem8('Thir&d',nil);
 
+
+  ed := CreateEdit(self, 20,50, 80,0)
 
 end;
 

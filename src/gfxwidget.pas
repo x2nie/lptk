@@ -807,7 +807,7 @@ begin
     for n := 0 to ComponentCount-1 do
     begin
       c := Components[n];
-      if c is TWidget then TWidget(c).DoShow;
+      if (c is TWidget) and (TWidget(c).Parent = self) then TWidget(c).DoShow;
     end;
   end;
 end;
@@ -820,7 +820,7 @@ begin
   for n := 0 to ComponentCount-1 do
   begin
     c := Components[n];
-    if c is TWidget then TWidget(c).DoHide;
+    if (c is TWidget) and (TWidget(c).Parent = self) then TWidget(c).DoHide;
   end;
   FOnScreen := False;
   ReleaseWindow;
