@@ -399,7 +399,7 @@ type
      FColor     : TGfxColor;
      FCurFont   : TGfxFont;
      FClipRect  : TGfxRect;
-
+     FClipRectSet : Boolean;
      FLineStyle : integer;
      FLineWidth : integer;
 
@@ -2161,6 +2161,7 @@ end;
 procedure TGfxCanvas.SetClipRect(const rect : TGfxRect);
 {$ifdef Win32}
 begin
+  FClipRectSet := True;
   FClipRect := rect;
   DeleteObject(FClipRegion);
 
@@ -2173,7 +2174,7 @@ var
   rg : TRegion;
 begin
   FClipRect := rect;
-
+  FClipRectSet := True;
   r.x := rect.left;
   r.y := rect.top;
   r.width := rect.width;
@@ -2197,6 +2198,7 @@ procedure TGfxCanvas.AddClipRect(const rect: TGfxRect);
 var
   rg : HRGN;
 begin
+  FClipRect := Rect;
   rg := CreateRectRgn(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height);
   CombineRgn(FClipRegion,rg,FClipRegion,RGN_AND);
   DeleteObject(rg);
@@ -2207,6 +2209,7 @@ var
   r : TXRectangle;
   rg : TRegion;
 begin
+  FClipRect := Rect;
   r.x := rect.left;
   r.y := rect.top;
   r.width := rect.width;
@@ -2225,6 +2228,7 @@ procedure TGfxCanvas.ClearClipRect;
 {$ifdef Win32}
 begin
   SelectClipRgn(Fgc, 0);
+  FClipRectSet := False;
 end;
 {$else}
 var
@@ -2301,29 +2305,32 @@ var
 begin
      // added by aegluke
      if img = nil then exit;
-     ARect := GetClipRect;
-     if ARect.top > y then
+     if FClipRectSet then
      begin
+      ARect := GetClipRect;
+      if ARect.top > y then
+      begin
         AInt := ARect.top - y;
         y := ARect.top;
         yi := yi + AInt;
         h := h - AInt;
-     end;
-     if h < 0 then exit;
-     if ARect.Left > x then
-     begin
+      end;
+      if h < 0 then exit;
+      if ARect.Left > x then
+      begin
           AInt := ARect.Left - x;
           x := ARect.Left;
           xi := xi + AInt;
           w := w - AInt;
-     end;
-     if w < 0 then exit;
-     if x + w > ARect.Right then
+      end;
+      if w < 0 then exit;
+      if x + w > ARect.Right then
         w := ARect.Right - x ;
-     if w < 0 then exit;
-     if y + h > ARect.Bottom then
+      if w < 0 then exit;
+      if y + h > ARect.Bottom then
         h := ARect.Bottom - y;
-     if h < 0 then exit;
+      if h < 0 then exit;
+     end;
 {$ifdef Win32}
   tmpdc := CreateCompatibleDC(display);
 
@@ -2374,6 +2381,7 @@ begin
   end;
 
 {$endif}
+  if FClipRectSet then
         SetClipRect(FClipRect);
 end;
 
@@ -2551,8 +2559,8 @@ begin
     CloseFile(AFile);
     if AImageData = nil then
     begin
-	raise Exception.Create(CENotEnoughImageMemory);
-	exit;
+	    raise Exception.Create(CENotEnoughImageMemory);
+	    exit;
     end;
     ReadImage_BMP(self, AImageData, AImageDataSize);
     FreeMem(AImageData);
