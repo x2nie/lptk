@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.10  2004/01/29 12:48:10  aegluke
+// Windows-Changes
+//
 // Revision 1.9  2004/01/24 18:35:51  aegluke
 // wgfiledialog-changes
 //
@@ -129,7 +132,8 @@ type
              property ImageList : TgfxImageList read GetImageList write SetImageList;
              property DropDownRows : Word read FDropDownRows write SetDropDownRows;
              property ActiveDirectory : String read GetActiveDirectory write SetActiveDirectory;
-	     property Font : TgfxFont read FFont;
+	           property Font : TgfxFont read FFont;
+       public
              onChange : TNotifyEvent;
     end;
 
@@ -142,7 +146,7 @@ uses
 
 procedure TwgDirTreePopupTree.HandleDoubleClick(AX, AY : Longint; AButton : Word; AShiftState : Word);
 begin
-     PostMessage(self, Owner, MSG_DOUBLECLICK, AX, AY, AButton);
+     MessageQueue.PostMessage(self, Owner, MSG_DOUBLECLICK, AX, AY, AButton);
 end;
 
 { TwgDirTreePopup }
@@ -350,7 +354,7 @@ begin
           KEY_ENTER:
           begin
                Close;
-               PostMessage(self, Owner, MSG_KEYPRESS, KEY_TAB, 0, 0);
+               MessageQueue.PostMessage(self, Owner, MSG_KEYPRESS, KEY_TAB, 0, 0);
                if OldDirectory <> FDirTree.ActiveDirectory then TwgDirTreePopup(Owner).DoChange;
                OldDirectory := FDirTree.ActiveDirectory;
                AConsumed := True;
