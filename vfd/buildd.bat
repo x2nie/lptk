@@ -1,2 +1,2 @@
 #!/bin/bash
-fpc -Cr -gl -Sd2h -Fu../src app_vfd.dpr
+fpc -B -Cr -gl -Sdh -Fu../src app_vfd.dpr
