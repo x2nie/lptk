@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.6  2003/12/23 08:24:23  aegluke
+// avoid artifacts on directory change
+//
 // Revision 1.5  2003/12/22 13:07:32  aegluke
 // Linux changes
 //
@@ -641,6 +644,7 @@ begin
     begin
       ReadDriveNames;
       FDirectory := AValue;
+      if Windowed then canvas.Clear(BackgroundColor);
       RePaint;
       DoDirectoryChange;
     end
@@ -648,12 +652,13 @@ begin
   {$ENDIF}
     begin
       while pos(DirSeparator+DirSeparator,AValue) <> 0 do
-        Delete(AValue,pos(DirSeparator+DirSeparator,AValue),1);
+        Delete(AValue,pos(DirSeparator+DirSeparator,AValue),1);	
       AValue := ExpandFileName(AValue+DirSeparator);
       while pos(DirSeparator+DirSeparator,AValue) <> 0 do
         Delete(AValue,1,1);
       if DirectoryExists(AValue) and (AValue <> FDirectory) then
       begin
+        if Windowed then canvas.Clear(BackgroundColor);
         FDirectory := aValue;
         ReadDirectory;
         FocusCol := 0;
