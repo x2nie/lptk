@@ -2007,7 +2007,7 @@ end;
 
 {$ifdef Win32}
 
-function MyFontEnumerator(var LogFont: ENUMLOGFONTEX; var TextMetric: NEWTEXTMETRICEX;
+function MyFontEnumerator(var LogFont: ENUMLOGFONTEX; var TextMetric: {$ifndef FPC}NEWTEXTMETRICEXA{$else}NEWTEXTMETRICEX{$endif};
   FontType: Integer; data: LPARAM): Integer; stdcall;
 var
   sl : TStringList;
