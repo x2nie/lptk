@@ -680,7 +680,7 @@ var
 begin
   if WinHandle > 0 then Exit;
 
-  if FParent <> nil then pwh := FParent.WinHandle else pwh := RootWindow;
+  if FParent <> nil then pwh := FParent.WinHandle else pwh := GfxRootWindow;
 
   bcolor := GfxColorToX(BackgroundColor);
 

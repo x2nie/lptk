@@ -53,7 +53,7 @@ begin
     nil       // window-creation data
     );
 {$else}
-  ClipboardWindow := XCreateSimpleWindow(Display, RootWindow,  10,10,10,10, 0, 0, 0 );
+  ClipboardWindow := XCreateSimpleWindow(Display, GfxRootWindow,  10,10,10,10, 0, 0, 0 );
 {$endif}
 end;
 

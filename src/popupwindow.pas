@@ -201,7 +201,7 @@ var
   dx,dy : integer;
   cw : TWinHandle;
 begin
-  XTranslateCoordinates(display, wh, RootWindow, x, y, @dx, @dy, @cw);
+  XTranslateCoordinates(display, wh, GfxRootWindow, x, y, @dx, @dy, @cw);
 
   Left := dx;
   Top  := dy;

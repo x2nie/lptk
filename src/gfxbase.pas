@@ -467,11 +467,11 @@ var
 
   DefaultBackground : TGfxColor;
   DefaultForeground : TGfxColor;
-  DefaultScreen : integer;
-  DefaultVisual : PVisual;
+  
+  GfxDefaultScreen : integer;
+  GfxDefaultVisual : PVisual;
   GfxDefaultColorMap : TColorMap;
-
-  RootWindow : TWinHandle;
+  GfxRootWindow : TWinHandle;
 
 var
   xia_clipboard        : TAtom;
@@ -661,7 +661,7 @@ begin
     xap := pt.X;
     yap := pt.Y;
 {$else}
-    XTranslateCoordinates(display, wh, RootWindow, x, y, @xap, @yap, @cw);
+    XTranslateCoordinates(display, wh, GfxRootWindow, x, y, @xap, @yap, @cw);
 {$endif}
   end;
 end;
@@ -1231,17 +1231,17 @@ begin
 
   if Display = nil then Exit;
 
-  DefaultScreen := XDefaultScreen(Display);
-  RootWindow := XRootWindow(Display, DefaultScreen);
-  DefaultBackground := XBlackPixel(Display, DefaultScreen);
-  DefaultForeground := XWhitePixel(Display, DefaultScreen);
+  GfxDefaultScreen := XDefaultScreen(Display);
+  GfxRootWindow := XRootWindow(Display, GfxDefaultScreen);
+  DefaultBackground := XBlackPixel(Display, GfxDefaultScreen);
+  DefaultForeground := XWhitePixel(Display, GfxDefaultScreen);
 
-  DefaultVisual := XDefaultVisual(display, DefaultScreen);
-  DisplayDepth := XDefaultDepth(display, DefaultScreen);
+  GfxDefaultVisual := XDefaultVisual(display, GfxDefaultScreen);
+  DisplayDepth := XDefaultDepth(display, GfxDefaultScreen);
 
-  GfxDefaultColorMap := XDefaultColorMap(display, DefaultScreen);
+  GfxDefaultColorMap := XDefaultColorMap(display, GfxDefaultScreen);
 
-  XGetWindowAttributes(display, RootWindow, @wa);
+  XGetWindowAttributes(display, GfxRootWindow, @wa);
   ScreenWidth  := wa.width;
   ScreenHeight := wa.height;
 
@@ -1819,7 +1819,7 @@ begin
 {$ifdef Win32}
   fnt := WinOpenFont(desc);
 {$else}
-  fnt := XftFontOpenName(display, DefaultScreen, PChar(desc) );
+  fnt := XftFontOpenName(display, GfxDefaultScreen, PChar(desc) );
 {$endif}
 
   if {$ifdef Win32}fnt <> 0{$else}fnt <> nil{$endif}
@@ -1861,7 +1861,7 @@ var
 begin
   FWin := winhandle;
   Fgc := XCreateGc(display, FWin, 0, @GcValues);
-  FXftDraw := XftDrawCreate(display, FWin, XDefaultVisual(display, DefaultScreen), XDefaultColormap(display, DefaultScreen));
+  FXftDraw := XftDrawCreate(display, FWin, XDefaultVisual(display, GfxDefaultScreen), XDefaultColormap(display, GfxDefaultScreen));
   FCurFont := guistyle.DefaultFont;
   SetTextColor(clText1);
 
