@@ -1,0 +1,1 @@
+updatestdimgs > ../icons.inc
