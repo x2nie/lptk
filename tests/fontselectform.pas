@@ -1,10 +1,10 @@
 program fontselect;
 
+{$APPTYPE GUI}
+
 {$IFDEF FPC}
     {$mode delphi}
     {$H+}
-{$ELSE}
-{$APPTYPE CONSOLE}
 {$ENDIF}
 
 uses SysUtils, Classes, gfxbase, gfxform, gfxbmpimage, schar16, gfxstyle, gfxstdimg,

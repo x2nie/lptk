@@ -1,9 +1,9 @@
 program selectcolor;
 
+{$apptype GUI}
+
 {$ifdef FPC}
-{$mode delphi}{$H+}
-{$else}
-{$apptype CONSOLE}
+  {$mode delphi}{$H+}
 {$endif}
 
 uses
