@@ -3,6 +3,7 @@ unit wgtree;
 { 
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
+    16.07.2003	0.8	bugfix for: TwgTreeNode.Remove, TwgTreeNode.UnregisterSubNode
     25.06.2003	0.7	fixed error in DoChange, visual enhancements, fixed bug in keyboard selection handling
     20.06.2003	0.6	use of the clUnset-Color, it replaces the ColorSet-properties in the treenodes
     19.06.2003	0.5	nodecolor can set for every node - if not set color setting of the parent is used
@@ -21,7 +22,7 @@ unit wgtree;
     {$H+}
 {$ENDIF}
 
-{$DEFINE DEBUG}
+{//$DEFINE DEBUG}
 
 interface
 
@@ -1077,6 +1078,7 @@ begin
 	    if h.next <> nil then h.next.prev := h.prev;
 	    exit;
 	end;
+	h := h.next;
     end;
 end;
 
@@ -1140,14 +1142,14 @@ begin
     if FirstSubNode = aNode then
     begin
 	FFirstSubNode := aNode.next;
-	FFirstSubNode.Prev := nil;
+	if FFirstSubNode <> nil then FFirstSubNode.Prev := nil;
     end
     else
 	if aNode.prev <> nil then aNode.Prev.next := aNode.next;
     if LastSubNode = aNode then
     begin
 	FLastSubNode := aNode.prev;
-	FLastSubNode.next := nil;
+	if FLastSubNode <> nil then FLastSubNode.next := nil;
     end
     else
 	if aNode.next <> nil then aNode.next.prev := aNode.prev;
