@@ -271,7 +271,7 @@ begin
 //  XSetWMName(display, FWinHandle, @wnprop);
 //  XSetWMIconName(display, FWinHandle, @wnprop);
 
-  s8 := u16u8safe(FWindowTitle);
+  s8 := u16u8trunc(FWindowTitle);
   
   if length(s8) > 0 then p := @s8[1] else p := nil;
 
