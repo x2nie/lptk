@@ -17,6 +17,8 @@ uses
 type
   TwgLabel = class(TWidget)
   private
+    FColor: TGfxColor;
+    procedure SetColor(const AValue: TGfxColor);
     procedure SetFont(const AValue: TGfxFont);
     procedure SetText(const AValue : String16);
     procedure SetText8(const AValue: string);
@@ -34,6 +36,8 @@ type
     property Text8 : string read GetText8 write SetText8;
 
     property Font : TGfxFont read FFont write SetFont;
+    
+    property Color : TGfxColor read FColor write SetColor;
   end;
 
   TLabelClass = class of TwgLabel;
@@ -54,6 +58,13 @@ begin
 end;
 
 { TwgLabel }
+
+procedure TwgLabel.SetColor(const AValue: TGfxColor);
+begin
+  if FColor=AValue then exit;
+  FColor:=AValue;
+  RePaint;
+end;
 
 procedure TwgLabel.SetFont(const AValue: TGfxFont);
 begin
@@ -85,6 +96,7 @@ begin
   FText := '';
   FFont := guistyle.LabelFont1;
   FHeight := FFont.Height;
+  FColor := clText1;
 end;
 
 destructor TwgLabel.Destroy;
@@ -101,6 +113,7 @@ begin
   //writeln('label paint');
   Canvas.Clear(FBackgroundColor);
   Canvas.SetFont(Font);
+  Canvas.SetTextColor(FColor);
   Canvas.DrawString16(0,0, FText);
 
 //  r.SetRect(0,0,width,height);
