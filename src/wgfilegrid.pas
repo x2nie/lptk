@@ -2,9 +2,12 @@
   File maintainer: Erik@Grohnwaldt.de
 
   History: }
-//$Log$
-//Revision 1.1  2003/12/10 19:09:10  aegluke
-//Initial release, only for presentation
+// $Log$
+// Revision 1.2  2003/12/11 11:58:37  aegluke
+// linux changes
+//
+// Revision 1.1  2003/12/10 19:09:10  aegluke
+// Initial release, only for presentation
 //
 
 unit wgfilegrid;
@@ -64,7 +67,7 @@ begin
   if fgDetail in FOptions then
   begin
     RowCount := FFiles.Count;
-    ColumnCount := 0;
+    ColumnCount := 1;
     AddColumn8('File',100);
     AddColumn8('Size',72);
     AddColumn8('Date',72);
@@ -115,6 +118,7 @@ constructor TwgFileGrid.Create(aOwner : TComponent);
 begin
   inherited Create(aOwner);
   FFiles := TList.Create;
+  ColumnCount := 1;
   FOptions := [fgDetail];
 end;
 
@@ -133,10 +137,16 @@ var
   rec : TSearchRec;
   FileAttr : integer;
   Container : TwgFileData;
+  SearchStr : String;
 begin
   FFiles.Clear;
-  FileAttr := faSysFile + faArchive + faAnyFile + faDirectory;
-  if FindFirst(FDirectory+'\*', FileAttr, rec) = 0 then
+  {$ifdef win32}
+          SearchStr := FDirectory + '\*';
+  {$else}
+         SearchStr := FDirectory + '/*';
+  {$endif}
+  FileAttr := faAnyFile;
+  if FindFirst(SearchStr, FileAttr, rec) = 0 then
   begin
     repeat
       Container := TwgFileData.Create;
