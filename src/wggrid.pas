@@ -5,6 +5,9 @@ History:
 }
 
 // $Log$
+// Revision 1.20  2004/05/06 17:35:47  nvitya
+// division by zero error fix
+//
 // Revision 1.19  2004/04/24 23:59:58  nvitya
 // Font handling changes
 //
@@ -94,9 +97,7 @@ type
     property RowHeight : TGfxCoord read FRowHeight;
 
     property Font : TGfxFont read FFont;
-    property FontName : string read GetFontName write SetFontName;
     property HeaderFont : TGfxFont read FHeaderFont;
-    property HeaderFontName : string read GetHeaderFontName write SetHeaderFontName;
 
     property ColumnWidth[aCol : integer] : TgfxCoord read GetColumnWidth write SetColumnWidth;
 
@@ -150,6 +151,11 @@ type
 
     OnDoubleClick : TMouseNotifyEvent;
 
+  published
+
+    property FontName : string read GetFontName write SetFontName;
+    property HeaderFontName : string read GetHeaderFontName write SetHeaderFontName;
+    
   end;
 
 implementation
@@ -280,7 +286,10 @@ begin
   if FVScrollBar.Visible then
   begin
     FVScrollBar.Min := 1;
-    FVScrollBar.SliderSize := VisibleLines / RowCount;
+    if RowCount > 0
+      then FVScrollBar.SliderSize := VisibleLines / RowCount
+      else FVScrollBar.SliderSize := 0;
+      
     FVScrollBar.Max := RowCount-VisibleLines+1;
     FVScrollBar.Position := FFirstRow;
 
@@ -332,6 +341,8 @@ begin
   inherited Create(AOwner);
   DrawGrid := true;
   Focusable := true;
+  FWidth := 120;
+  FHeight := 80;
   FFocusCol := 1;
   FPrevCol := 0; //FFocusCol;
   FFocusRow := 1;
