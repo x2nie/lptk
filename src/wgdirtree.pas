@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.8  2004/01/19 18:19:35  aegluke
+// TwgDirTreePopup added
+//
 // Revision 1.7  2004/01/14 08:22:31  aegluke
 // Fixed wrong use of FindSubNode
 //
@@ -34,7 +37,7 @@ unit wgdirtree;
 interface
 
 uses
-    wgtree, classes, schar16;
+    wgtree, classes, schar16, popupwindow, gfxbase, gfxwidget, gfxstyle, messagequeue, gfximagelist;
 
 const 
     {$IFDEF win32}
@@ -47,28 +50,331 @@ type
   TwgDirTree = class(TwgTree)
 	private
 	    FActiveDirectory : string;
-      FDirectoryIndex : word;
+            FDirectoryIndex : word;
 	    procedure SetActiveDirectory(aValue : string);
 	protected
 	    function GetAbsoluteDir(aNode : TwgTreeNode) : string;
 	    procedure DoChange; override;
 	    procedure DoExpand(aNode : TwgTreeNode); override;
-      procedure SetDirectoryIndex(AValue : Word);
-      {$IFDEF win32}
-      procedure ReadDriveNames;
-      {$endif}
+            procedure SetDirectoryIndex(AValue : Word);
+            {$IFDEF win32}
+            procedure ReadDriveNames;
+            {$endif}
 	public
 	    constructor Create(aOwner : TComponent); override;
 	    procedure ReadDirectories(aParentNode : TwgTreeNode);	    
 	    // read's the directory entries of the given dirname in the parent-node.text	    
 	    property ActiveDirectory : string read FActiveDirectory write SetActiveDirectory;
-      property DirectoryIndex : word read FDirectoryIndex write FDirectoryIndex;
+            property DirectoryIndex : word read FDirectoryIndex write FDirectoryIndex;
+    end;
+
+    TwgDirTreePopupTree = class(TwgDirTree)
+           protected
+                    procedure HandleDoubleClick(AX, AY : Longint; AButton : Word; AShiftState : Word); override; // Hide the DoubleClick
+    end;
+
+    TwgDirTreePopupWindow = class(TPopupWindow)
+      private
+             FOldDirectory : String;
+             FPopupDir : String;
+             FDirTree : TwgDirTreePopupTree;
+      protected
+               procedure HandleKeyPress(var AKeyCode : Word; var AShiftState : Word; var AConsumed : Boolean); override;
+               procedure HandleDoubleClick(AX, AY : Longint; AButton : Word; AShiftState : Word); override;
+      public
+            constructor Create(AOwner : TComponent); override;
+            destructor Destroy; override;
+            procedure DoShow; override;
+            property OldDirectory : String read FOldDirectory write FOldDirectory;
+            property DirTree : TwgDirTreePopupTree read FDirTree;
+            property PopupDir : String read FPopupDir write FPopupDir;
+    end;
+
+    TwgDirTreePopup = class(TWidget)
+       private
+              FPopup : TwgDirTreePopupWindow;
+              FDropDownRows : Word;
+              FDroppedDown : Boolean;
+              FBlockDrop : Boolean;
+              FFont : TgfxFont;
+              FHotTrack : Boolean;
+       protected
+                procedure MsgPopupClose(var AMsg : TMessageRec); message MSG_POPUPCLOSE;
+                procedure SetDropDownRows(AValue : Word);
+                procedure HandleMouseDown(AX, AY : Integer; AButton : Word; AShiftState : Word); override;
+                procedure HandleMouseUp(AX, AY : Integer; AButton : Word; AShiftState : Word); override;
+                procedure DoSetFocus; override;
+                procedure SetActiveDirectory(AValue : String);
+                procedure SelectionChange(ASender : TObject);
+                function GetActiveDirectory : String;
+                procedure SetImageList(AValue : TgfxImageList);
+                function GetImageList : TgfxImageList;
+                procedure SetImageIndex(AValue : Word);
+                function GetImageIndex : Word;
+                procedure SetShowImages(AValue : Boolean);
+                function GetShowImages : Boolean;
+                
+       public
+             procedure DoChange;
+             procedure RePaint; override;
+             procedure DropDown;
+             constructor Create(AOwner : TComponent); override;
+             destructor Destroy; override;
+             property HotTrack : Boolean read FHotTrack write FHotTrack;
+             property ShowImages : Boolean read GetShowImages write SetShowImages;
+             property ImageIndex : Word read GetImageIndex write SetImageIndex;
+             property ImageList : TgfxImageList read GetImageList write SetImageList;
+             property DropDownRows : Word read FDropDownRows write SetDropDownRows;
+             property ActiveDirectory : String read GetActiveDirectory write SetActiveDirectory;
+	     property Font : TgfxFont read FFont;
+             onChange : TNotifyEvent;
     end;
 
 implementation
 
 uses
     sysutils{$IFDEF win32},windows{$ENDIF};
+
+{ TwgDirTreePopupTree }
+
+procedure TwgDirTreePopupTree.HandleDoubleClick(AX, AY : Longint; AButton : Word; AShiftState : Word);
+begin
+     PostMessage(self, Owner, MSG_DOUBLECLICK, AX, AY, AButton);
+end;
+
+{ TwgDirTreePopup }
+
+procedure TwgDirTreePopup.DoChange;
+begin
+     if Assigned(onChange) then onChange(Self);
+end;
+
+function TwgDirTreePopup.GetShowImages : Boolean;
+begin
+     Result := FPopup.DirTree.ShowImages;
+end;
+
+procedure TwgDirTreePopup.SetShowImages(AValue : Boolean);
+begin
+     FPopup.DirTree.ShowImages := AValue;
+end;
+
+function TwgDirTreePopup.GetImageIndex : Word;
+begin
+     result := FPopup.DirTree.DirectoryIndex;
+end;
+
+procedure TwgDirTreePopup.SetImageIndex(AValue : Word);
+begin
+     FPopup.DirTree.DirectoryIndex := AValue;
+end;
+
+function TwgDirTreePopup.GetImageList : TgfxImageList;
+begin
+     Result := FPopup.DirTree.ImageList;
+end;
+
+procedure TwgDirTreePopup.SetImageList(AValue : TgfxImageList);
+begin
+     FPopup.DirTree.ImageList := AValue;
+end;
+
+procedure TwgDirTreePopup.SelectionChange(ASender : TObject);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.SelectionChange');
+     {$ENDIF}
+     RePaint;
+     if HotTrack then
+     begin
+          DoChange;
+          FPopup.OldDirectory := ActiveDirectory;
+     end;
+end;
+
+procedure TwgDirTreePopup.SetActiveDirectory(AValue : String);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.SetActiveDirectory');
+     {$ENDIF}
+     FPopup.DirTree.ActiveDirectory := AValue;
+     RePaint;
+     FPopup.OldDirectory := ActiveDirectory;
+end;
+
+function TwgDirTreePopup.GetActiveDirectory : String;
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.GetActiveDirectory');
+     {$ENDIF}
+     result := FPopup.DirTree.ActiveDirectory;
+end;
+
+procedure TwgDirTreePopup.DoSetFocus;
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.DoSetFocus');
+     {$ENDIF}
+     inherited DoSetFocus;
+     FBlockDrop := False;
+end;
+
+procedure TwgDirTreePopup.MsgPopupClose(var AMsg : TMessageRec);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.MsgPopupClose');
+     {$ENDIF}
+     FBlockDrop := FDroppedDown;
+     if ActiveDirectory <> FPopup.OldDirectory then
+     begin
+          DoChange;
+          FPopup.OldDirectory := ActiveDirectory;
+     end;
+end;
+
+procedure TwgDirTreePopup.HandleMouseUp(AX, AY : Integer; AButton : Word; AShiftState : Word);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.HandleMouseUp');
+     {$ENDIF}
+     inherited HandleMouseUp(AX, AY, AButton, AShiftState);
+     if not FBlockDrop then
+     begin
+          DropDown;
+     end
+     else
+     begin
+          if FPopup.OldDirectory <> ActiveDirectory then
+          begin
+               DoChange;
+               FPopup.OldDirectory := ActiveDirectory;
+          end;
+     end;
+     FBlockDrop := False;
+     FDroppedDown := FPopup.WinHandle > 0;
+end;
+
+procedure TwgDirTreePopup.HandleMouseDown(AX, AY : Integer; AButton : Word; AShiftState : Word);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.HandleMouseDown');
+     {$ENDIF}
+     inherited HandleMouseDown(AX, AY, AButton, AShiftState);
+     FDroppedDown := FPopup.WinHandle > 0;
+end;
+
+procedure TwgDirTreePopup.SetDropDownRows(AValue : Word);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.SetPopupLines');
+     {$ENDIF}
+     if AValue = 0 then
+        AValue := 1;
+     FDropDownRows := AValue;
+end;
+
+procedure TwgDirTreePopup.DropDown;
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.DropDown');
+     {$ENDIF}
+     FPopup.Width := Width;
+     FPopup.Height := FPopup.DirTree.GetNodeHeight * FDropDownRows;
+     FDroppedDown := True;
+     FPopup.ShowAt(WinHandle,0,Height);
+     FPopup.PopupDir := ActiveDirectory;
+end;
+
+procedure TwgDirTreePopup.RePaint;
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTreePopup.RePaint');
+     {$ENDIF}
+     if not Windowed then exit;
+     Canvas.Clear(FBackgroundColor);
+     if Focused then
+        Canvas.SetColor(clWidgetFrame)
+     else
+         Canvas.SetColor(clInactiveWGFrame);
+     Canvas.DrawRectangle(0,0,Width,Height);
+     Canvas.DrawString16(4,Height div 2 - FFont.Height div 2,Str8To16(ActiveDirectory));
+     DrawButtonFace(Canvas, width - height + 1, 1, height - 2, height - 2);
+     DrawDirectionArrow(Canvas, Width - Height + 1, 1, Height - 2, Height - 2, 1);
+end;
+
+constructor TwgDirTreePopup.Create(AOwner : TComponent);
+begin
+     inherited Create(AOwner);
+     FPopup := TwgDirTreePopupWindow.Create(Self);
+     FDropDownRows := 8;
+     OnChange := nil;
+     FHotTrack := False;
+     FDroppedDown := False;
+     FBlockDrop := False;
+     FFocusAble := True;
+     FDroppedDown := True;
+     FBackgroundColor := clChoiceListBox;
+     FFont := guistyle.ListFont;
+     FPopup.DirTree.onChange := {$IFDEF fpc}@{$ENDIF}SelectionChange;
+     FPopup.OldDirectory := ActiveDirectory;
+end;
+
+destructor TwgDirTreePopup.Destroy;
+begin
+     FPopup.Destroy;
+     inherited Destroy;
+end;
+
+{ TwgDirTreePopupWindow }
+
+procedure TwgDirTreePopupWindow.HandleDoubleClick(AX, AY : Longint; AButton : Word; AShiftState : Word);
+begin
+     Close;
+     if OldDirectory <> FDirTree.ActiveDirectory then TwgDirTreePopup(Owner).DoChange;
+end;
+
+procedure TwgDirTreePopupWindow.HandleKeyPress(var AKeyCode : Word; var AShiftState : Word; var AConsumed : Boolean);
+begin
+     inherited HandleKeyPress(AKeyCode, AShiftState, AConsumed);
+     case AKeyCode of
+          KEY_ESC:
+          begin
+               Close;
+               FDirTree.ActiveDirectory := FPopupDir;
+               AConsumed := True;
+               TwgDirTreePopup(Owner).RePaint;
+          end;
+          KEY_ENTER:
+          begin
+               Close;
+               PostMessage(self, Owner, MSG_KEYPRESS, KEY_TAB, 0, 0);
+               if OldDirectory <> FDirTree.ActiveDirectory then TwgDirTreePopup(Owner).DoChange;
+               OldDirectory := FDirTree.ActiveDirectory;
+               AConsumed := True;
+          end;
+     end;
+end;
+
+destructor TwgDirTreePopupWindow.Destroy;
+begin
+     DirTree.Free;
+     inherited Destroy;
+end;
+
+procedure TwgDirTreePopupWindow.DoShow;
+begin
+     DirTree.SetDimensions(0,0,Width,Height);
+     inherited DoShow;
+     ActiveWidget := DirTree;
+end;
+
+constructor TwgDirTreePopupWindow.Create(AOwner : TComponent);
+begin
+     inherited Create(AOwner);
+     FDirTree := TwgDirTreePopupTree.Create(Self);
+end;
+
+{ TwgDirTree }
 
 {$IFDEF win32}
 procedure TwgDirTree.ReadDriveNames;
@@ -150,8 +456,8 @@ end;
 
 procedure TwgDirTree.DoChange;
 begin
-    inherited DoChange;
     ActiveDirectory := GetAbsoluteDir(Selection);
+    inherited DoChange;
 end;
 
 constructor TwgDirTree.Create(aOwner : TComponent);
