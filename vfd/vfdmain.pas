@@ -17,9 +17,15 @@ uses
   vfdresizer, vfdforms, vfddesigner, vfdfile, newformdesigner, wgfiledialog;
 
 const
-  program_version = '0.83';
+  program_version = '0.84';
 
 {version description:
+0.84
+  - "New" in the file menu
+  - Small changes
+  - Font name editing bugfix on Windows
+  - Once in the taskbar on Windows
+
 0.83
   - New file dialog usage
   - File Name in the WindowTitle
@@ -59,13 +65,16 @@ const
 type
 
   TMainDesigner = class
+  private
+    procedure SetEditedFileName(const Value: string);
   protected
     FDesigners : TList;
 
     FFile : TVFDFile;
 
+    FEditedFileName : string;
+
   public
-    EditedFileName : string;
     GridResolution : integer;
 
     SaveComponentNames : boolean;
@@ -92,6 +101,7 @@ type
 
     procedure OnNewForm(sender : TObject);
 
+    procedure OnNewFile(sender : TObject);
     procedure OnSaveFile(sender : TObject);
     procedure OnLoadFile(sender : TObject);
 
@@ -113,6 +123,9 @@ type
 
     procedure OnOptionsClick(sender : TObject);
 
+  public
+    property EditedFileName : string read FEditedFileName write SetEditedFileName;
+
   end;
 
 var
@@ -124,29 +137,29 @@ uses vfdformparser;
 
 { TMainDesigner }
 
+procedure TMainDesigner.OnNewFile(sender: TObject);
+var
+  n : integer;
+begin
+  EditedFileName := '';
+  for n := 0 to FDesigners.Count-1 do
+  begin
+    selectedform := nil;
+    TFormDesigner(FDesigners[n]).Free;
+  end;
+  FDesigners.Clear;
+  OnNewForm(sender);
+end;
+
+
 procedure TMainDesigner.OnLoadFile(sender: TObject);
 var
   n, m : integer;
   bl, bl2 : TVFDFileBlock;
   fname : string;
   afiledialog : TfrmFileDialog;
-  //frm : TfrmLoadSave;
 begin
   fname := EditedFileName;
-{
-  if sender <> maindsgn then
-  begin
-    frm := TfrmLoadSave.Create(nil);
-    frm.WindowTitle8 := 'Open file';
-    frm.edFileName.Text8 := fname;
-    if frm.ShowModal > 0
-      then fname := frm.edFileName.Text8
-      else fname := '';
-    frm.Free;
-  end;
-}
-
-// dialog removed due instability
 
   if sender <> maindsgn then
   begin
@@ -162,8 +175,6 @@ begin
     else fname := '';
     FreeAndNil(aFileDialog);
   end;
-
-  frmMain.WindowTitle8 := 'LPTK VFD - v'+program_version;
 
   if fname = '' then Exit;
 
@@ -205,8 +216,6 @@ begin
     end;
   end;
 
-  frmMain.WindowTitle8 := fname+' - VFD v'+program_version;
-
 end;
 
 procedure TMainDesigner.OnSaveFile(sender: TObject);
@@ -220,19 +229,8 @@ var
 
   fname, uname : string;
   aFileDialog : TfrmFileDialog;
-  //frm : TfrmLoadSave;
 begin
   fname := EditedFileName;
-
-{
-  frm := TfrmLoadSave.Create(nil);
-  frm.WindowTitle8 := 'Save form source';
-  frm.edFileName.Text8 := fname;
-  if frm.ShowModal > 0
-    then fname := frm.edFileName.Text8
-    else fname := '';
-  frm.Free;
-}
 
   afiledialog := TfrmFileDialog.Create(nil);
   afiledialog.Filename := EditedFilename;
@@ -244,25 +242,8 @@ begin
     fname := EditedFilename;
   end
   else fname := '';
-  FreeAndNil(aFileDialog);
+  aFileDialog.Free;
 
-
-{ // dialog removed due instability
-
-  aFileDialog := TwgFileDialog.create(nil);
-  aFileDialog.FullFilename := EditedFilename;
-  aFileDialog.WindowTitle8 := 'Save form source';
-  if aFileDialog.Execute then
-  begin
-    EditedFileName := aFileDialog.FullFilename;
-    fname := EditedFileName;
-  end
-  else fname := '';
-  FreeAndNil(aFileDialog);
-}
-
-  frmMain.WindowTitle8 := 'LPTK VFD - v'+program_version;
-  
   if fname = '' then Exit;
 
   EditedFileName := fname;
@@ -389,7 +370,7 @@ begin
   SaveComponentNames := false;
   GridResolution := 4;
 
-  EditedFileName := 'aanewform.pas';
+  FEditedFileName := '';
 end;
 
 destructor TMainDesigner.Destroy;
@@ -494,6 +475,16 @@ begin
   end;
 
   frm.Free;
+end;
+
+procedure TMainDesigner.SetEditedFileName(const Value: string);
+var
+  s : string;
+begin
+  FEditedFileName := Value;
+  s := ExtractFileName(FEditedFileName);
+  if s = '' then s := '[new]';
+  frmMain.WindowTitle8 := s + ' - VFD '+program_version;
 end;
 
 end.

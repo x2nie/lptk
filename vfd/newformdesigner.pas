@@ -258,6 +258,8 @@ begin
   filemenu := TPopupMenu.Create(self);
   with filemenu do
   begin
+    mi := AddMenuItem8('New','',nil);
+    mi.OnClick := maindsgn.OnNewFile;
     mi := AddMenuItem8('Open','',nil);
     mi.OnClick := maindsgn.OnLoadFile;
     mi := AddMenuItem8('Save','',nil);
