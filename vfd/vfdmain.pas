@@ -17,9 +17,12 @@ uses
   vfdresizer, vfdforms, vfddesigner, vfdfile, newformdesigner, wgfiledialog;
 
 const
-  program_version = '0.81';
+  program_version = '0.82';
 
 {version description:
+0.82
+  - Removed file dialogs due instability
+  
 0.81
   - somewhat rearranged source
 
@@ -122,9 +125,23 @@ var
   n, m : integer;
   bl, bl2 : TVFDFileBlock;
   fname : string;
-  afiledialog : TwgFileDialog;
+//  afiledialog : TwgFileDialog;
+  frm : TfrmLoadSave;
 begin
   fname := EditedFileName;
+
+  if sender <> maindsgn then
+  begin
+    frm := TfrmLoadSave.Create(nil);
+    frm.WindowTitle8 := 'Open file';
+    frm.edFileName.Text8 := fname;
+    if frm.ShowModal > 0
+      then fname := frm.edFileName.Text8
+      else fname := '';
+    frm.Free;
+  end;
+
+{ // dialog removed due instability
 
   if sender <> maindsgn then
   begin
@@ -139,6 +156,7 @@ begin
     else fname := '';
     FreeAndNil(aFileDialog);
   end;
+}
 
   if fname = '' then Exit;
 
@@ -191,12 +209,24 @@ var
   ff : file;
 
   fname, uname : string;
-  aFileDialog : TwgFileDialog;
+  //aFileDialog : TwgFileDialog;
   frm : TfrmLoadSave;
 begin
+  fname := EditedFileName;
+
+  frm := TfrmLoadSave.Create(nil);
+  frm.WindowTitle8 := 'Save form source';
+  frm.edFileName.Text8 := fname;
+  if frm.ShowModal > 0
+    then fname := frm.edFileName.Text8
+    else fname := '';
+  frm.Free;
+
+{ // dialog removed due instability
+
   aFileDialog := TwgFileDialog.create(nil);
   aFileDialog.FullFilename := EditedFilename;
-  aFileDialog.WindowTitle8 := 'Save form source';  
+  aFileDialog.WindowTitle8 := 'Save form source';
   if aFileDialog.Execute then
   begin
     EditedFileName := aFileDialog.FullFilename;
@@ -204,8 +234,11 @@ begin
   end
   else fname := '';
   FreeAndNil(aFileDialog);
+}
 
   if fname = '' then Exit;
+
+  EditedFileName := fname;
 
   if FileExists(fname) then
   begin
