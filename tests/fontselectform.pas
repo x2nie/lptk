@@ -9,12 +9,7 @@ program fontselect;
 
 uses SysUtils, Classes, gfxbase, gfxform, gfxbmpimage, schar16, gfxstyle, gfxstdimg,
   wgedit, gfxwidget, wglabel, wgbutton,
-  wglistbox, wgmemo, wgchoicelist, wggrid, gfxdialogs, wgcheckbox,
-{$ifdef Win32}
-  Windows
-{$else}
-  unitxft
-{$endif}
+  wglistbox, wgmemo, wgchoicelist, wggrid, gfxdialogs, wgcheckbox
   ;
 
 type
