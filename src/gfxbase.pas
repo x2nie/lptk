@@ -445,6 +445,10 @@ type
 
     procedure DrawImage(x,y : TGfxCoord; img : TGfxImage);
     procedure DrawImagePart(x,y : TGfxCoord; img : TGfxImage; xi,yi,w,h : integer);
+    
+  public
+  
+    property Font : TGfxFont read FCurFont write SetFont;
   end;
 
 var
