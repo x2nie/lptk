@@ -98,7 +98,7 @@ begin
 {$ifdef Win32}
        Windows.SetWindowPos(WinHandle,0,x,y,0,0,SWP_NOZORDER or SWP_NOSIZE or SWP_NOREDRAW);
 {$else}
-       XMoveWindow(display, wh, x,y);
+       XMoveWindow(display, WinHandle, x,y);
 {$endif}
 end;
 
@@ -211,7 +211,7 @@ begin
     begin
       FLeft := (ScreenWidth-Width) div 2;
       FTop := (ScreenHeight-Height) div 2;
-      GfxMoveWindow(WinHandle,FLeft,FTop);
+      MoveWindow(FLeft,FTop);
     end;
   end;
 
