@@ -2,6 +2,9 @@
 }
 
 // $Log$
+// Revision 1.6  2004/05/24 00:06:46  nvitya
+// gfxstyle changes
+//
 // Revision 1.5  2004/04/19 04:26:39  nvitya
 // compatibility fix
 //
@@ -732,7 +735,7 @@ begin
     FNavBar := wpTop;
     FMargin := 1;
     FFixedTabWidth := 0;
-    FFont := guistyle.LabelFont1;
+    FFont := guistyle.DefaultFont;
     FFirstTabButton := nil;
     FLeftButton := TwgButton.Create(self);
     FLeftButton.Text := Str8To16('<');
