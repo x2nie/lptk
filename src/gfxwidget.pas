@@ -130,12 +130,12 @@ type
     procedure AfterCreate; virtual;
 
     function FindFocusWidget(startwg : TWidget; direction : TSearchDirection) : TWidget;
-    
+
     function FindNextFocusWidget(startwg : TWidget; searchforward : boolean) : TWidget;
 
     procedure RePaint; virtual;
     procedure RePaintChildren;
-    
+
     procedure ShowWidget;
 
     procedure SetFocus;
@@ -145,25 +145,19 @@ type
 
     property Visible : boolean read FVisible write SetVisible;
     property Enabled : boolean read FEnabled write SetEnabled;
-    
-    property Windowed : boolean read GetWindowed;  // true if window is allocated
+    property TabOrder  : integer read FTabOrder write FTabOrder;
 
-    property Left : TGfxCoord read FLeft write FLeft;
-    property Top : TGfxCoord read FTop write FTop;
-    property Width : TGfxCoord read FWidth write FWidth;
-    property Height : TGfxCoord read FHeight write FHeight;
+    property Windowed : boolean read GetWindowed;  // true if window is allocated
 
     function Right : TGfxCoord;
     function Bottom : TGfxCoord;
 
-    property Anchors : TAnchors read FAnchors write SetAnchors;
     property SizeParams : TSizeParams read FSizeParams write FSizeParams;
 
     property BackgroundColor : TGfxColor read FBackgroundColor write SetBackgroundColor;
-    
+
     property Focusable : boolean read FFocusable write FFocusable;
     property Focused   : boolean read FFocused write FFocused;
-    property TabOrder  : integer read FTabOrder write FTabOrder;
 
     property ActiveWidget : TWidget read FActiveWidget write SetActiveWidget;
 
@@ -172,13 +166,22 @@ type
     property Canvas : TGfxCanvas read GetCanvas;
 
     property MouseCursor : integer read FMouseCursor write SetMouseCursor;
-    
+
   public
     property FormDesigner : TObject read FFormDesigner write FFormDesigner;
 
   public
 
     OnKeyPress : TKeyPressNotifyEvent;
+
+  published
+
+    property Left : TGfxCoord read FLeft write FLeft;
+    property Top : TGfxCoord read FTop write FTop;
+    property Width : TGfxCoord read FWidth write FWidth;
+    property Height : TGfxCoord read FHeight write FHeight;
+
+    property Anchors : TAnchors read FAnchors write SetAnchors;
     
   end;
 

@@ -63,16 +63,18 @@ type
 
     function SelectionText : string16;
 
-    property Text : String16 read FText write SetText;
+    property Font : TGfxFont read FFont;
 
     property Text8 : string read GetText8 write SetText8;
-
-    property Font : TGfxFont read FFont;
-    property FontName : string read GetFontName write SetFontName;
 
   public
 
     OnChange : TNotifyEvent;
+
+  published
+
+    property Text : String16 read FText write SetText;
+    property FontName : string read GetFontName write SetFontName;
 
   end;
 

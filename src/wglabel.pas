@@ -32,11 +32,12 @@ type
     destructor Destroy; override;
 
     procedure RePaint; override;
-
-    property Text : String16 read FText write SetText;
+    property Font : TGfxFont read FFont;
     property Text8 : string read GetText8 write SetText8;
 
-    property Font : TGfxFont read FFont;
+  published
+    property Text : String16 read FText write SetText;
+
     property FontName : string read GetFontName write SetFontName;
     
     property Color : TGfxColor read FColor write SetColor;
