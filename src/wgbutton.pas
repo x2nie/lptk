@@ -210,7 +210,7 @@ begin
       Image := ImageList.Item[ImageIndex].Image;
       while (FFont.TextWidth16(AText) > Width - 8 - Image.Width) and (Length16(AText) > 9) do
         Delete16(AText,Length16(AText),1);
-      Canvas.DrawImage((width div 2) - (FFont.TextWidth16(AText) div 2) - Image.Width div 2 - 1, Height div 2 - Image.height div 2, Image);
+      Canvas.DrawImage((width div 2) - (FFont.TextWidth16(AText) div 2) - Image.Width div 2 - 1, Height div 2 - Image.height div 2 + 1, Image);
       Canvas.DrawString16(((width div 2) + Image.Width div 2) - (FFont.TextWidth16(AText) div 2) + 1, 4, AText);
     end
     else
