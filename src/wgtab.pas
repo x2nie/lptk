@@ -1,5 +1,6 @@
 { 	feature-requests or bugs? - mail to: erik@grohnwaldt.de
 	History 
+	19.06.2003	0.4	property Text8 for TwgTabSheet
 	16.05.2003	0.3	new property: FixedTabWidth
 	15.05.2003		nvitya: components focusing at page activation
 	12.05.2003	0.2	new property NavBar : TWinPosition;
@@ -30,12 +31,15 @@ type
 	    FText : string16;
 	    FIndex : word;
 	    procedure SetText(aValue : string16);
+	    procedure SetText8(aValue : string);
+	    function GetText8 : string;
 	protected
 	public
 	    constructor Create(aOwner : TComponent); override;
 	    destructor Destroy; override;
 	    
 	    property Text : string16 read FText write SetText;
+	    property Text8 : string read GetText8 write SetText8;
 	    property Index : word read FIndex write FIndex;
     end;
 
@@ -105,6 +109,16 @@ type
 implementation
 
 { TwgTabSheet }
+
+procedure TwgTabSheet.SetText8(aValue : string);
+begin
+    Text := Str8To16(aValue);
+end;
+
+function TwgTabSheet.GetText8 : string;
+begin
+    result := Str16to8(Text);
+end;
 
 procedure TwgTabSheet.SetText(aValue : string16);
 begin
