@@ -207,6 +207,7 @@ begin
 
   FDroppedDown := true;
   FListPopup.ShowAt(self.WinHandle,0,height);
+  FListPopup.ListBox.FocusItem := self.FocusItem;
 end;
 
 procedure TwgChoiceList.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
