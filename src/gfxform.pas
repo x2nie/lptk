@@ -412,7 +412,7 @@ end;
 
 function TGfxForm.GetWindowName: string;
 begin
-  result := FWindowTitle;
+  result := u16noesc(FWindowTitle);
 end;
 
 function TGfxForm.GetWindowTitle8: string;
