@@ -238,6 +238,7 @@ var
   r : TGfxRect;
 begin
   //inherited RePaint;
+  if not Windowed then Exit;
   Canvas.DrawOnBuffer := True;
   canvas.ClearClipRect;
   canvas.Clear(FBackgroundColor);

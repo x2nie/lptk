@@ -48,7 +48,7 @@ type
     procedure SetWindowParameters; override; // for X
     procedure AdjustWindowStyle(var ws,es : longword; var pwh : TWinHandle); override; // for win32
     function GetWindowName : string; override;
-
+    procedure MoveWindow(x,y : TGfxCoord);
   public
     constructor Create(AOwner : TComponent); override;
 
@@ -62,13 +62,13 @@ type
     procedure PostKillMe;
 
     procedure SetMinSize;
-    
+
     property WindowPosition : TWindowPosition read FWindowPosition write FWindowPosition;
-    
+
     property Resizeable : boolean read FResizeable write FResizeable;
-    
+
     property WMOptions : TWMOptions read FWMOptions write FWMOptions;
-    
+
     property ModalResult : integer read FModalResult write FModalResult;
 
     property WindowTitle : string read FWindowTitle write SetWindowTitle;
@@ -79,10 +79,10 @@ type
     procedure HandleResize(dwidth, dheight : integer); override;
 
   end;
-  
+
 var
   GfxMainForm : TGfxForm;
-  
+
   GfxTopModalForm : TGfxForm;
 
 implementation
@@ -91,6 +91,16 @@ uses
 {$ifdef Win32}windows{$else}Xutil, Xlib{$endif};
 
 { TGfxForm }
+
+procedure TGfxForm.MoveWindow(x,y : TGfxCoord);
+begin
+  if WinHandle > 0 then
+{$ifdef Win32}
+       Windows.SetWindowPos(WinHandle,0,x,y,0,0,SWP_NOZORDER or SWP_NOSIZE or SWP_NOREDRAW);
+{$else}
+       XMoveWindow(display, wh, x,y);
+{$endif}
+end;
 
 procedure TGfxForm.SetWindowTitle(const AValue: string);
 var
@@ -178,7 +188,7 @@ begin
     GetWindowRect(WinHandle, r);
     FLeft := (ScreenWidth-(r.Right - r.Left)) div 2;
     FTop := (ScreenHeight-(r.Bottom - r.Top)) div 2;
-    GfxMoveWindow(WinHandle,FLeft,FTop);
+    MoveWindow(FLeft,FTop);
   end;
 end;
 {$else}

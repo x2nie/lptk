@@ -638,8 +638,8 @@ begin
     if yp > Height then Break;
   end;
 
-  //RepaintChildren;
   Canvas.SwapBuffer;
+//  RepaintChildren;
 end;
 
 procedure TwgMemo.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean);
