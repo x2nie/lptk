@@ -223,6 +223,8 @@ begin
           
           move(img.ImageData^,img.MaskData^,img.ImageDataSize);
 
+          img.Invert;
+
         end;
         
 { reading 1 bit into 32 bit:
