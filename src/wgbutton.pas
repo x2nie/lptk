@@ -26,9 +26,13 @@ type
     FAllowDown : Boolean;
     FConsumed : Boolean;
     FDown : Boolean;
+    FImageMargin: integer;
+    FImageSpacing: integer;
     procedure SetImageName(const AValue: string);
     procedure SetText(const AValue : String16);
     procedure SetDown(AValue : Boolean);
+    procedure SetImageMargin(const Value: integer);
+    procedure SetImageSpacing(const Value: integer);
   protected
     FText : String16;
     FFont : TGfxFont;
@@ -43,6 +47,7 @@ type
     destructor Destroy; override;
 
     procedure RePaint; override;
+
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
     procedure HandleKeyRelease(var keycode: word; var shiftstate: word; var consumed : boolean); override;
 
@@ -58,7 +63,7 @@ type
     property Down : Boolean read FDown write SetDown;
     property Text : String16 read FText write SetText;
     property Text8 : String read GetText8 write SetText8;
-    
+
     property Font : TGfxFont read FFont;
 {
     // image-properties
@@ -67,6 +72,9 @@ type
 }
     property ImageName : string read FImageName write SetImageName;
     property ShowImage : Boolean read FShowImage write SetShowImage;
+
+    property ImageMargin : integer read FImageMargin write SetImageMargin;
+    property ImageSpacing : integer read FImageSpacing write SetImageSpacing;
 
   end;
 
@@ -128,7 +136,7 @@ procedure TwgButton.SetImageName(const AValue: string);
 begin
   FImageName:=AValue;
   FImage := GfxLibGetImage(FImageName);
-  FShowImage := true;
+  //FShowImage := true;
 end;
 
 constructor TwgButton.Create(AOwner : TComponent);
@@ -147,7 +155,9 @@ begin
   FAllowDown := False;
   FImage := nil;
   FImageName := '';
-  FShowImage := false;
+  FShowImage := true;
+  FImageMargin := 3;
+  FImageSpacing := -1;
 end;
 
 destructor TwgButton.Destroy;
@@ -159,60 +169,93 @@ end;
 procedure TwgButton.RePaint;
 var
   AText : String16;
+  x,y,iy,w : integer;
+  r : TGfxRect;
+  pofs : integer;
 begin
-  if Windowed then
+  if not Windowed then Exit;
+  inherited RePaint;
+
+  Canvas.Clear(FBackgroundColor);
+  Canvas.ClearClipRect;
+
+  if not FPushed then Canvas.SetColor(clHilite1)
+           else Canvas.SetColor(clShadow2);
+
+  Canvas.DrawLine(0,height-2, 0,0);
+  Canvas.DrawLine(0,0, width-1,0);
+
+  if not FPushed then Canvas.SetColor(clHilite2)
+           else Canvas.SetColor(clShadow1);
+
+  Canvas.DrawLine(1,height-3, 1,1);
+  Canvas.DrawLine(1,1, width-2,1);
+
+  if not FPushed then Canvas.SetColor(clShadow2)
+           else Canvas.SetColor(clHilite1);
+
+  Canvas.DrawLine(width-1,1, width-1,height-1);
+  Canvas.DrawLine(0,height-1, width-1,height-1);
+
+  if not FPushed then Canvas.SetColor(clShadow1)
+           else Canvas.SetColor(clHilite2);
+
+  Canvas.DrawLine(width-2,2, width-2,height-2);
+  Canvas.DrawLine(1,height-2, width-2,height-2);
+
+  if FFocused then
   begin
-    inherited RePaint;
-    Canvas.Clear(FBackgroundColor);
+    Canvas.SetColor(clSelection);
+    Canvas.FillRectangle(3,3,width-5,height-5);
+    Canvas.SetTextColor(clSelectionText);
+  end
+  else Canvas.SetTextColor(clText1);
 
-    if not FPushed then Canvas.SetColor(clHilite1)
-	     else Canvas.SetColor(clShadow2);
+  r.left := 2;
+  r.top  := 2;
+  r.width := Width-4;
+  r.height := Height-4;
+  Canvas.SetClipRect(r);
 
-    Canvas.DrawLine(0,height-2, 0,0);
-    Canvas.DrawLine(0,0, width-1,0);
+  Canvas.SetFont(Font);
+  AText := FText;
+  y := Height div 2 - FFont.Height div 2;
+  if y < 3 then y := 3;
 
-    if not FPushed then Canvas.SetColor(clHilite2)
-	     else Canvas.SetColor(clShadow1);
+  if FPushed then pofs := 1 else pofs := 0;
 
-    Canvas.DrawLine(1,height-3, 1,1);
-    Canvas.DrawLine(1,1, width-2,1);
-
-    if not FPushed then Canvas.SetColor(clShadow2)
-	     else Canvas.SetColor(clHilite1);
-
-    Canvas.DrawLine(width-1,1, width-1,height-1);
-    Canvas.DrawLine(0,height-1, width-1,height-1);
-
-    if not FPushed then Canvas.SetColor(clShadow1)
-	     else Canvas.SetColor(clHilite2);
-
-    Canvas.DrawLine(width-2,2, width-2,height-2);
-    Canvas.DrawLine(1,height-2, width-2,height-2);
-
-    if FFocused then
+  if (ShowImage) and (FImage <> nil) then
+  begin
+    iy := Height div 2 - FImage.Height div 2;
+    if ImageMargin = -1 then // centered
     begin
-      Canvas.SetColor(clSelection);
-      Canvas.FillRectangle(3,3,width-5,height-5);
-      Canvas.SetTextColor(clSelectionText);
-    end
-    else Canvas.SetTextColor(clText1);
-
-    Canvas.SetFont(Font);
-    AText := FText;    
-    if (ShowImage) and (FImage <> nil) then
-    begin
-      while (FFont.TextWidth16(AText) > Width - 8 - FImage.Width) and (Length16(AText) > 9) do
-        Delete16(AText,Length16(AText),1);
-      Canvas.DrawImage((width div 2) - (FFont.TextWidth16(AText) div 2) - FImage.Width div 2 - 1, Height div 2 - FImage.height div 2 + 1, FImage);
-      Canvas.DrawString16(((width div 2) + FImage.Width div 2) - (FFont.TextWidth16(AText) div 2) + 1, 4, AText);
+      w := FFont.TextWidth16(AText) + FImage.Width;
+      if FImageSpacing > 0 then inc(w,FImageSpacing);
+      x := (width div 2) - (w div 2);
+      if x < 3 then x := 3;
     end
     else
     begin
-      while (FFont.TextWidth16(AText) > Width - 8) and (Length16(AText) > 9) do
-        Delete16(AText,Length16(AText),1);
-      Canvas.DrawString16((width div 2) - (FFont.TextWidth16(AText) div 2), 4, AText);
+      x := FImageMargin+3;
     end;
+
+    Canvas.DrawImage(x+pofs, iy+pofs, FImage);
+    inc(x, FImage.Width);
+    if FImageSpacing > 0 then inc(x,FImageSpacing);
+
+    if (FImageSpacing = -1) and (FImageMargin >= 0) then
+    begin
+      w := (Width-2-x) div 2 - FFont.TextWidth16(AText) div 2;
+      if w < 1 then w := 1; // minimal spaceing
+      x := x + w;
+    end;
+  end
+  else
+  begin
+    x := (width div 2) - (FFont.TextWidth16(AText) div 2);
   end;
+  if x < 3 then x := 3;
+  Canvas.DrawString16(x+pofs, y+pofs, AText);
 end;
 
 procedure TwgButton.HandleKeyPress(var keycode : word; var shiftstate : word; var consumed : boolean);
@@ -336,6 +379,18 @@ end;
 procedure TwgButton.Click;
 begin
   if Assigned(OnClick) then OnClick(self);
+end;
+
+procedure TwgButton.SetImageMargin(const Value: integer);
+begin
+  FImageMargin := Value;
+  if Windowed then Repaint;
+end;
+
+procedure TwgButton.SetImageSpacing(const Value: integer);
+begin
+  FImageSpacing := Value;
+  if Windowed then Repaint;
 end;
 
 end.
