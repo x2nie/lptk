@@ -244,7 +244,7 @@ end;
 procedure TPopupWindow.HandleMouseDown(x, y: integer; button, shiftstate: word);
 begin
   inherited;
-  Writeln('mouse x=',x,' y=',y);
+  //Writeln('mouse x=',x,' y=',y);
 end;
 
 initialization
