@@ -17,8 +17,10 @@ implementation
 {$I ..\stdimg\inc\close.inc}
 {$I ..\stdimg\inc\close2.inc}
 {$I ..\stdimg\inc\close3.inc}
+{$I ..\stdimg\inc\configure.inc}
 {$I ..\stdimg\inc\document.inc}
 {$I ..\stdimg\inc\exit.inc}
+{$I ..\stdimg\inc\find.inc}
 {$I ..\stdimg\inc\folder.inc}
 {$I ..\stdimg\inc\foldernew.inc}
 {$I ..\stdimg\inc\folderopen.inc}
@@ -63,6 +65,12 @@ begin
             0,0 );
 
   img := GfxLibAddMaskedBMP(
+            'stdimg.configure',
+            @stdimg_configure,
+      sizeof(stdimg_configure),
+            0,0 );
+
+  img := GfxLibAddMaskedBMP(
             'stdimg.document',
             @stdimg_document,
       sizeof(stdimg_document),
@@ -72,6 +80,12 @@ begin
             'stdimg.exit',
             @stdimg_exit,
       sizeof(stdimg_exit),
+            0,0 );
+
+  img := GfxLibAddMaskedBMP(
+            'stdimg.find',
+            @stdimg_find,
+      sizeof(stdimg_find),
             0,0 );
 
   img := GfxLibAddMaskedBMP(
