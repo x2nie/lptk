@@ -4,12 +4,25 @@ program filelist;
 {$mode delphi}{$H+}
 {$endif}
 
+{$APPTYPE CONSOLE}
+
 uses
   SysUtils, Classes, gfxbase, wgedit, unitkeys, schar16, gfxstyle,
   gfxwidget, gfxform, wglabel, wgbutton,
   wglistbox, wgmemo, wgchoicelist, wggrid, wgcustomgrid, sqldb, sqluis,
   wgdbgrid, gfxdialogs, wgcheckbox, wgbevel,
-  libc, linux;
+{$ifdef Win32}
+  windows
+{$else}
+  libc, linux
+{$endif}
+  ;
+
+{$ifndef FPC}
+const
+  DirectorySeparator = '\';
+{$endif}
+
 
 type
 
@@ -23,7 +36,11 @@ type
     Size : int64;
     etype : TFileEntryType;
     islink : boolean;
+{$ifdef Win32}
+    attributes : longword;
+{$else}
     mode : integer;
+{$endif}
     modtime : TDateTime;
     ownerid : integer;
     groupid : integer;
@@ -53,7 +70,7 @@ type
     property DirectoryName : string read FDirectoryName;
     
     function ReadDirectory(const fmask : string) : integer;
-    
+
     procedure Sort(order : TFileListSortOrder);
   end;
 
@@ -88,7 +105,7 @@ type
     {@VFD_HEAD_END: frmFileList}
     
     procedure AfterCreate; override;
-    
+
     procedure ListChange(Sender : TObject; row : integer);
     procedure DirChange(Sender : TObject);
     procedure GridDblClick(Sender : TObject; x,y : integer; var btnstate, shiftstate : word);
@@ -97,24 +114,56 @@ type
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
     
-    procedure SetCurrentDir(const dir : string);
+    procedure SetCurrentDirectory(const dir : string);
+
+    function SelectFile(const fname : string) : boolean;
 
   end;
   
 function GetGroupName(gid : integer) : string;
+{$ifdef Win32}
+begin
+  result := IntToStr(gid);
+end;
+{$else}
 var
   p : PGroup;
 begin
   p := getgrgid(gid);
   if p <> nil then result := p^.gr_name;
 end;
+{$endif}
 
 function GetUserName(uid : integer) : string;
+{$ifdef Win32}
+begin
+  result := IntToStr(uid);
+end;
+{$else}
 var
   p : PPasswd;
 begin
   p := getpwuid(uid);
   if p <> nil then result := p^.pw_name else result := '';
+end;
+{$endif}
+
+
+function TfrmFileList.SelectFile(const fname: string): boolean;
+var
+  n : integer;
+begin
+  for n:=1 to grid.flist.Count do
+  begin
+    if grid.flist.Entry[n].Name = fname then
+    begin
+      Writeln('selection: ',n);
+      grid.FocusRow := n;
+      result := true;
+      exit;
+    end;
+  end;
+  result := false;
 end;
 
 
@@ -126,12 +175,21 @@ begin
 
   flist := TFileList.Create;
 
+{$ifdef Win32}
+  AddColumn8('Name',320);
+{$else}
   AddColumn8('Name',220);
+{$endif}
+
   AddColumn8('Size',80);
   AddColumn8('Mod. Time',108);
+{$ifdef Win32}
+  AddColumn8('Attributes',78);
+{$else}
   AddColumn8('Rights',78);
   AddColumn8('Owner',54);
   AddColumn8('Group',54);
+{$endif}
   RowSelect := true;
   
   FixedFont := GfxGetFont('Courier New-9:antialias=false');
@@ -154,10 +212,12 @@ const
   modestring : string[9] = 'xwrxwrxwr';
 var
   e : TFileEntry;
-  x,y,b,n : integer;
-  rx : integer;
+  x,y : integer;
   s : string;
   img : TGfxImage;
+{$ifndef Win32}
+  b,n : integer;
+{$endif}  
 begin
   e := flist.Entry[row];
   if e=nil then Exit;
@@ -166,15 +226,16 @@ begin
   s := '';
   
   if e.etype = etDir then canvas.SetFont(FHeaderFont) else canvas.SetFont(FFont);
-  
+
   case col of
   1: begin
        case e.etype of
         etDir: img := GfxLibGetImage('stdimg.folder');
        else
-         if (e.mode and $40) <> 0
-           then img := GfxLibGetImage('stdimg.yes')
-           else img := GfxLibGetImage('stdimg.document');
+         img := GfxLibGetImage('stdimg.document');
+{$ifndef Win32}
+         if (e.mode and $40) <> 0 then img := GfxLibGetImage('stdimg.yes');
+{$endif}         
        end;
                           
        if img <> nil then canvas.DrawImage(rect.Left+1,y,img);
@@ -186,9 +247,19 @@ begin
        x := rect.right - Font.TextWidth16(s) - 1;
        if x < rect.Left+2 then x := rect.Left+2;
      end;
-  3: s := u8(FormatDateTime('yyyy.mm.dd hh:nn',e.modtime));
+  3: s := u8(FormatDateTime('yyyy-mm-dd hh:nn',e.modtime));
 //  4: s := u8(e.linktarget);
   4: begin
+{$ifdef Win32}
+       // File attributes
+       s := '';
+       //if (e.attributes and FILE_ATTRIBUTE_ARCHIVE) <> 0    then s := s + 'a' else s := s + ' ';
+       if (e.attributes and FILE_ATTRIBUTE_HIDDEN) <> 0     then s := s + 'h';
+       if (e.attributes and FILE_ATTRIBUTE_READONLY) <> 0   then s := s + 'r';
+       if (e.attributes and FILE_ATTRIBUTE_SYSTEM) <> 0     then s := s + 's';
+       if (e.attributes and FILE_ATTRIBUTE_TEMPORARY) <> 0  then s := s + 't';
+       if (e.attributes and FILE_ATTRIBUTE_COMPRESSED) <> 0 then s := s + 'c';
+{$else}
        // rights
        //rwx rwx rwx
        b := 1;
@@ -201,14 +272,19 @@ begin
          inc(n);
          b := b shl 1;
        end;
+{$endif}
+
        canvas.SetFont(FixedFont);
        s := u8(s);
      end;
+{$ifdef Win32}
+{$else}
   5: s := u8(GetUserName(e.ownerid));  // use getpwuid(); for the name of this user
   6: s := u8(GetGroupName(e.groupid));  // use getgrgid(); for the name of this group
+{$endif}  
   end;
   canvas.DrawString16(x,y,s);
-  
+
 end;
 
 function TwgFileGrid.CurrentEntry: TFileEntry;
@@ -225,7 +301,11 @@ begin
   Size := 0;
   etype := etFile;
   islink := false;
+{$ifdef Win32}
+  attributes := 0;
+{$else}
   mode := 0;
+{$endif}  
   modtime := 0;
   ownerid := 0;
   groupid := 0;
@@ -268,6 +348,69 @@ begin
   result := FEntries.Count;
 end;
 
+{$ifdef Win32}
+
+function TFileList.ReadDirectory(const fmask : string): integer;
+var
+  hff : THANDLE;
+  fdata : WIN32_FIND_DATA;
+  dname : string;
+  e : TFileEntry;
+  ftime : SYSTEMTIME;
+begin
+  Clear;
+  FDirectoryName := ExtractFileDir(fmask);
+  if FDirectoryName = '' then GetDir(0,dname) else dname := FDirectoryName;
+  if dname = '' then dname := DirectorySeparator;
+  Writeln('dname: ', dname);
+
+  hff := FindFirstFile(PChar(fmask), fdata);
+
+  if hff <> INVALID_HANDLE_VALUE then
+  begin
+    repeat
+      e := TFileEntry.Create;
+      e.Name := PChar(@fdata.cFileName);
+      //Write(e.Name);
+      e.NameExt := ExtractFileExt(e.Name);
+
+      //fullname := FDirectoryName + e.Name;
+
+      e.islink := false;  // Windows does not support ?
+
+      e.attributes := fdata.dwFileAttributes;
+      e.size := fdata.nFileSizeHigh shl 32 + fdata.nFileSizeLow;
+      e.ownerid := 0;
+      e.groupid := 0;
+
+      FileTimeToSystemTime(fdata.ftLastWriteTime, ftime);
+      e.modtime := EncodeDate(ftime.wYear,ftime.wMonth,ftime.wDay)
+        + EncodeTime(ftime.wHour, ftime.wMinute, ftime.wSecond, ftime.wMilliseconds);
+
+      if (e.attributes and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY then e.etype := etDir
+      else e.etype := etFile;
+
+      //write('  (',e.linktarget,')');
+
+      if e.name = '.' then
+      begin
+        if FCurDirEntry <> nil then FCurDirEntry.Free;
+        FCurDirEntry := e;
+      end
+      else if (e.name = '..') and (dname = DirectorySeparator) then
+      begin
+        // do not add for the root
+      end
+      else
+        FEntries.Add(e)
+
+    until not FindNextFile(hff, fdata);
+  end;
+
+  result := FEntries.Count;
+end;
+
+{$else}
 function EpochToDateTime(epoch : longint) : TDateTime;
 var
   w1,w2,w3,w4,w5,w6 : word;
@@ -300,7 +443,7 @@ begin
     //Write(e.Name);
     e.NameExt := ExtractFileExt(e.Name);
     fullname := FDirectoryName + e.Name;
-    
+
     //Writeln('fullname: ',fullname);
     if lstat(fullname,info) then
     begin
@@ -316,12 +459,12 @@ begin
       e.ownerid := info.uid;
       e.groupid := info.gid;
       e.modtime   := EpochToDateTime(info.mtime);
-      
+
       if (e.mode and $F000) = $4000 then e.etype := etDir
       else e.etype := etFile;
-      
+
       //write('  (',e.linktarget,')');
-      
+
       if e.name = '.' then
       begin
         if FCurDirEntry <> nil then FCurDirEntry.Free;
@@ -338,18 +481,20 @@ begin
     //writeln;
     p := p^.next;
   end;
-  
+
   if gres <> nil then GlobFree(gres);
-  
+
   result := FEntries.Count;
 end;
+
+{$endif}
 
 procedure TFileList.Sort(order: TFileListSortOrder);
 var
   newl : TList;
   n,i : integer;
-  e,e2 : TFileEntry;
-  
+  e : TFileEntry;
+
   function IsBefore(newitem, item : TFileEntry) : boolean;
   begin
     //if newitem.etype = etDir then writeln('dir: ',newitem.name,' (',item.name,')');
@@ -358,6 +503,14 @@ var
       result := true;
     end
     else if (newitem.etype <> etDir) and (item.etype = etDir) then
+    begin
+      result := false;
+    end
+    else if (newitem.etype = etDir) and (newitem.Name = '..') then
+    begin
+      result := true;
+    end
+    else if (item.etype = etDir) and (item.Name = '..') then
     begin
       result := false;
     end
@@ -405,41 +558,6 @@ end;
 {@VFD_NEWFORM_DECL}
 
 {@VFD_NEWFORM_IMPL}
-
-{
-Var
-  G1,G2 : PGlob;
-begin
-  G1:=Glob ('*');
-  if LinuxError=0 then
-    begin
-    G2:=G1;
-    Writeln ('Files in this directory : ');
-    While g2<>Nil do
-      begin
-      Writeln (g2^.name);
-      g2:=g2^.next;
-      end;
-    GlobFree (g1);
-    end;
-    
-      if lstat(dirname+filename,info) then
-      begin
-        Write('   size: ',info.size,', mode:',IntToHex(info.mode,8));
-        if (info.mode and $F000) = $A000 then
-        begin
-          write('-->',ReadLink(dirname+filename));
-        end;
-        if (info.mode and $F000) = $4000 then
-        begin
-          write('(directory)');
-        end;
-      end
-      else
-      begin
-        Write('fstat error');
-      end;
-}
 
 procedure TfrmFileList.AfterCreate;
 begin
@@ -544,10 +662,12 @@ begin
   end;
 
   {@VFD_BODY_END: frmFileList}
-  
-  grid.flist.ReadDirectory('*');
-  grid.flist.Sort(soFileName);
-  grid.Update;
+
+  SetCurrentDirectory('.');
+
+//  grid.flist.ReadDirectory('*');
+//  grid.flist.Sort(soFileName);
+//  grid.Update;
 end;
 
 procedure TfrmFileList.ListChange(sender: TObject; row : integer);
@@ -568,7 +688,7 @@ end;
 
 procedure TfrmFileList.DirChange(Sender: TObject);
 begin
-  SetCurrentDir(chlDir.Text8);
+  SetCurrentDirectory(chlDir.Text8);
 end;
 
 procedure TfrmFileList.GridDblClick(Sender: TObject; x, y: integer; var btnstate, shiftstate: word);
@@ -578,7 +698,7 @@ begin
   e := grid.CurrentEntry;
   if (e <> nil) and (e.etype = etDir) then
   begin
-    SetCurrentDir(e.Name);
+    SetCurrentDirectory(e.Name);
   end;
 end;
 
@@ -598,7 +718,7 @@ begin
       e := grid.CurrentEntry;
       if (e <> nil) and (e.etype = etDir) then
       begin
-        SetCurrentDir(e.Name);
+        SetCurrentDirectory(e.Name);
         consumed := true;
       end;
     end;
@@ -606,41 +726,93 @@ begin
   if not consumed then inherited;
 end;
 
-procedure TfrmFileList.SetCurrentDir(const dir: string);
+procedure TfrmFileList.SetCurrentDirectory(const dir: string);
 var
-  ds,s : string;
-  n : integer;
+  ds : string;
+  n  : integer;
+  rootadd : integer;
+  fsel : string;
+{$ifdef Win32}
+  drvind : integer;
+  drvs : string;
+{$endif}
 begin
-  try
-    chdir(dir);
-    edFileName.Text := '';
-  except
-    ShowMessage8('Could not open the directory '+dir,'Error');
-  end;
-  
   GetDir(0,ds);
-  if copy(ds,1,1) <> DirectorySeparator then ds := DirectorySeparator + ds;
-  
+  fsel := ExtractFileName(ds);
+
+  if not SetCurrentDir(dir) then
+  begin
+    ShowMessage8('Could not open the directory '+dir,'Error');
+    Exit;
+  end;
+
   chlDir.Items.Clear;
-  chlDir.Items.Add(u8(DirectorySeparator));  // add root
-  n := 2;
-  while n <= length(ds) do
+
+  if dir <> '..' then fsel := '';
+  Writeln('fsel=',fsel);
+
+  GetDir(0,ds);
+
+  rootadd := 1;
+
+{$ifdef Win32}
+  // making drive list 1
+  drvind := -1;
+  if copy(ds,2,1) = ':' then drvind := ord(UpCase(ds[1]))-ord('A');
+
+  n := 0;
+  while n < drvind do
+  begin
+    drvs := chr(n+ord('A'))+':\';
+    if Windows.GetDriveType(PChar(drvs)) <> 1 then
+    begin
+      chlDir.Items.Add(u8(drvs));
+    end;
+    inc(n);
+  end;
+
+{$else}
+  if copy(ds,1,1) <> DirectorySeparator then ds := DirectorySeparator + ds;
+{$endif}
+
+  n := 1;
+  while n < length(ds) do
   begin
     if ds[n] = DirectorySeparator then
     begin
-      chlDir.Items.Add(u8(copy(ds,1,n-1)));
+      chlDir.Items.Add(u8(copy(ds,1,n-1+rootadd)));
+      rootadd := 0;
     end;
 
     inc(n);
   end;
-  
+
   chlDir.Items.Add(u8(ds));
   chlDir.FocusItem := chlDir.Items.Count;
-  
+
+{$ifdef Win32}
+  // making drive list 2
+  n := drvind+1;
+  if n < 0 then n := 0;
+  while n <= 25 do
+  begin
+    drvs := chr(n+ord('A'))+':\';
+    if Windows.GetDriveType(PChar(drvs)) <> 1 then
+    begin
+      chlDir.Items.Add(u8(drvs));
+    end;
+    inc(n);
+  end;
+{$endif}
+
   grid.flist.ReadDirectory('*');
+
   grid.flist.Sort(soFileName);
+
   grid.Update;
-  grid.FocusRow := 1;
+
+  if fsel <> '' then SelectFile(fsel)
+                else grid.FocusRow := 1;
 
 end;
 
