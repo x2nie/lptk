@@ -701,9 +701,9 @@ begin
 
     wh := XCreateWindow(Display, pwh,
                     Left, Top, Width, Height, 0,
-                    CopyFromParent,   //DefaultVisual^.depth,
+                    GfxDefaultVisual^.bits_per_rgb,
                     InputOutput,
-                    CopyFromParent, //DefaultVisual^.visual,
+                    gfxDefaultVisual,
                     mask,
                     @attr);
   end
