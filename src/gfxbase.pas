@@ -469,7 +469,7 @@ var
   DefaultForeground : TGfxColor;
   DefaultScreen : integer;
   DefaultVisual : PVisual;
-  DefaultColorMap : TColorMap;
+  GfxDefaultColorMap : TColorMap;
 
   RootWindow : TWinHandle;
 
@@ -1239,7 +1239,7 @@ begin
   DefaultVisual := XDefaultVisual(display, DefaultScreen);
   DisplayDepth := XDefaultDepth(display, DefaultScreen);
 
-  DefaultColorMap := XDefaultColorMap(display, DefaultScreen);
+  GfxDefaultColorMap := XDefaultColorMap(display, DefaultScreen);
 
   XGetWindowAttributes(display, RootWindow, @wa);
   ScreenWidth  := wa.width;
@@ -1634,7 +1634,7 @@ begin
     xc.red   := (c and $00FF0000) shr 8;
 
     // THIS CALL IS TOO SLOW !!!!!:
-    XAllocColor(display, DefaultColorMap, @xc);
+    XAllocColor(display, GfxDefaultColorMap, @xc);
     result := xc.pixel;
   end;
 end;
