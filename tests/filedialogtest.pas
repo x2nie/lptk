@@ -1,6 +1,9 @@
 program
     filedialogtest;
-{$IFDEF fpc}{$mode objfpc}{$ENDIF}
+{$IFDEF fpc}{$mode objfpc}
+{$else}
+{$apptype CONSOLE}
+{$ENDIF}
 
 uses
     gfxbase, classes, gfxform, wgfiledialog, wgbutton;

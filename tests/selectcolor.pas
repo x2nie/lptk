@@ -2,6 +2,8 @@ program selectcolor;
 
 {$ifdef FPC}
 {$mode delphi}{$H+}
+{$else}
+{$apptype CONSOLE}
 {$endif}
 
 uses
