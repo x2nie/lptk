@@ -1,4 +1,4 @@
-{ Copyright (c) 2003, Nagy Viktor 
+{ Copyright (c) 2003, Nagy Viktor
 
  The main code is here
 }
@@ -113,7 +113,7 @@ type
 
     procedure MoveResizeWidgets(dx,dy,dw,dh : integer);
     procedure DeleteWidgets;
-    
+
     procedure EditWidgetOrder;
 
     procedure DesignerKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean);
@@ -124,13 +124,13 @@ type
 
 
     procedure UpdatePropWin;
-    
+
 
     procedure OnPropTextChange(sender : TObject);
     procedure OnPropNameChange(sender : TObject);
 
     procedure OnPropPosEdit(sender : TObject);
-    
+
     procedure OnOtherChange(sender : TObject);
 
     procedure OnAnchorChange(sender : TObject);
@@ -166,9 +166,9 @@ var
 begin
   if FSelected=AValue then exit;
   FSelected:=AValue;
-  
+
   if FSelected then Widget.MouseCursor := CUR_MOVE else Widget.MouseCursor := CUR_DEFAULT;
-  
+
   for n:=1 to 8 do
   begin
     if FSelected then
@@ -181,9 +181,9 @@ begin
       resizer[n] := nil;
     end;
   end;
-  
+
   UpdateResizerPositions;
-  
+
   if FSelected and (Widget.Parent.WinHandle > 0) then
   begin
     for n:=1 to 8 do
@@ -211,7 +211,7 @@ var
 begin
   for n:=1 to 8 do
     if resizer[n] <> nil then resizer[n].Free;
-  other.Free;  
+  other.Free;
   inherited Destroy;
 end;
 
@@ -221,7 +221,7 @@ var
   rs : TwgResizer;
 begin
   if not FSelected then Exit;
-  
+
   for n:=1 to 8 do
   begin
     rs := resizer[n];
@@ -284,9 +284,9 @@ begin
 
   wgd := WidgetDesigner(TWidget(msg.dest));
   if wgd = nil then Exit;
-  
+
   if not OneClickMove then Exit; // this Exit disables one click move
-  
+
   shift := ((msg.Param3 and $FF) and ss_shift) <> 0;
 
   if shift then Exit;
@@ -342,7 +342,7 @@ begin
     end
     else wgd.Selected := not wgd.Selected;
   end;
-  
+
   UpdatePropWin;
 end;
 
@@ -352,21 +352,21 @@ var
   wgd : TWidgetDesigner;
 begin
   if not FDragging then Exit;
-  
+
   FWasDrag := true;
-  
+
   dx := msg.Param1 - FDragPosX;
   dy := msg.Param2 - FDragPosY;
-  
+
   wgd := WidgetDesigner(TWidget(msg.dest));
   if (wgd = nil) or (not wgd.Selected) then Exit;
-  
+
   if GridResolution > 1 then
   begin
     dx := dx - (dx mod GridResolution);
     dy := dy - (dy mod GridResolution);
   end;
-  
+
   MoveResizeWidgets(dx,dy,0,0);
 end;
 
@@ -378,7 +378,7 @@ begin
   key := msg.Param1 and $FFFF;
   ss := msg.Param2 and $FFFF;
   consumed := false;
-  
+
   DesignerKeyPress(key,ss,consumed);
 end;
 
@@ -456,7 +456,7 @@ begin
 
   l1 := CreateLabel(FForm, 10,10, 'Test Label' );
   ed1 := CreateEdit(FForm, 10, 50, 150, 0);
-  
+
   AddWidget(l1);
   AddWidget(ed1);
 end;
@@ -530,7 +530,7 @@ begin
     dir := -1;
     n := FWidgets.Count-1;
   end;
-  
+
   scd := TWidgetDesigner(FWidgets.Items[n]);
 
   while (n >= 0) and (n < FWidgets.Count) do
@@ -613,12 +613,12 @@ begin
   if frm.ShowModal = 1 then
   begin
     for n:=0 to FWidgets.Count-1 do TWidgetDesigner(FWidgets.Items[n]).Widget.Visible := false;
-    
+
     for n:=0 to FWidgets.Count-1 do
     begin
       FWidgets.Items[n] := frm.List.Items.Objects[n];
     end;
-    
+
     for n:=0 to FWidgets.Count-1 do
     begin
       cd := TWidgetDesigner(FWidgets.Items[n]);
@@ -647,7 +647,7 @@ begin
   dx := 0;
   dy := 0;
   consumed := true;
-  
+
   case keycode of
     KEY_LEFT:   dx := -1;
     KEY_RIGHT:  dx := +1;
@@ -655,18 +655,18 @@ begin
     KEY_DOWN:   dy := +1;
 
     KEY_DELETE: DeleteWidgets;
-    
+
     KEY_TAB: SelectNextWidget(True);
     KEY_STAB: SelectNextWidget(False);
-    
+
     KEY_F1: ShowMessage8( 'ENTER, F11: switch to Properties'+#10
                           +'TAB, SHIFT+TAB: select next widget'+#10
                           +'F2: edit widget order'#10
                           +'F4: edit items'#10
                           ,'Small help');
-                          
+
     KEY_F2: EditWidgetOrder;
-    
+
     KEY_F4: if PropertyForm.btnEdit.Visible then PropertyForm.btnEdit.Click;
 
     KEY_F11,
@@ -675,9 +675,9 @@ begin
         GfxActivateWindow(PropertyForm.WinHandle);
       end;
   else
-    consumed := false;    
+    consumed := false;
   end;
-  
+
   if (dx <> 0) or (dy <> 0) then
   begin
     if (shiftstate and ss_shift) <> 0
@@ -695,7 +695,7 @@ var
   cfrm : TInsertCustomForm;
 begin
   wgcname := UpperCase(cname);
-  
+
   Writeln('Putting control: ', wgcname);
 
   wg := nil;
@@ -765,7 +765,7 @@ begin
 
   end;
   ;
-  
+
   if wg <> nil then
   begin
     wg.name := newname;
@@ -866,7 +866,7 @@ begin
     btnEdit.Visible := bedit;
     edName.Visible := (wgcnt < 2);
     edOther.Visible := (wgcnt < 2);
-    
+
   end; // with PropertyForm
 
 end;
@@ -929,7 +929,7 @@ begin
         PropertyForm.edText.Text8 := s8;
         OnPropTextChange(sender);
       end;
-      
+
       try
         wg.Name := s8;
       except
@@ -985,7 +985,7 @@ begin
       break;
     end;
   end;
-  
+
   if wg = nil then wg := Form;
 
   btn := TwgButton(sender);
@@ -1014,14 +1014,14 @@ begin
     frm.edPos.Text8 := IntToStr(wg.Height);
   end
   ;
-  
+
   posval := -9999;
   if frm.ShowModal = 1 then
   begin
     posval := StrToIntDef(frm.edPos.Text8,-9999);
   end;
   frm.Free;
-  
+
   if posval > -999 then
   begin
     wg := nil;
@@ -1042,9 +1042,9 @@ begin
       SetNewPos(FForm, posval);
       FForm.UpdateWindowPosition;
     end;
-    
+
   end;
-  
+
   UpdatePropWin;
 
 end;
@@ -1086,7 +1086,7 @@ begin
     if cd.Selected then
     begin
       wg := cd.Widget;
-      
+
       wg.Anchors := [];
       if PropertyForm.cbAL.Checked then wg.Anchors := wg.Anchors + [anLeft];
       if PropertyForm.cbAT.Checked then wg.Anchors := wg.Anchors + [anTop];
@@ -1228,7 +1228,7 @@ var
 begin
   wg := wd.Widget;
   s := '';
-  
+
   if maindsgn.SaveComponentNames then
     s := s + ident + 'Name := '+QuotedStr(wg.Name)+';'#10;
 
@@ -1245,7 +1245,7 @@ begin
     if anBottom in wg.Anchors then begin ts := ts + cs + 'anBottom';  cs := ',';  end;
     ts := ts + '];';
     s := s + ident + 'Anchors := ' + ts + #10;
-  end;  
+  end;
 
   if wg is TwgMemo then
   begin
@@ -1388,7 +1388,7 @@ begin
 
   s := u8( Name + ' : ' +wgClassName );
 
-  canvas.DrawString16(2, FFont.Ascent+2, s);
+  canvas.DrawString16(2, 2, s);
 end;
 
 end.

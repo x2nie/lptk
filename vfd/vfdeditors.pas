@@ -432,7 +432,7 @@ begin
     s := u8('?');
   end;
 
-  canvas.DrawString16(x,FFont.Ascent+rect.top+1,  s );
+  canvas.DrawString16(x, rect.top+1,  s );
 end;
 
 procedure TColumnsGrid.DrawHeader(col: integer; rect: TGfxRect; flags: integer);
@@ -454,7 +454,7 @@ begin
 
   x := (rect.width div 2) - (FHeaderFont.TextWidth16(s) div 2);
   if x < 1 then x := 1;
-  canvas.DrawString16(rect.left + x,  FHeaderFont.Ascent+rect.top+1, s);
+  canvas.DrawString16(rect.left + x, rect.top+1, s);
 
 end;
 
