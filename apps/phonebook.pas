@@ -174,7 +174,7 @@ begin
   edCAT := TWGEDIT.Create(self);
   with edCAT do
   begin
-    SetDimensions(12,28,86,20);
+    SetDimensions(12,28,86,22);
     Text := u8('');
   end;
 
@@ -188,7 +188,7 @@ begin
   edNAME := TWGEDIT.Create(self);
   with edNAME do
   begin
-    SetDimensions(12,76,299,20);
+    SetDimensions(12,76,299,22);
     Anchors := [anLeft,anRight,anTop];
     Text := u8('');
   end;
@@ -203,7 +203,7 @@ begin
   edPHONE := TWGEDIT.Create(self);
   with edPHONE do
   begin
-    SetDimensions(12,124,299,20);
+    SetDimensions(12,124,299,22);
     Anchors := [anLeft,anRight,anTop];
     Text := u8('');
   end;
@@ -268,7 +268,7 @@ begin
   edFLTNAME := TWGEDIT.Create(self);
   with edFLTNAME do
   begin
-    SetDimensions(8,29,154,20);
+    SetDimensions(8,28,154,22);
     Text := u8('');
     OnChange := {$ifdef FPC}@{$endif}FilterChange;
   end;
