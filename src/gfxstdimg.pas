@@ -152,6 +152,31 @@ begin
             @stdimg_link,
       sizeof(stdimg_link)
                      );
+
+  img := GfxLibAddMaskedBMP(
+            'stdimg.dlg.help',
+            @stdimg_dlg_help,
+      sizeof(stdimg_dlg_help),
+            0,0 );
+
+  img := GfxLibAddMaskedBMP(
+            'stdimg.dlg.info',
+            @stdimg_dlg_info,
+      sizeof(stdimg_dlg_info),
+            0,0 );
+
+  img := GfxLibAddMaskedBMP(
+            'stdimg.dlg.warning',
+            @stdimg_dlg_warning,
+      sizeof(stdimg_dlg_warning),
+            0,0 );
+
+  img := GfxLibAddMaskedBMP(
+            'stdimg.dlg.critical',
+            @stdimg_dlg_critical,
+      sizeof(stdimg_dlg_critical),
+            0,0 );
+
 {
   img := GfxLibAddMaskedBMP(
             'stdimg.',
