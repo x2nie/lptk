@@ -3,6 +3,7 @@ unit wgtree;
 { 
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
+    29.10.2003	0.9a	Doubleclick-Handling implemented
     28.10.2003	0.9	TwgTreeNode.Clear added - removes all subnodes - recourse
     20.07.2003	0.8a	bugfix for scrollbar-handling
     16.07.2003	0.8	bugfix for: TwgTreeNode.Remove, TwgTreeNode.UnregisterSubNode
@@ -134,7 +135,6 @@ type
 	    function GetNodeHeightSum : integer;
 	    function MaxNodeWidth : integer;
 	    procedure UpdateScrollbars;
-	    procedure DoChange;
 	    function NodeIsVisible(node : TwgTreeNode) : boolean;
 	protected
 	    function StepToRoot(aNode : TwgTreeNode) : integer; 
@@ -143,6 +143,8 @@ type
 	    function SpaceToVisibleNext(aNode : TwgTreeNode) : integer; // the nodes between the given node and the direct next node
 	    procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;	    
 	    procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
+	    procedure HandleDoubleClick(x,y : integer; button : word; shiftstate : word); override;
+	    procedure DoChange;	virtual;
 	public
 	    OnChange : TNotifyEvent;
 	    constructor Create(aOwner : TComponent); override;
@@ -211,6 +213,17 @@ begin
 	    SetColumnWidth(i,GetColumnWidth(i));
 	end;
     end;
+end;
+
+procedure TwgTree.HandleDoubleClick(x,y : integer; button : word; shiftstate : word);
+begin
+    HandleMouseUp(x,y,button,shiftstate);
+    inherited HandleDoubleClick(x,y,button,shiftstate);
+    if Selection.Collapsed then 
+	Selection.Expand
+    else
+	Selection.Collapse;
+    RePaint;
 end;
 
 procedure TwgTree.HandleMouseUp(x,y : integer; button : word; shiftstate : word);
