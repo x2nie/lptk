@@ -146,6 +146,12 @@ begin
             @stdimg_hidden,
       sizeof(stdimg_hidden),
             0,0 );
+
+  img := GfxLibAddBMP(
+            'stdimg.link',
+            @stdimg_link,
+      sizeof(stdimg_link)
+                     );
 {
   img := GfxLibAddMaskedBMP(
             'stdimg.',
