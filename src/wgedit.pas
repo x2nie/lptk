@@ -32,7 +32,7 @@ type
     FFont : TGfxFont;
 
     FDrawOffset : integer;
-    FText8: string;
+    
     procedure SetText(const AValue : String16);
 
     procedure DeleteSelection;
@@ -44,6 +44,8 @@ type
     function GetDrawText : string16;
     procedure SetText8(const Value: string);
     function GetText8: string;
+
+    procedure SetFont(const Value: TGfxFont);
 
   public
     PasswordMode : boolean;
@@ -63,6 +65,8 @@ type
     property Text : String16 read FText write SetText;
 
     property Text8 : string read GetText8 write SetText8;
+
+    property Font : TGfxFont read FFont write SetFont;
 
   public
 
@@ -527,6 +531,13 @@ end;
 procedure TwgEdit.SetText8(const Value: string);
 begin
   Text := str8to16(Value);
+end;
+
+procedure TwgEdit.SetFont(const Value: TGfxFont);
+begin
+  if FFont = Value then Exit;
+  FFont := Value;
+  if FWinHandle <> 0 then RePaint;
 end;
 
 end.
