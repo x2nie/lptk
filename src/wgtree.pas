@@ -4,6 +4,10 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.26  2004/01/14 13:06:17  aegluke
+// visiblity-change of GetNodeHeight
+// Bugfix in RePaint, line for single nodes missed
+//
 // Revision 1.25  2004/01/14 08:22:52  aegluke
 // Add recourse-param to FindSubNode
 //
@@ -216,7 +220,6 @@ type
     procedure HandleDoubleClick(x, y: integer; button: word; shiftstate: word); override;
     procedure DoChange; virtual;
     procedure DoExpand(aNode: TwgTreeNode); virtual;
-    function GetNodeHeight : integer;
     procedure PreCalcColumnLeft;
     function GetColumnLeft(AIndex : integer) : integer;
     procedure SetShowImages(AValue : Boolean);
@@ -225,6 +228,7 @@ type
     OnExpand: TTreeExpandEvent;
     constructor Create(aOwner: TComponent); override;
     procedure SetColumnWidth(aindex, awidth: word);
+    function GetNodeHeight : integer;    
     function GetColumnWidth(aIndex: word): word; // the width of a column - aIndex of the rootnode = 0
     procedure RePaint; override;
     procedure DoShow; override;
@@ -942,7 +946,7 @@ begin
          end
          else
          begin
-              if (h.next <> nil) or (h.prev <> nil) then
+//              if (h.next <> nil) or (h.prev <> nil) then
               // draw the line in front of a single node
               begin
                    Canvas.SetColor(clText1);
