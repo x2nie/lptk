@@ -1748,9 +1748,9 @@ var
 begin
   c := GfxColorToRGB(col);
 
-  colxft.color.red   := (c and $000000FF) shl 8;
+  colxft.color.blue  := (c and $000000FF) shl 8;
   colxft.color.green := (c and $0000FF00);
-  colxft.color.blue  := (c and $00FF0000) shr 8;
+  colxft.color.red   := (c and $00FF0000) shr 8;
 
   colxft.color.alpha := (c and $7F000000) shr 15;
   colxft.color.alpha := colxft.color.alpha xor $FFFF;  // invert: 0 in GfxColor means not translucent
