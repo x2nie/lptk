@@ -266,7 +266,7 @@ begin
     for i := 1 to 7 do
 	// kopfzeilen und spalten zeichnen
     begin
-	Canvas.DrawString16(cw * i - cw div 2 - FFont.TextWidth16(Str8To16(DayName[i])) div 2,ButtonL.Height + ButtonL.Top + (Font.Descent),Str8To16(DayName[i]));
+	Canvas.DrawString16(cw * i - cw div 2 - FFont.TextWidth16(Str8To16(DayName[i])) div 2,ButtonL.Height + ButtonL.Top,Str8To16(DayName[i]));
     end;
     for i := 1 to 6 do	// 6 zeilen a 7 spalten
     begin		// beginnt mit spalte
@@ -298,7 +298,7 @@ begin
 		end;
 		Canvas.FillRectangle(cw * (i1 - 1),  ButtonL.Height + ButtonL.Top + (rh) * (i) , cw - 1, rh);
 	    end;
-	    Canvas.DrawString16(cw * i1 - cw div 2 - FFont.TextWidth16(Str8To16(IntToStr(d))) div 2, ButtonL.Height + ButtonL.Top + rh * (i+1) - FFont.Descent, Str8To16(IntToStr(d)));
+	    Canvas.DrawString16(cw * i1 - cw div 2 - FFont.TextWidth16(Str8To16(IntToStr(d))) div 2, ButtonL.Height + ButtonL.Top + rh * (i) + rh div 2 - FFont.Height div 2, Str8To16(IntToStr(d)));
 	    start := start + 1;
 	end;
     end;
