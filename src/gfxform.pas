@@ -133,7 +133,7 @@ begin
   
   if FWinHandle <= 0 then Exit;
 
-  s8 := u16noesc(FWindowTitle);
+  s8 := u16u8trunc(FWindowTitle);
   
 {$ifdef Win32}
   SetWindowText(FWinHandle, PChar(s8));
@@ -379,7 +379,7 @@ end;
 
 function TGfxForm.GetWindowName: string;
 begin
-  result := u16noesc(FWindowTitle);
+  result := u16u8trunc(FWindowTitle);
 end;
 
 function TGfxForm.GetWindowTitle8: string;

@@ -29,13 +29,16 @@ type
            end;
 
 function Str8to16(s : String8) : string16; // = u8
-function Str16to8(s : String8) : string8;  // = u16u8
+function Str16to8(s : String16) : string8;  // = u16u8
 
 function u8(s : String8) : string16;       // decodes escaped text
-function u16u8(s : string16) : string8;    // escapes only 256..65535
-function u8Encode(s : string16) : string8; // escapes 0.31 and 255..65535
-function u16noesc(s : string16) : string8; // truncates hi byte, doesn't use escapes ('^' -> '^')
+function u8u16(s : String8) : string16;    // same as u8
 function u8noesc(s : String8) : string16;  // inserts #0-s, doesn't use escapes
+
+function u16u8(s : string16) : string8;    // escapes only 256..65535
+function u16u8safe(s : string16) : string8; // escapes 0.31 and 255..65535
+function u16u8trunc(s : string16) : string8; // truncates hi byte, doesn't use escapes ('^' -> '^'), try handle code pages
+// this function could cause information loss
 
 function Length16(s : String16) : integer;
 procedure SetLength16(var s : String16; len : integer);
@@ -97,7 +100,12 @@ begin
   end;
 end;
 
-function u8Encode(s : string16) : string8;
+function u8u16(s : String8) : string16;    // same as u8
+begin
+  result := u8(s);
+end;
+
+function u16u8safe(s : string16) : string8;
 var
   ccode : word;
   n : integer;
@@ -159,7 +167,7 @@ begin
   end;
 end;
 
-function u16noesc(s : string16) : string8;
+function u16u8trunc(s : string16) : string8;
 var
   n : integer;
   i : integer;
@@ -206,7 +214,7 @@ begin
   result := u8(s);
 end;
 
-function Str16to8(s : String8) : string8;
+function Str16to8(s : String16) : string8;
 begin
   result := u16u8(s);
 end;
