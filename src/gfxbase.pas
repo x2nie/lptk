@@ -2,7 +2,7 @@
   File maintainer: nvitya@freemail.hu
 
 History:
-  15.01.2004  complete buffering support for Windows and Linux 
+  15.01.2004  complete buffering support for Windows and Linux
 }
 {$DEFINE BUFFERING}
 unit gfxbase;
@@ -179,7 +179,7 @@ type
   TWinHandle   = TXID;
   TGfxDisplay  = PXDisplay;
   TGfxFontData = PXftFont;
-  TFontHandle  = PXftFont; 
+  TFontHandle  = PXftFont;
   TGContext    = Xlib.TGc;
 
 const
@@ -418,12 +418,15 @@ type
      FBrush : HBRUSH;
      FPen   : HPEN;
      FClipRegion   : HRGN;
+
      FBufferBrush : HBRUSH;
      FBufferPen   : HPEN;
      FBufferClipRegion   : HRGN;
      FBufferGC : TGContext;
      FBufferBitmap : HBitmap;
      FBufferFont : TgfxFont;
+     FBufferClipRect : TGfxRect;
+     FBufferClipRectSet : Boolean;
 {$else}
      FXftDraw : PXftDraw;
      FXftDrawBuffer : PXftDraw;
@@ -595,7 +598,7 @@ type
 var
   InputMethod  : PXIM;
   InputContext : PXIC;
-  
+
 var
   LastClickWindow  : TWinHandle;
   LastWinClickTime : longword;
@@ -2026,12 +2029,12 @@ begin
     FBufferBitmap := 0;
     if FBufferClipRegion > 0 then DeleteObject(FBufferClipRegion);
     FBufferClipRegion := 0;
-    if FBufferGC > 0 then ReleaseDC(0,FBufferGC);
+    if FBufferGC > 0 then DeleteDC(FBufferGC);
     FBufferGC := 0;
-    FBufferGC := GetDC(FWin);
+    FBufferGC := CreateCompatibleDC(Fgc);
     if FBufferGC > 0 then
     begin
-      FBufferBitmap := windows.CreateCompatibleBitmap(FBufferGC,AWidth+2, AHeight+2);
+      FBufferBitmap := windows.CreateCompatibleBitmap(Fgc,AWidth, AHeight);
       SelectObject(FBufferGC,FBufferBitmap);
       SetTextAlign(FBufferGC, TA_BASELINE);
       SetBkMode(FBufferGC, TRANSPARENT);
@@ -2039,10 +2042,10 @@ begin
       FBufferBrush := CreateSolidBrush(0);
       FBufferPen := CreatePen(PS_SOLID, 0, 0);
       FBufferClipRegion := CreateRectRgn(0,0,1,1);
-      Windows.SelectObject(FBufferGC, FCurFont.Handle);
+      SelectObject(FBufferGC, FCurFont.Handle);
       SelectObject(FBufferGC,FBufferBrush);
       SelectObject(FBufferGC,FBufferPen);
-//      SelectObject(FBufferGC, FCurFont.Handle);
+      //SelectObject(FBufferGC, FCurFont.Handle);
   end;
   {$ENDIF}
 end;
@@ -2423,16 +2426,18 @@ end;
 procedure TGfxCanvas.SetClipRect(const rect : TGfxRect);
 {$ifdef Win32}
 begin
-  FClipRectSet := True;
-  FClipRect := rect;
   if DrawOnBuffer then
   begin
-    SelectClipRgn(FBufferGC, FBufferClipRegion);
+    FBufferClipRect := Rect;
+    FBufferClipRectSet := True;
     DeleteObject(FBufferClipRegion);
     FBufferClipRegion := CreateRectRgn(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height);
+    SelectClipRgn(FBufferGC, FBufferClipRegion);
   end
   else
   begin
+    FClipRectSet := True;
+    FClipRect := rect;
     DeleteObject(FClipRegion);
     FClipRegion := CreateRectRgn(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height);
     SelectClipRgn(Fgc, FClipRegion);
@@ -2463,7 +2468,10 @@ end;
 function TgfxCanvas.GetClipRect : TgfxRect;
 // added by aegluke
 begin
-     result := FClipRect;
+  if DrawOnBuffer then
+     result := FBufferClipRect
+  else
+    result := FClipRect;
 end;
 
 procedure TGfxCanvas.AddClipRect(const rect: TGfxRect);
@@ -2471,16 +2479,19 @@ procedure TGfxCanvas.AddClipRect(const rect: TGfxRect);
 var
   rg : HRGN;
 begin
-  FClipRect := Rect;
   rg := CreateRectRgn(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height);
   if DrawOnBuffer then
   begin
+    FBufferClipRect := Rect;
+    FBufferClipRectSet := True;
     CombineRgn(FBufferClipRegion,rg,FBufferClipRegion,RGN_AND);
     SelectClipRgn(FBufferGC,FBufferClipRegion);
   end
   else
   begin
-    CombineRgn(FClipRegion,rg,FClipRegion,RGN_AND);  
+    FClipRect := Rect;
+    FClipRectSet := True;
+    CombineRgn(FClipRegion,rg,FClipRegion,RGN_AND);
     SelectClipRgn(Fgc, FClipRegion);
   end;
   DeleteObject(rg);
@@ -2490,7 +2501,6 @@ var
   r : TXRectangle;
   rg : TRegion;
 begin
-  FClipRect := Rect;
   r.x := rect.left;
   r.y := rect.top;
   r.width := rect.width;
@@ -2501,9 +2511,15 @@ begin
   XIntersectRegion(FClipRegion,rg,FClipRegion);
   XSetRegion(display, Fgc, FClipRegion);
   if DrawOnBuffer then
+  begin
      XftDrawSetClip(FXftDrawBuffer, FClipRegion)
+  end
   else
+  begin
+      FClipRect := Rect;
+      FClipRectSet := True;
       XftDrawSetClip(FXftDraw, FClipRegion);
+  end;
   XDestroyRegion(rg);
 end;
 {$endif}
@@ -2512,10 +2528,15 @@ procedure TGfxCanvas.ClearClipRect;
 {$ifdef Win32}
 begin
   if DrawOnBuffer then
-    SelectClipRgn(FBuffergc, 0)
+  begin
+    SelectClipRgn(FBuffergc, 0);
+    FBufferClipRectSet := False;
+  end
   else
-    SelectClipRgn(Fgc, 0);  
-  FClipRectSet := False;
+  begin
+    SelectClipRgn(Fgc, 0);
+    FClipRectSet := False;
+  end;
 end;
 {$else}
 var
@@ -2608,7 +2629,8 @@ var
   ARect : TgfxRect;
   AInt : integer;
 begin
-     // added by aegluke
+  {$IFNDEF win32}
+     // added by aegluke - only for linux needed
      if img = nil then exit;
      if FClipRectSet then
      begin
@@ -2636,6 +2658,7 @@ begin
         h := ARect.Bottom - y;
       if h < 0 then exit;
      end;
+     {$ENDIF}
 {$ifdef Win32}
   tmpdc := CreateCompatibleDC(display);
 

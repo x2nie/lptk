@@ -4,8 +4,8 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
-// Revision 1.27  2004/01/15 11:48:12  aegluke
-// Windows Buffering Changes
+// Revision 1.28  2004/01/16 07:17:40  aegluke
+// Windows Buffer completion
 //
 // Revision 1.26  2004/01/14 13:06:17  aegluke
 // visiblity-change of GetNodeHeight
@@ -812,14 +812,14 @@ begin
   UpdateScrollbars;
   AVisibleHeight := VisibleHeight;
   Canvas.DrawOnBuffer := True;
-//  Canvas.ClearClipRect;
+  Canvas.ClearClipRect;
   Canvas.Clear(BackgroundColor);
   if FFocused then
     Canvas.SetColor(clWidgetFrame)
   else
     Canvas.SetColor(clInactiveWGFrame);
   Canvas.DrawRectangle(0, 0, Width, Height); // border
-  r.SetRect(0,0,VisibleWidth-2, VisibleHeight-2);
+  r.SetRect(1,1,Width-2,Height-2);
   if ShowColumns then // draw the column header?
   begin
     r.SetRect(1, 1, VisibleWidth, FColumnHeight);
@@ -839,7 +839,7 @@ begin
     Canvas.SetColor(clGridHeader);
     Canvas.FillRectangle(3, 3, VisibleWidth - 4, FColumnHeight - 4);
     Canvas.SetColor(clWidgetFrame);
-    
+
     w := 0;
     r.SetRect(3, 2, VisibleWidth - 4, FColumnHeight - 2);
     Canvas.SetClipRect(r);
@@ -861,7 +861,7 @@ begin
     begin
       w := w + GetColumnWidth(i);
       Canvas.DrawLine(w + 1 - FXOffset, 3, w + 1 - FXOffset, FColumnHeight - 2);
-    end;    
+    end;
   end;
   if ShowColumns then
   begin
@@ -873,7 +873,7 @@ begin
     r.SetRect(1, 1, VisibleWidth, VisibleHeight);
     col := 0;
   end;
-//  Canvas.ClearClipRect;
+  Canvas.ClearClipRect;
   Canvas.SetClipRect(r);
 
   // draw the nodes with lines
