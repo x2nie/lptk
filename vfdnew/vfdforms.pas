@@ -456,7 +456,23 @@ end;
 
 procedure TWidgetOrderForm.OnButtonClick(sender: TObject);
 var
-  i : integer;
+  i, n, myilev : integer;
+
+  function IdentLevel(astr : string16) : integer;
+  var
+    s : string;
+    f : integer;
+  begin
+    result := 0;
+    s := str16to8(astr);
+    f := 1;
+    while (f <= length(s)) and (s[f] = ' ') do
+    begin
+      inc(result);
+      inc(f);
+    end;
+  end;
+
 begin
   if Sender = btnOK then ModalResult := 1
   else if Sender = btnCancel then ModalResult := 2
@@ -466,19 +482,47 @@ begin
     i := list.FocusItem;
     if i < 1 then exit;
 
+    myilev := IdentLevel(list.Items[i-1]);
+
     if Sender = btnUP then
     begin
-      if i > 1 then
+      if (i > 1) and (IdentLevel(list.Items[i-2]) = myilev) then
       begin
         list.Items.Move(i-1,i-2);
+
+        n := i;
+        while (n < list.Items.Count) and (IdentLevel(list.Items[n]) > myilev) do
+        begin
+          list.Items.Move(n,n-1);
+          inc(n);
+        end;
+
         list.FocusItem := i-1;
       end;
     end
     else if Sender = btnDOWN then
     begin
-      if i < list.Items.Count then
+      if (i < list.Items.Count) then
       begin
-        list.Items.Move(i-1,i);
+        //list.Items.Move(i-1,i);
+
+        n := i;
+        while (n < list.Items.Count) and (IdentLevel(list.Items[n]) > myilev) do
+        begin
+          //list.Items.Move(n,n-1);
+          inc(n);
+        end;
+
+        if (i = n) and (i < list.Items.Count-1) and (IdentLevel(list.Items[i+1]) > myilev) then Exit;
+
+        if (n > list.Items.Count-1) then Exit;
+
+        while (n >= i) do
+        begin
+          list.Items.Move(n,n-1);
+          dec(n);
+        end;
+
         list.FocusItem := i+1;
       end;
     end;

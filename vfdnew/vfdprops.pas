@@ -340,7 +340,6 @@ begin
   result := false;
   if UpperCase(GetIdentifier(s)) <> UpperCase(Name) then Exit;
 
-
   result := CheckSymbol(s, '.');
   result := result and (UpperCase(GetIdentifier(s)) = 'ADD');
   result := result and CheckSymbol(s, '(');

@@ -260,7 +260,17 @@ begin
     begin
       //writeln('wg create: ',wgname,' (',wgclass,') - ',wgparent);
 
-      pwg := ffd.Form;
+      // searching for the parent ...
+      pwg := nil;
+      if UpperCase(wgparent) <> 'self' then
+      begin
+        pwg := ffd.FindWidgetByName(wgparent);
+        if pwg = nil then
+        begin
+          Writeln('Warning! parent object "'+wgparent+'" not found for "'+wgname+'"');
+        end;
+      end;
+      if pwg = nil then pwg := ffd.Form;
 
       wgclassuc := UpperCase(wgclass);
 
@@ -275,6 +285,7 @@ begin
           break;
         end;
       end;
+
 {
       if      wgclassuc = 'TWGLABEL'     then wg := TwgLabel.Create(pwg)
       else if wgclassuc = 'TWGEDIT'      then wg := TwgEdit.Create(pwg)
@@ -346,7 +357,6 @@ var
   lok : boolean;
   sval : string;
   wga  : TAnchors;
-//  c : TDBColumn;
 begin
   s := propline;
 

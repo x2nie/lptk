@@ -19,7 +19,9 @@ var
 implementation
 
 uses vfddesigner, gfxform,
-  wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox
+  wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox,
+  wgbevel,
+  vfdwgdbgrid
   ;
 
 var
@@ -111,13 +113,18 @@ begin
       sizeof(stdimg_vfd_other),
             0,0 );
 
+  GfxLibAddMaskedBMP(
+                   'vfd.dbgrid',
+            @stdimg_vfd_dbgrid,
+      sizeof(stdimg_vfd_dbgrid),
+            15,0 );
 {
   GfxLibAddMaskedBMP(
                    'vfd.',
             @stdimg_vfd_,
       sizeof(stdimg_vfd_),
             0,0 );
-}            
+}
 end;
 
 procedure AddWidgetPosProps(wgc : TVFDWidgetClass);
@@ -159,7 +166,7 @@ begin
   // Memo
   wc := TVFDWidgetClass.Create(TwgMemo);
   wc.NameBase := 'memo';
-  //wc.AddProperty('Text',TPropertyString16,'Initial text (string16)');
+  wc.AddProperty('Lines',TPropertyStringList,'');
   wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
   wc.WidgetIconName := 'vfd.memo';
   RegisterVFDWidget(wc);
@@ -186,11 +193,12 @@ begin
   wc := TVFDWidgetClass.Create(TwgChoiceList);
   wc.NameBase := 'chl';
   //wc.AddProperty('Text',TPropertyString16,'');
+  wc.AddProperty('Items',TPropertyStringList,'');
   wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
   wc.WidgetIconName := 'vfd.choicelist';
   RegisterVFDWidget(wc);
 
-  // TextListBoct
+  // TextListBox
   wc := TVFDWidgetClass.Create(TwgTextListBox);
   wc.NameBase := 'lst';
   //wc.AddProperty('Text',TPropertyString16,'');
@@ -199,7 +207,21 @@ begin
   wc.WidgetIconName := 'vfd.listbox';
   RegisterVFDWidget(wc);
 
+  // DBGrid
+  wc := TVFDWidgetClass.Create(TwgDBGrid);
+  wc.NameBase := 'grid';
+  wc.AddProperty('Columns',TPropertyDBColumns,'');
+  wc.AddProperty('FontName',TPropertyString8,'');
+  wc.AddProperty('HeaderFontName',TPropertyString8,'');
+  wc.WidgetIconName := 'vfd.dbgrid';
+  RegisterVFDWidget(wc);
 
+  // Panel
+  wc := TVFDWidgetClass.Create(TwgBevel);
+  wc.NameBase := 'panel';
+  wc.WidgetIconName := 'vfd.panel';
+  wc.Container := true;
+  RegisterVFDWidget(wc);
 
   // Other - do not delete!!! this should be the last...
   wc := TVFDWidgetClass.Create(TOtherWidget);

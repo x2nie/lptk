@@ -108,6 +108,7 @@ type
     function AddWidget(wg : TWidget; wgc : TVFDWidgetClass) : TWidgetDesigner;
 
     function WidgetDesigner(wg : TWidget) : TWidgetDesigner;
+    function FindWidgetByName(const wgname : string) : TWidget;
 
     procedure DeSelectAll;
     procedure SelectAll;
@@ -121,7 +122,7 @@ type
     procedure DesignerKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean);
 
     procedure PutControlByName(x,y : integer; cname : string);
-    procedure InsertWidget(x,y : integer; wgc : TVFDWidgetClass);
+    procedure InsertWidget(pwg : TWidget; x,y : integer; wgc : TVFDWidgetClass);
 
     procedure OnPaletteChange(Sender : TObject);
 
@@ -308,6 +309,7 @@ procedure TFormDesigner.MsgMouseUp(var msg: TMessageRec);
 var
   wgd : TWidgetDesigner;
   wgc : TVFDWidgetClass;
+  pwg : TWidget;
   shift : boolean;
   x,y : integer;
 begin
@@ -315,11 +317,15 @@ begin
 
   shift := ((msg.Param3 and $FF) and ss_shift) <> 0;
 
-  if msg.dest = FForm then
+  wgc := frmMain.SelectedWidget;
+  pwg := TWidget(msg.dest);
+  wgd := WidgetDesigner(TWidget(msg.dest));
+  if wgd = nil then pwg := FForm
+  else if not wgd.FVFDClass.Container then wgc := nil;
+
+  if wgc <> nil then
   begin
     DeSelectAll;
-
-    wgc := frmMain.SelectedWidget;
 
     if wgc <> nil then
     begin
@@ -332,45 +338,7 @@ begin
         y := y - y mod GridResolution;
       end;
 
-      InsertWidget(x,y, wgc);
-{
-      if wgc.WidgetClass = TOtherWidget then
-      begin
-        cfrm := TInsertCustomForm.Create(nil);
-        if cfrm.ShowModal = 1 then
-        begin
-          newname := cfrm.edName.Text8;
-          if newname = '' then newname := GenerateNewName(cfrm.edClass.Text8);
-          wg := TOtherWidget.Create(FForm);
-          TOtherWidget(wg).wgClassName := cfrm.edClass.Text8;
-          wg.SetDimensions(x,y,200,24);
-        end;
-        cfrm.Free;
-      end;
-
-
-      x := msg.Param1;
-      y := msg.Param2;
-
-      if GridResolution > 1 then
-      begin
-        x := x - x mod GridResolution;
-        y := y - y mod GridResolution;
-      end;
-
-      wg := wgc.CreateWidget(FForm);
-      if wg <> nil then
-      begin
-        wg.Left := x;
-        wg.Top  := y;
-        wg.name := GenerateNewName(wgc.NameBase);
-        wgd := AddWidget(wg, wgc);
-        wg.ShowWidget;
-        DeSelectAll;
-        wgd.Selected := true;
-        UpdatePropWin;
-      end;
-}
+      InsertWidget(pwg, x,y, wgc);
 
       if not shift then
       begin
@@ -382,7 +350,12 @@ begin
   else
   begin
     wgd := WidgetDesigner(TWidget(msg.dest));
-    if wgd = nil then Exit;
+    if wgd = nil then
+    begin
+      DeSelectAll;
+      UpdatePropWin;
+      Exit;
+    end;
 
     if not shift then
     begin
@@ -644,21 +617,46 @@ begin
   end;
 end;
 
+
 procedure TFormDesigner.EditWidgetOrder;
 var
   frm : TWidgetOrderForm;
   n,fi : integer;
   cd : TWidgetDesigner;
+  identlevel : integer;
+
+  procedure AddChildWidgets(pwg : TWidget; slist : TStringList);
+  var
+    f : integer;
+    fcd : TWidgetDesigner;
+  begin
+    for f:=0 to FWidgets.Count-1 do
+    begin
+      fcd := TWidgetDesigner(FWidgets.Items[f]);
+
+      if fcd.Widget.Parent = pwg then
+      begin
+        frm.list.Items.AddObject(u8(StringOfChar(' ',identlevel)+fcd.Widget.Name + ' : ' + fcd.Widget.ClassName),fcd);
+        inc(identlevel);
+        AddChildWidgets(fcd.Widget,slist);
+        dec(identlevel);
+      end;
+
+      if fcd.Selected then fi := f+1;
+    end;
+  end;
+
+
 begin
   frm := TWidgetOrderForm.Create(nil);
   fi := 1;
-  for n:=0 to FWidgets.Count-1 do
-  begin
-    cd := TWidgetDesigner(FWidgets.Items[n]);
-    if cd.Selected then fi := n+1;
-    frm.list.Items.AddObject(u8(cd.Widget.Name + ' : ' + cd.Widget.ClassName),cd);
-  end;
+
+  identlevel := 0;
+
+  AddChildWidgets(FForm, frm.list.Items);
+
   if fi <= frm.list.ItemCount then frm.list.FocusItem := fi;
+
   if frm.ShowModal = 1 then
   begin
     for n:=0 to FWidgets.Count-1 do TWidgetDesigner(FWidgets.Items[n]).Widget.Visible := false;
@@ -1461,11 +1459,11 @@ begin
   end
   else if wg is TwgDBGrid then
   begin
-    EditDBGridColumns(TwgDBGrid(wg));
+    //EditDBGridColumns(TwgDBGrid(wg));
   end;
 end;
 
-procedure TFormDesigner.InsertWidget(x,y : integer; wgc : TVFDWidgetClass);
+procedure TFormDesigner.InsertWidget(pwg : TWidget; x,y : integer; wgc : TVFDWidgetClass);
 var
   cfrm : TInsertCustomForm;
   newname, newclassname : string;
@@ -1491,7 +1489,7 @@ begin
     if (newname = '') or (newclassname = '') then Exit;
   end;
 
-  wg := wgc.CreateWidget(FForm);
+  wg := wgc.CreateWidget(pwg);
   if wg <> nil then
   begin
     wg.Left := x;
@@ -1504,6 +1502,25 @@ begin
     DeSelectAll;
     wgd.Selected := true;
     UpdatePropWin;
+  end;
+end;
+
+function TFormDesigner.FindWidgetByName(const wgname: string): TWidget;
+var
+  n : integer;
+  wgnameuc : string;
+  cd : TWidgetDesigner;
+begin
+  wgnameuc := UpperCase(wgname);
+  result := nil;
+  for n:=0 to FWidgets.Count-1 do
+  begin
+    cd := TWidgetDesigner(FWidgets.Items[n]);
+    if UpperCase(cd.Widget.Name) = wgnameuc then
+    begin
+      result := cd.Widget;
+      Exit;
+    end;
   end;
 end;
 

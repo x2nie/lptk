@@ -40,7 +40,8 @@ uses
   vfdwidgets,
   vfdprops,
   vfddesigner,
-  newformdesigner;
+  newformdesigner,
+  vfdwgdbgrid in 'vfdwgdbgrid.pas';
 
 //var
   //vf : TVFDFile;

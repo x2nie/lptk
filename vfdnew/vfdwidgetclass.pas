@@ -63,6 +63,7 @@ type
     Description : string;
     WidgetIconName : string;
     NameBase : string;
+    Container : boolean;
 
     constructor Create(aClass : TWidgetClass);
     destructor Destroy; override;
@@ -96,6 +97,7 @@ begin
   FProps := TList.Create;
   Description := '';
   NameBase := 'Widget';
+  Container := false;
 end;
 
 function TVFDWidgetClass.CreateWidget(AOwner : TComponent) : TWidget;

@@ -684,13 +684,13 @@ end;
 procedure TwgPropertyList.DoKillFocus;
 begin
   inherited;
-  ReleaseEditor;
+  Editor.Visible := true;
 end;
 
 procedure TwgPropertyList.DoSetFocus;
 begin
   inherited;
-  AllocateEditor;
+  if Editor <> nil then Editor.Visible := true else AllocateEditor;
 end;
 
 procedure TwgPropertyList.AllocateEditor;
