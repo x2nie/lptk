@@ -3,6 +3,8 @@
 
 History:
 }
+// $LOG$
+
 
 unit wggrid;
 
@@ -50,7 +52,8 @@ type
     RowSelect : boolean;
 
     FVScrollBar : TwgScrollBar;
-
+    FHScrollBar : TwgScrollBar;
+    
     FColResizing : boolean;
     FResizedCol  : integer;
     FDragPos : integer;
@@ -81,6 +84,8 @@ type
     procedure DoShow; override;
 
     procedure VScrollBarMove(Sender: TObject; position : integer);
+
+    procedure HScrollBarMove(Sender : TObject; position : integer);
 
     procedure CheckFocusChange;
 
@@ -120,6 +125,7 @@ implementation
 uses gfxstyle; //, xlib, x, xutil;
 
 { TwgGrid }
+
 
 function TwgGrid.GetColumnCount: integer;
 begin
@@ -209,7 +215,27 @@ begin
 end;
 
 procedure TwgGrid.UpdateScrollBar;
+var
+  i : integer;
+  vw : integer;
+  cw : integer;
+  fw : integer;
 begin
+  // insert to support horizontal scrollbar - aegluke
+  vw := VisibleWidth;
+  cw := 0;
+  fw := 0;
+  for i := 1 to ColumnCount do cw := cw + ColumnWidth[i];
+  FHScrollBar.Visible := cw > vw;
+  if FHScrollbar.Visible then
+  begin
+    FHScrollBar.Min := 1;
+    FHScrollBar.SliderSize := 0.2;
+    FHScrollBar.Max := ColumnCount;
+    FHScrollBar.Position := FFocusCol;
+    if FHScrollBar.WinHandle > 0 then
+      FHScrollBar.RepaintSlider;
+  end;
 
   FVScrollBar.Visible := (RowCount > VisibleLines);
 
@@ -229,9 +255,22 @@ end;
 procedure TwgGrid.DoShow;
 begin
   FVScrollBar.SetDimensions(width-18,0,18,height);
+  FHScrollBar.SetDimensions(1,height - 18,width - FVScrollbar.width - 1, 18);
   inherited DoShow;
   UpdateScrollBar;
   CheckFocusChange;
+end;
+
+procedure TwgGrid.HScrollBarMove(Sender : TObject; position : integer);
+var
+  i : integer;
+  cw : integer;
+begin
+  if FFirstCol <> position then
+  begin
+    FFirstCol := position;
+    RePaint;
+  end;
 end;
 
 procedure TwgGrid.VScrollBarMove(Sender: TObject; position: integer);
@@ -270,6 +309,10 @@ begin
   FVScrollBar.Orientation := orVertical;
   FVScrollBar.OnScroll := {$ifdef FPC}@{$endif}VScrollBarMove;
 
+  FHScrollBar := TwgScrollBar.Create(self);
+  FHScrollBar.Orientation := orHorizontal;
+  FHSCrollBar.OnScroll := {$ifdef FPC}@{$endif}HScrollBarMove;
+  
   FTemp := 50;
 
   OnFocusChange := nil;
