@@ -53,11 +53,25 @@ type
                   xOff    : smallint;
                   yOff    : smallint;
                 end;
-                
-{
+
+  TFcPattern = record
+    dummy : integer;
+  end;
+
+  PFcPattern = ^TFcPattern;
+  PPFcPattern = ^PFcPattern;
+
+  TFcFontSet = packed record
+    nfont : integer;
+    sfont : integer;
+    fonts : PPFcPattern;
+  end;
+  PFcFontSet = ^TFcFontSet;
+
 const
   FC_FAMILY  : PChar = 'family';
   FC_SIZE    : PChar = 'size';
+  FC_SCALABLE : PChar = 'scalable';
 
   FcTypeVoid         = 0;
   FcTypeInteger      = 1;
@@ -68,7 +82,6 @@ const
   FcTypeCharSet      = 6;
   FcTypeFTFace       = 7;
   FcTypeLangSet      = 8;
-}
 
 function XftDrawCreate(display : PXDisplay; win : TXID; vis : PVisual; colorm : longint) : PXftDraw; cdecl;
 procedure XftDrawChange(xftd : PXftDraw; win : TXID); cdecl;
@@ -91,7 +104,10 @@ function XftGlyphExists(display : PXDisplay; fnt : PXftFont; ch : integer) : lon
 
 procedure XftDrawSetClip(draw : PXftDraw; rg : TRegion); cdecl;
 
-    
+function XftListFonts(display : PXDisplay; screen : integer; params : array of const) : PFcFontSet; cdecl;
+function XftNameUnparse(pat : PFcPattern; dest : PChar; destlen : integer) : boolean; cdecl;
+procedure FcFontSetDestroy(fsp : PFcFontSet); cdecl;
+
 implementation
 
 function XftDrawCreate(display : PXDisplay; win : TXID; vis : PVisual; colorm : longint) : PXftDraw; cdecl; external;
@@ -114,6 +130,10 @@ function XftGlyphExists(display : PXDisplay; fnt : PXftFont; ch : integer) : lon
 //procedure XftDrawSetClipRectangles(draw : PXftDraw; xorigin, yorigin : integer; rect : PXRectangle; rnum : integer); cdecl; external;
 
 procedure XftDrawSetClip(draw : PXftDraw; rg : TRegion); cdecl; external;
+
+function XftListFonts(display : PXDisplay; screen : integer; params : array of const) : PFcFontSet; cdecl; external;
+function XftNameUnparse(pat : PFcPattern; dest : PChar; destlen : integer) : boolean; cdecl; external;
+procedure FcFontSetDestroy(fsp : PFcFontSet); cdecl; external;
 
 end.
 
