@@ -3,8 +3,10 @@
 
 History:
 }
-//$LOG$
-
+//$Log$
+//Revision 1.10  2003/12/10 19:06:54  aegluke
+//*** empty log message ***
+//
 
 unit wggrid;
 
@@ -109,7 +111,8 @@ type
 
     procedure HandleDoubleClick(x,y : integer; btnstate, shiftstate : word); override;
 
-    procedure HandleResize(dwidth, dheight : integer); override;
+    procedure HandleResize
+    (dwidth, dheight : integer); override;
 
   public
 
@@ -219,12 +222,10 @@ var
   i : integer;
   vw : integer;
   cw : integer;
-  fw : integer;
 begin
   // insert to support horizontal scrollbar - aegluke
   vw := VisibleWidth;
   cw := 0;
-  fw := 0;
   for i := 1 to ColumnCount do cw := cw + ColumnWidth[i];
   FHScrollBar.Visible := cw > vw;
   if FHScrollbar.Visible then
@@ -262,9 +263,6 @@ begin
 end;
 
 procedure TwgGrid.HScrollBarMove(Sender : TObject; position : integer);
-var
-  i : integer;
-  cw : integer;
 begin
   if FFirstCol <> position then
   begin
