@@ -25,7 +25,8 @@ type
   protected
     FText : String16;
     FFont : TGfxFont;
-
+    function GetText8 : String;
+    procedure SetText8(const AValue : String);
   public
     OnClick : TNotifyEvent;
 
@@ -46,7 +47,8 @@ type
     procedure Click;
 
     property Text : String16 read FText write SetText;
-
+    property Text8 : String read GetText8 write SetText8;
+    
     property Font : TGfxFont read FFont;
   end;
 
@@ -67,6 +69,16 @@ begin
 end;
 
 { TwgButton }
+
+function TwgButton.GetText8 : String;
+begin
+    result := Str16To8(Text);
+end;
+
+procedure TwgButton.SetText8(const AValue : String);
+begin
+    SetText(Str8To16(AValue));
+end;
 
 procedure TwgButton.SetText(const AValue : String16);
 begin
