@@ -14,7 +14,7 @@ interface
 uses
   Classes, SysUtils, gfxbase, messagequeue, schar16, gfxwidget, gfxform, gfxdialogs, sqldb, gfxstyle,
   wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox,
-  vfdresizer, vfdforms, vfddesigner, vfdfile, newformdesigner;
+  vfdresizer, vfdforms, vfddesigner, vfdfile, newformdesigner, wgfiledialog;
 
 const
   program_version = '0.80b';
@@ -119,22 +119,22 @@ var
   n, m : integer;
   bl, bl2 : TVFDFileBlock;
   fname : string;
-  frm : TfrmLoadSave;
+  afiledialog : TwgFileDialog;
 begin
   fname := EditedFileName;
-  
+
   if sender <> maindsgn then
   begin
-    frm := TfrmLoadSave.Create(nil);
-    frm.WindowTitle8 := 'Load form source';
-    frm.edFileName.Text8 := EditedFileName;
-    if frm.ShowModal > 0 then
+    afiledialog := TwgFileDialog.Create(nil);
+    afiledialog.FullFilename := EditedFilename;
+    afiledialog.WindowTitle8 := 'Open file';
+    if afiledialog.execute then
     begin
-      EditedFileName := frm.edFileName.Text8;
-      fname := EditedFileName;
+      EditedFileName := aFileDialog.FullFilename;
+      fname := EditedFilename;
     end
     else fname := '';
-    frm.Free;
+    FreeAndNil(aFileDialog);
   end;
 
   if fname = '' then Exit;
@@ -188,19 +188,19 @@ var
   ff : file;
 
   fname, uname : string;
-
+  aFileDialog : TwgFileDialog;
   frm : TfrmLoadSave;
 begin
-  frm := TfrmLoadSave.Create(nil);
-  frm.WindowTitle8 := 'Save form source';
-  frm.edFileName.Text8 := EditedFileName;
-  if frm.ShowModal > 0 then
+  aFileDialog := TwgFileDialog.create(nil);
+  aFileDialog.FullFilename := EditedFilename;
+  aFileDialog.WindowTitle8 := 'Save form source';  
+  if aFileDialog.Execute then
   begin
-    EditedFileName := frm.edFileName.Text8;
+    EditedFileName := aFileDialog.FullFilename;
     fname := EditedFileName;
   end
   else fname := '';
-  frm.Free;
+  FreeAndNil(aFileDialog);
 
   if fname = '' then Exit;
 

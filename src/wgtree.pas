@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.32  2004/05/07 08:02:18  aegluke
+// FileDialog used to Open/Save files
+//
 // Revision 1.31  2004/02/07 18:17:39  aegluke
 // Fixed missing Repaint in Mouse- and Keyboard-Handling
 //
@@ -1207,7 +1210,7 @@ begin
   FSelection := nil;
   FDefaultColumnWidth := 15;
   FFirstColumn := nil;
-  FFont := guistyle.LabelFont1;
+  FFont := GfxGetFont('#Label');
   FHScrollbar := TwgScrollbar.Create(self);
   FHScrollbar.Orientation := orHorizontal;
   FHScrollbar.onScroll := {$IFDEF FPC}@{$ENDIF}FHScrollbarMove;

@@ -21,7 +21,7 @@ type
 	    FFileGrid : TwgFileGrid;
             FOKBtn : TwgButton;
             FCancelBtn : TwgButton;
-	    FDirTree : TwgDirTreePopup;	    
+	    FDirTree : TwgDirTreePopup;
             FDetailBtn : TwgButton;
             FFileName : TwgEdit;
             FFileExists : Boolean;
@@ -39,12 +39,18 @@ type
 	    procedure GridDoubleClick(ASender : TObject; AX, AY : TgfxCoord; var AButton : Word; var ShiftState : Word);
             function GetFileName : String;
             procedure SetFileName(AValue : String);
+            procedure SetDirectory(AValue : String);
+            function GetDirectory : String;
+            function GetFullFilename : String;
+            procedure SetFullFilename(aValue : String);
 	public
 	    function Execute : Boolean;
             constructor Create(AOwner : TComponent); override;
             property FileExists : Boolean read FFileExists write FFileExists;
             property FileName : String read GetFileName write SetFileName;
-  end;
+            property Directory : String read GetDirectory write SetDirectory;
+            property FullFilename : String read GetFullFilename write SetFullFilename;
+   end;
 
 implementation
 
@@ -61,6 +67,31 @@ begin
   // GfxLibAddMaskedBMP('btn.lens',@stdimg_lens16x16,sizeof(stdimg_lens16x16),0,0);
 
   initialized := true;
+end;
+
+procedure TwgFileDialog.SetFullFilename(aValue : String);
+begin
+  Directory := ExtractFilePath(aValue);
+  Filename := ExtractFilename(aValue);
+end;
+
+function TwgFileDialog.GetFullFilename : String;
+begin
+  result := Directory + Filename;
+end;
+
+function TwgFileDialog.GetDirectory : String;
+begin
+  result := fDirTree.ActiveDirectory;
+end;
+
+procedure TwgFileDialog.SetDirectory( aValue : String );
+begin
+  if DirectoryExists(aValue) then
+  begin
+    fFileGrid.Directory := aValue;
+    fDirTree.ActiveDirectory := aValue;
+  end;
 end;
 
 procedure TwgFileDialog.GridDoubleClick(ASender : TObject; AX, AY : TgfxCoord; var AButton : Word; var ShiftState : Word);

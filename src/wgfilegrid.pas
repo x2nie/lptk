@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.14  2004/05/07 08:02:18  aegluke
+// FileDialog used to Open/Save files
+//
 // Revision 1.13  2004/01/29 10:03:04  aegluke
 // DoubleClick on filename is like clicking "OK"
 //
@@ -591,7 +594,7 @@ begin
         AFilePos := (AColumnCount - 1)* AVisibleLines + ARowCount - 1;
         if AFilePos < FFiles.Count then
         begin
-          AWidth := guistyle.GridFont.TextWidth16(Str8To16(TwgFileData(FFiles[AFilePos]).FileName))+6;
+          AWidth := GfxGetFont('#Grid').TextWidth16(Str8To16(TwgFileData(FFiles[AFilePos]).FileName))+6;
           AImageIndex := -1;
           if ShowImages and (ImageList <> nil) then
           begin
@@ -648,13 +651,13 @@ begin
       2:
         begin
           s := Str8To16(IntToStr(TwgFileData(FFiles[aRow - 1]).FileSize));
-          canvas.DrawString16(aRect.right - guistyle.GridFont.TextWidth16(s) - 1,
+          canvas.DrawString16(aRect.right - GfxGetFont('#Grid').TextWidth16(s) - 1,
             aRect.top + 1, s);
         end;
       3:
         begin
           s := Str8To16(DateToStr(TwgFileData(FFiles[aRow - 1]).FileDate));
-          canvas.DrawString16(aRect.right - guistyle.GridFont.TextWidth16(s) - 1,
+          canvas.DrawString16(aRect.right - GfxGetFont('#Grid').TextWidth16(s) - 1,
             aRect.top + 1, s);
         end;
       4:

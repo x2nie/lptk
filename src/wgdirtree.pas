@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.11  2004/05/07 08:02:17  aegluke
+// FileDialog used to Open/Save files
+//
 // Revision 1.10  2004/01/29 12:48:10  aegluke
 // Windows-Changes
 //
@@ -321,7 +324,7 @@ begin
      FFocusAble := True;
      FDroppedDown := True;
      FBackgroundColor := clChoiceListBox;
-     FFont := guistyle.ListFont;
+     FFont := GfxGetFont('#list');
      FPopup.DirTree.onChange := {$IFDEF fpc}@{$ENDIF}SelectionChange;
      FPopup.OldDirectory := ActiveDirectory;
 end;
