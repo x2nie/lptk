@@ -145,8 +145,6 @@ begin
 end;
 
 procedure TgfxImageItem.SetIndex(AIndex : Word);
-var
-   TmpItem : TgfxImageItem;
 begin
      {$IFDEF DEBUG}
      writeln('TgfxImageItem.SetIndex');
@@ -159,8 +157,6 @@ begin
 end;
 
 constructor TgfxImageItem.Create(AImageList : TgfxImageList; AIndex : Word; AImage : TgfxImage);
-var
-   ACounter : integer;
 begin
      if AImageList = nil then exit;
      FImage := AImage;

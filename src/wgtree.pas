@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.17  2003/12/30 15:30:44  aegluke
+// Message-Cleanup
+//
 // Revision 1.16  2003/12/30 13:37:40  aegluke
 // ImageList-support - ShowColumns broken
 //
@@ -716,7 +719,6 @@ end;
 
 function TwgTree.GetColumnLeft(AIndex : integer) : integer;
 var
-   ACounter : integer;
    AColumnLeft : PColumnLeft;
 begin
      if FColumnLeft = nil then
@@ -743,7 +745,6 @@ var
   YPos: integer;
   col: integer;
   ACenterPos : integer;
-  ALeftTextPos : integer;
   AImageItem : TgfxImageItem;
 label
   label_next;
@@ -753,6 +754,7 @@ begin
   {$ENDIF}
   if FWinHandle <= 0 then
     exit;
+  i1 := 0;
   PreCalcColumnLeft;
   UpdateScrollbars;
   //    inherited RePaint;
@@ -831,7 +833,6 @@ begin
     w := GetColumnLeft(StepToRoot(h));
     YPos := YPos + GetNodeHeight;
     ACenterPos := YPos - FYOffset + col - GetNodeHeight + (GetNodeHeight div 2);
-    ALeftTextPos := w - FXOffset + 1;
     if h = Selection then // draw the selection rectangle and text
     begin
       Canvas.SetColor(h.ParentSelColor);
