@@ -17,9 +17,12 @@ uses
   vfdresizer, vfdforms, vfddesigner, vfdfile, newformdesigner, wgfiledialog;
 
 const
-  program_version = '0.82';
+  program_version = '0.83';
 
 {version description:
+0.83
+  - New file dialog usage
+
 0.82
   - Removed file dialogs due instability
   
@@ -125,11 +128,11 @@ var
   n, m : integer;
   bl, bl2 : TVFDFileBlock;
   fname : string;
-//  afiledialog : TwgFileDialog;
-  frm : TfrmLoadSave;
+  afiledialog : TfrmFileDialog;
+  //frm : TfrmLoadSave;
 begin
   fname := EditedFileName;
-
+{
   if sender <> maindsgn then
   begin
     frm := TfrmLoadSave.Create(nil);
@@ -140,23 +143,25 @@ begin
       else fname := '';
     frm.Free;
   end;
+}
 
-{ // dialog removed due instability
+// dialog removed due instability
 
   if sender <> maindsgn then
   begin
-    afiledialog := TwgFileDialog.Create(nil);
-    afiledialog.FullFilename := EditedFilename;
-    afiledialog.WindowTitle8 := 'Open file';
-    if afiledialog.execute then
+    afiledialog := TfrmFileDialog.Create(nil);
+    afiledialog.Filename := EditedFilename;
+    afiledialog.WindowTitle8 := 'Open form file';
+    afiledialog.Filter := 'Pascal source files (*.pas;*.inc;*.dpr)|*.pas;*.inc;*.dpr|All Files (*)|*';
+    if afiledialog.RunOpenFile then
     begin
-      EditedFileName := aFileDialog.FullFilename;
+      EditedFileName := aFileDialog.Filename;
       fname := EditedFilename;
     end
     else fname := '';
     FreeAndNil(aFileDialog);
   end;
-}
+
 
   if fname = '' then Exit;
 
@@ -209,11 +214,12 @@ var
   ff : file;
 
   fname, uname : string;
-  //aFileDialog : TwgFileDialog;
-  frm : TfrmLoadSave;
+  aFileDialog : TfrmFileDialog;
+  //frm : TfrmLoadSave;
 begin
   fname := EditedFileName;
 
+{
   frm := TfrmLoadSave.Create(nil);
   frm.WindowTitle8 := 'Save form source';
   frm.edFileName.Text8 := fname;
@@ -221,6 +227,20 @@ begin
     then fname := frm.edFileName.Text8
     else fname := '';
   frm.Free;
+}
+
+  afiledialog := TfrmFileDialog.Create(nil);
+  afiledialog.Filename := EditedFilename;
+  afiledialog.WindowTitle8 := 'Save form source';
+  afiledialog.Filter := 'Pascal source files (*.pas;*.inc;*.dpr)|*.pas;*.inc;*.dpr|All Files (*)|*';
+  if afiledialog.RunSaveFile then
+  begin
+    EditedFileName := aFileDialog.Filename;
+    fname := EditedFilename;
+  end
+  else fname := '';
+  FreeAndNil(aFileDialog);
+
 
 { // dialog removed due instability
 
