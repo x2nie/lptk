@@ -75,17 +75,19 @@ type
 
     procedure HandleResize(dwidth, dheight : integer); override;
 
-    property FocusItem : integer read FFocusItem write SetFocusItem;
-    
     property PopupFrame : boolean read FPopupFrame write SetPopupFrame;
 
     property Font : TGfxFont read FFont;
-    property FontName : string read GetFontName write SetFontName;
-    
+    property FocusItem : integer read FFocusItem write SetFocusItem;
+
   public
 
     OnChange : TNotifyEvent;
     OnSelect : TNotifyEvent;
+
+  published
+
+    property FontName : string read GetFontName write SetFontName;
 
   end;
 
@@ -101,12 +103,15 @@ type
 
     function ItemCount : integer; override;
 
-    property Items : TStringList read FItems;
-
     procedure DrawItem(num : integer; rect : TGfxRect; flags : integer); override;
 
     function Text : string16;
     function Text8 : string;
+
+  published
+  
+    property Items : TStringList read FItems;
+
   end;
 
 implementation
@@ -244,6 +249,8 @@ begin
   FFocusable := true;
   FFocusItem := 1;
   FFirstItem := 1;
+  FWidth := 80;
+  FHeight := 80;
   FMargin := 2;
   FMouseDragging := false;
   FPopupFrame := false;
