@@ -454,7 +454,7 @@ begin
       else
         alstr := 'alLeft';
       end;
-      result := result + ident + 'AddColumn8('+QuotedStr(u8encode(c.Title))+','+QuotedStr(c.FieldName8)
+      result := result + ident + 'AddColumn8('+QuotedStr(u16u8safe(c.Title))+','+QuotedStr(c.FieldName8)
                 +','+IntToStr(c.Width)+','+alstr+');'#10;
     end;
   end;

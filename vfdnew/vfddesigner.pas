@@ -1273,7 +1273,7 @@ begin
 
   s := s + '  SetDimensions('+IntToStr(FForm.Left)+','+IntToStr(FForm.Top)
     +','+IntToStr(FForm.Width)+','+IntToStr(FForm.Height)+');'#10;
-  s := s + '  WindowTitle8 := '+QuotedStr(u8encode(FForm.WindowTitle))+';'#10;
+  s := s + '  WindowTitle8 := '+QuotedStr(u16u8safe(FForm.WindowTitle))+';'#10;
 
   //adding other form properties, idented
   sl := TStringList.Create;
@@ -1317,7 +1317,7 @@ var
   begin
     for f := 0 to sl.Count - 1 do
     begin
-      s := s + ident + name + '.Add(u8('+QuotedStr(u8encode(sl.Strings[f]))+'));'#10;
+      s := s + ident + name + '.Add(u8('+QuotedStr(u16u8safe(sl.Strings[f]))+'));'#10;
     end;
   end;
 
@@ -1336,7 +1336,7 @@ var
       else
         alstr := 'alLeft';
       end;
-      s := s + ident + 'AddColumn8('+QuotedStr(u8encode(c.Title))+','+QuotedStr(c.FieldName8)
+      s := s + ident + 'AddColumn8('+QuotedStr(u16u8safe(c.Title))+','+QuotedStr(c.FieldName8)
                 +','+IntToStr(c.Width)+','+alstr+');'#10;
     end;
   end;

@@ -355,7 +355,7 @@ begin
 
   for f := 0 to sl.Count - 1 do
   begin
-    result := result + ident + Name + '.Add(u8('+QuotedStr(u8encode(sl.Strings[f]))+'));'#10;
+    result := result + ident + Name + '.Add(u8('+QuotedStr(u16u8safe(sl.Strings[f]))+'));'#10;
   end;
 end;
 
