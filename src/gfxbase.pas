@@ -409,6 +409,8 @@ type
      FCurFont   : TGfxFont;
      FClipRect  : TGfxRect;
      FClipRectSet : Boolean;
+     FBufferClipRect : TGfxRect;
+     FBufferClipRectSet : Boolean;     
      FLineStyle : integer;
      FLineWidth : integer;
      FDrawOnBuffer : Boolean;
@@ -425,8 +427,6 @@ type
      FBufferGC : TGContext;
      FBufferBitmap : HBitmap;
      FBufferFont : TgfxFont;
-     FBufferClipRect : TGfxRect;
-     FBufferClipRectSet : Boolean;
 {$else}
      FXftDraw : PXftDraw;
      FXftDrawBuffer : PXftDraw;
@@ -2398,7 +2398,7 @@ begin
   wr.Left := x;
   wr.Top  := y;
   wr.Right := x + w + 1;
-  wr.Bottom := y + h + 1;
+  wr.Bottom := y + h;
   if DrawOnBuffer then
     Windows.InvertRect(FBufferGC, wr)
   else
@@ -2448,8 +2448,6 @@ var
   r : TXRectangle;
   rg : TRegion;
 begin
-  FClipRect := rect;
-  FClipRectSet := True;
   r.x := rect.left;
   r.y := rect.top;
   r.width := rect.width;
@@ -2458,9 +2456,17 @@ begin
   XUnionRectWithRegion(@r,rg,FClipRegion);
   XSetRegion(display, Fgc, FClipRegion);
   if DrawOnBuffer then
+  begin
+     FBufferClipRect := Rect;
+     FBufferClipRectSet := True;
      XftDrawSetClip(FXftDrawBuffer, FClipRegion)
+  end
   else
+  begin
       XftDrawSetClip(FXftDraw, FClipRegion);
+      FClipRect := rect;
+      FClipRectSet := True;      
+  end;
   XDestroyRegion(rg);
 end;
 {$endif}
@@ -2512,6 +2518,8 @@ begin
   XSetRegion(display, Fgc, FClipRegion);
   if DrawOnBuffer then
   begin
+     FBufferClipRect := Rect;
+     FBufferClipRectSet := True;
      XftDrawSetClip(FXftDrawBuffer, FClipRegion)
   end
   else
@@ -2527,16 +2535,16 @@ end;
 procedure TGfxCanvas.ClearClipRect;
 {$ifdef Win32}
 begin
-  if DrawOnBuffer then
-  begin
-    SelectClipRgn(FBuffergc, 0);
-    FBufferClipRectSet := False;
-  end
-  else
-  begin
-    SelectClipRgn(Fgc, 0);
-    FClipRectSet := False;
-  end;
+    if DrawOnBuffer then
+    begin
+	SelectClipRgn(FBuffergc, 0);
+	FBufferClipRectSet := False;
+    end
+    else
+    begin
+	SelectClipRgn(Fgc, 0);
+	FClipRectSet := False;
+    end;
 end;
 {$else}
 var
@@ -2544,6 +2552,8 @@ var
 begin
   GetWinRect(r);
   SetClipRect(r);
+  if DrawOnBuffer then FBufferClipRectSet := False
+  else FClipRectSet := False;
 end;
 {$endif}
 
@@ -2632,7 +2642,7 @@ begin
   {$IFNDEF win32}
      // added by aegluke - only for linux needed
      if img = nil then exit;
-     if FClipRectSet then
+     if (DrawOnBuffer and FBufferClipRectSet) or (not DrawOnBuffer and FClipRectSet) then
      begin
       ARect := GetClipRect;
       if ARect.top > y then
@@ -2717,7 +2727,7 @@ begin
   else
   begin
        if DrawOnBuffer then
-          XPutImage(display, FWin, Fgc, img.XImage, xi,yi, x,y, w, h)
+          XPutImage(display, FBufferWin, Fgc, img.XImage, xi,yi, x,y, w, h)
        else
            XPutImage(display, FWin, Fgc, img.XImage, xi,yi, x,y, w, h);
   end;
