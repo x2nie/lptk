@@ -51,6 +51,7 @@ type
   public
     WidgetClass : TWidgetClass;
     Description : string;
+    WidgetIconName : string;
 
     constructor Create(aClass : TWidgetClass);
     destructor Destroy; override;
@@ -101,7 +102,7 @@ end;
 
 function TVFDWidgetClass.GetProperty(ind: integer): TVFDWidgetProperty;
 begin
-  result := TVFDWidgetProperty(FProps[ind]);
+  result := TVFDWidgetProperty(FProps[ind-1]);
 end;
 
 function TVFDWidgetClass.PropertyCount: integer;
