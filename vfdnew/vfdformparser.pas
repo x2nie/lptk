@@ -262,7 +262,7 @@ begin
 
       // searching for the parent ...
       pwg := nil;
-      if UpperCase(wgparent) <> 'self' then
+      if UpperCase(wgparent) <> 'SELF' then
       begin
         pwg := ffd.FindWidgetByName(wgparent);
         if pwg = nil then

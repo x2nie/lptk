@@ -1,5 +1,8 @@
 unit vfdwgdbgrid;
 
+{$H+}
+// {$ifdef FPC}
+
 interface
 
 uses

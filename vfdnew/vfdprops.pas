@@ -1,5 +1,7 @@
 unit vfdprops;
 
+{$H+}
+
 interface
 
 uses Classes, SysUtils, gfxbase, gfxwidget, schar16, gfxstyle, vfdwidgetclass,

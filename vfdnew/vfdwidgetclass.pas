@@ -3,6 +3,8 @@ unit vfdwidgetclass;
 // the new widget editor interface.
 // not finished and used yet.
 
+{$H+}
+
 interface
 
 uses Classes, SysUtils, gfxbase, gfxwidget, schar16,

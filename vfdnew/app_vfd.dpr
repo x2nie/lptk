@@ -41,7 +41,7 @@ uses
   vfdprops,
   vfddesigner,
   newformdesigner,
-  vfdwgdbgrid in 'vfdwgdbgrid.pas';
+  vfdwgdbgrid;
 
 //var
   //vf : TVFDFile;
