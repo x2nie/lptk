@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.12  2004/01/28 08:11:34  aegluke
+// fixed handling of switching between detail and list-view
+//
 // Revision 1.11  2004/01/24 18:35:51  aegluke
 // wgfiledialog-changes
 //
@@ -708,6 +711,11 @@ procedure TwgFileGrid.SetOptions(aValue: TfgOptions);
 begin
   if aValue <> FOptions then
   begin
+    if (not (fgDetail in AValue)) and (fgDetail in FOptions) then
+    begin
+       FocusRow := 1;
+       FocusCol := 1;
+    end;
     FOptions := aValue;
     ReadDirectory;
     RePaint;
