@@ -8,7 +8,7 @@ interface
 
 uses
   Classes, SysUtils, gfxbase;
-  
+
 procedure GfxCreateStandardImages;
 
 implementation
@@ -88,7 +88,7 @@ begin
             0,0 );
 
   img := GfxLibAddMaskedBMP(
-            'stdimg.folderup',                  
+            'stdimg.folderup',
             @stdimg_folderup,
       sizeof(stdimg_folderup),
             0,0 );
@@ -141,6 +141,11 @@ begin
       sizeof(stdimg_delete),
             0,0 );
 
+  img := GfxLibAddMaskedBMP(
+            'stdimg.hidden',
+            @stdimg_hidden,
+      sizeof(stdimg_hidden),
+            0,0 );
 {
   img := GfxLibAddMaskedBMP(
             'stdimg.',
