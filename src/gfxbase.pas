@@ -2,6 +2,7 @@
   File maintainer: nvitya@freemail.hu
 
 History:
+  15.01.2004  complete buffering support for Windows and Linux 
 }
 {$DEFINE BUFFERING}
 unit gfxbase;
@@ -248,7 +249,7 @@ const
   CUR_DIR_EW    = 108;
   CUR_DIR_NS    = 116;
   CUR_EDIT      = 152;
-  
+
   CUR_DIR_NWSE  = 120;
   CUR_DIR_NESW  = 120;  // Not Perfect!!!
   
@@ -417,6 +418,8 @@ type
      FBrush : HBRUSH;
      FPen   : HPEN;
      FClipRegion   : HRGN;
+     FBufferGC : TGContext;
+     FBufferBitmap : HBitmap;
 {$else}
      FXftDraw : PXftDraw;
      FXftDrawBuffer : PXftDraw;
@@ -426,6 +429,9 @@ type
   protected
            procedure SetDrawOnBuffer(AValue : Boolean);
   public
+    {$IFDEF win32}
+    procedure _ReCreateBuffer(AWidth, AHeight : Integer);
+    {$ENDIF}
     constructor Create(winhandle : TWinHandle);
     destructor Destroy; override;
 
@@ -1504,7 +1510,7 @@ var
 
   Popup : TWidget;
   frm : TGfxForm;
-  
+
   wh : TWinHandle;
   wa : TXWindowAttributes;
   px,py : integer;
@@ -1530,7 +1536,7 @@ begin
 
       { i know this is a rough hack but...
         ...otherwise XmbLookupString doesn't work how i want it to work }
-        
+
       n := PXKeyPressedEvent(@ev)^._type;
       PXKeyPressedEvent(@ev)^._type := MSG_KEYPRESS;
       r := XmbLookupString(InputContext, PXKeyPressedEvent(@ev), @a, 16, @ks, @sr);
@@ -1607,7 +1613,7 @@ begin
               LastClickWindow  := ev.xbutton.window;
             end;
           end;
-          
+
         end;
 
       end;
@@ -1659,7 +1665,7 @@ begin
         begin
           PostMessage(nil, wg, MSG_RESIZE, ev.xconfigure.width - wg.Width, ev.xconfigure.height - wg.Height, 0);
         end;
-        
+
         wh := GetDecorationWindow(ev.xconfigure.window);
         
         if wh > 0 then
@@ -1935,6 +1941,9 @@ end;
 
 constructor TGfxCanvas.Create(winhandle : TWinHandle);
 {$ifdef Win32}
+var
+  ARect : TgfxRect;
+  Test : HDC;
 begin
   FWin := winhandle;
   FDrawOnBuffer := False;
@@ -1942,6 +1951,10 @@ begin
   SetTextAlign(Fgc, TA_BASELINE);
   SetBkMode(Fgc, TRANSPARENT);
   SetFont(guistyle.DefaultFont);
+  GetWinRect(ARect);
+  Test := GetDC(3);
+  FBufferGC := CreateCompatibleDC(GetDC(0));
+  _ReCreateBuffer(ARect.Width, ARect.Height);
   FColor := clText1;
   FLineStyle := PS_SOLID;
   FLineWidth := 0;
@@ -1951,8 +1964,8 @@ begin
   SetColor(clText1);
   SetTextColor(clText1);
   //SetPolyFillMode(Fgc, WINDING);
-
   FClipRegion := CreateRectRgn(0,0,1,1);
+  SetFont(guistyle.DefaultFont);
 end;
 {$else}
 var
@@ -1993,12 +2006,38 @@ begin
      {$IFDEF BUFFERING}
      if AValue <> FDrawOnBuffer then
      begin
+        {$IFDEF win32}
+          FDrawOnBuffer := AValue and (FBufferGC > 0);
+        {$ELSE}
           FDrawOnBuffer := AValue and (FBufferWin > 0);
+        {$ENDIF}
      end;
      {$ELSE}
             FDrawOnBuffer := False;
      {$ENDIF}
 end;
+
+{$IFDEF win32}
+procedure TgfxCanvas._ReCreateBuffer(AWidth, AHeight : Integer);
+begin
+  {$IFDEF BUFFERING}
+  if FWin > 0 then
+  begin
+    if (FBufferGC > 0) and (FBufferBitmap > 0) then
+    begin
+      DeleteObject(FBufferBitmap);
+    end;
+    FBufferBitmap := windows.CreateCompatibleBitmap(GetDC(0),AWidth+2, AHeight+2);
+    SelectObject(FBufferGC,FBufferBitmap);
+    SetTextAlign(FBufferGC, TA_BASELINE);
+    SetBkMode(FBufferGC, TRANSPARENT);
+    SelectObject(FBufferGC,FBrush);
+    SelectObject(FBufferGC,FPen);
+    SelectObject(FBufferGC, FCurFont.Handle);
+  end;
+  {$ENDIF}
+end;
+{$ENDIF}
 
 procedure TgfxCanvas.MoveResizeWindow(x,y,w,h : TGfxCoord);
 {$ifdef Win32}
@@ -2030,6 +2069,7 @@ begin
   end;
 
   windows.MoveWindow(FWin, x,y, rwidth, rheight, true);
+  _ReCreateBuffer(rwidth + 1,rheight + 1);
 {$else}
   if FXftDrawBuffer <> nil then
   begin
@@ -2051,7 +2091,11 @@ end;
 
 procedure TGfxCanvas.SwapBuffer;
 {$IFDEF win32}
+var
+  ARect : TgfxRect;
 begin
+  GetWinRect(ARect);
+  BitBlt(Fgc, 0,0, ARect.Width+1, ARect.Height+1, FBufferGC, 0, 0, SRCCOPY);
 end;
 {$ELSE}
 {$IFDEF BUFFERING}
@@ -2075,6 +2119,8 @@ begin
 {$ifdef Win32}
   DeleteObject(FBrush);
   DeleteObject(FPen);
+  DeleteObject(FBufferBitmap);
+  Windows.ReleaseDC(FWin, FBufferGC);
   Windows.ReleaseDC(FWin, Fgc);
   DeleteObject(FClipRegion);
 {$else}
@@ -2095,6 +2141,9 @@ begin
   FCurFont := fnt;
 {$ifdef Win32}
   Windows.SelectObject(Fgc, FCurFont.Handle);
+  {$IFDEF BUFFERING}
+  Windows.SelectObject(FBufferGC, FCurFont.Handle);
+  {$ENDIF}
 {$else}
   //XSetFont(display, Fgc, fnt.Handle);
 {$endif}
@@ -2104,6 +2153,9 @@ procedure TGfxCanvas.SetTextColor(cl : TGfxColor);
 begin
   FColorText := cl;
 {$ifdef Win32}
+  {$IFDEF BUFFERING}
+  Windows.SetTextColor(FBufferGC, GfxColorToWin(cl));
+  {$ENDIF}
   Windows.SetTextColor(Fgc, GfxColorToWin(cl))
 {$else}
   SetXftColor(cl,FColorTextXft);
@@ -2118,6 +2170,9 @@ begin
   if dashed then FLineStyle := PS_DASH else FLineStyle := PS_SOLID;
   FPen := CreatePen(FLineStyle, FLineWidth, FWindowsColor);
   SelectObject(Fgc,FPen);
+  {$IFDEF BUFFERING}
+  SelectObject(FBufferGC,FPen);
+  {$ENDIF}
 {$else}
   if dashed then FLineStyle := LineOnOffDash else FLineStyle := LineSolid;
   XSetLineAttributes(display, Fgc, FLineWidth, FLineStyle, 0, 0);
@@ -2136,6 +2191,10 @@ begin
   FPen := CreatePen(FLineStyle, FLineWidth, FWindowsColor);
   SelectObject(Fgc,FBrush);
   SelectObject(Fgc,FPen);
+  {$IFDEF BUFFERING}
+  SelectObject(FBufferGC,FBrush);
+  SelectObject(FBufferGC,FPen);
+  {$ENDIF}
 {$else}
   XSetForeGround(display, Fgc, GfxColorToX(cl) );
 {$endif}
@@ -2145,7 +2204,10 @@ procedure TGfxCanvas.DrawString16(x, y : TGfxCoord; txt : String16);
 begin
   if length(txt) < 1 then exit;
 {$ifdef Win32}
-  windows.TextOutW(Fgc, x,y+FCurFont.Ascent, @txt[1], length16(txt));
+  if DrawOnBuffer then
+    windows.TextOutW(FBufferGC, x,y+FCurFont.Ascent, @txt[1], length16(txt))
+  else
+    windows.TextOutW(Fgc, x,y+FCurFont.Ascent, @txt[1], length16(txt));
 {$else}
   if DrawOnBuffer then
      XftDrawString16(FXftDrawBuffer, FColorTextXft, FCurFont.Handle, x,y+FCurFont.Ascent, @txt[1], Length16(txt) )
@@ -2163,7 +2225,10 @@ begin
   wr.Top  := y;
   wr.Right := x + w;
   wr.Bottom := y + h;
-  Windows.FillRect(Fgc, wr, FBrush);
+  if DrawOnBuffer then
+    Windows.FillRect(FBufferGC, wr, FBrush)
+  else
+    Windows.FillRect(Fgc, wr, FBrush);
 {$else}
 begin
   //XSetFunction(display, Fgc, GXinvert);
@@ -2183,7 +2248,11 @@ begin
   wr.Top  := r.Top;
   wr.Right := r.left + r.Width;
   wr.Bottom := r.Top + r.height;
-  Windows.FillRect(Fgc, wr, FBrush);
+
+  if DrawOnBuffer then
+    Windows.FillRect(FBufferGC, wr, FBrush)
+  else
+    Windows.FillRect(Fgc, wr, FBrush);
 {$else}
 begin
      if DrawOnBuffer then
@@ -2201,7 +2270,10 @@ begin
   pts[1].X := x1; pts[1].Y := y1;
   pts[2].X := x2; pts[2].Y := y2;
   pts[3].X := x3; pts[3].Y := y3;
-  Polygon(Fgc, pts, 3);
+  if DrawOnBuffer then
+    Polygon(FBuffergc, pts, 3)
+  else
+    Polygon(Fgc, pts, 3);
 {$else}
 var
   pts : array[1..3] of TXPoint;
@@ -2227,7 +2299,10 @@ begin
   wr.Top  := y;
   wr.Right := x + w;
   wr.Bottom := y + h;
-  Windows.FrameRect(Fgc, wr, FBrush);
+  if DrawOnBuffer then
+    Windows.FrameRect(FBufferGC, wr, FBrush)
+  else
+    Windows.FrameRect(Fgc, wr, FBrush);  
 {$else}
 begin
   if DrawOnBuffer then
@@ -2246,7 +2321,10 @@ begin
   wr.Top  := r.top;
   wr.Right := r.left + r.width;
   wr.Bottom := r.Top + r.Height;
-  Windows.FrameRect(Fgc, wr, FBrush);
+  if DrawOnBuffer then
+    Windows.FrameRect(FBufferGC, wr, FBrush)
+  else
+    Windows.FrameRect(Fgc, wr, FBrush);  
 {$else}
 begin
   if DrawOnBuffer then
@@ -2263,8 +2341,16 @@ var
 begin
   pts[1].X := x1; pts[1].Y := y1;
   pts[2].X := x2; pts[2].Y := y2;
-  PolyLine(Fgc, pts, 2);
-  SetPixel(Fgc, x2,y2, FWindowsColor);
+  if DrawOnBuffer then
+  begin
+    PolyLine(FBufferGc, pts, 2);
+    SetPixel(FBufferGc, x2,y2, FWindowsColor);
+  end
+  else
+  begin
+    PolyLine(Fgc, pts, 2);
+    SetPixel(Fgc, x2,y2, FWindowsColor);
+  end;
 {$else}
 begin
      if DrawOnBuffer then
@@ -2284,8 +2370,10 @@ begin
   wr.Top  := y;
   wr.Right := x + w + 1;
   wr.Bottom := y + h + 1;
-
-  Windows.InvertRect(Fgc, wr);
+  if DrawOnBuffer then
+    Windows.InvertRect(FBufferGC, wr)
+  else
+    Windows.InvertRect(Fgc, wr)
 {
   hb := CreateSolidBrush(GfxColorToWin(GfxColorToRGB(clSelection) xor $00FFFFFF));
   SetROP2(Fgc, R2_XORPEN);
@@ -2314,7 +2402,10 @@ begin
   DeleteObject(FClipRegion);
 
   FClipRegion := CreateRectRgn(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height);
-  SelectClipRgn(Fgc, FClipRegion);
+  if DrawOnBuffer then
+    SelectClipRgn(FBufferGC, FClipRegion)  
+  else
+    SelectClipRgn(Fgc, FClipRegion);
 end;
 {$else}
 var
@@ -2353,7 +2444,10 @@ begin
   rg := CreateRectRgn(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height);
   CombineRgn(FClipRegion,rg,FClipRegion,RGN_AND);
   DeleteObject(rg);
-  SelectClipRgn(Fgc, FClipRegion);
+  if DrawOnBuffer then
+    SelectClipRgn(FBufferGC,FClipRegion)
+  else
+    SelectClipRgn(Fgc, FClipRegion);
 end;
 {$else}
 var
@@ -2381,7 +2475,10 @@ end;
 procedure TGfxCanvas.ClearClipRect;
 {$ifdef Win32}
 begin
-  SelectClipRgn(Fgc, 0);
+  if DrawOnBuffer then
+    SelectClipRgn(FBuffergc, 0)
+  else
+    SelectClipRgn(Fgc, 0);  
   FClipRectSet := False;
 end;
 {$else}
@@ -2428,7 +2525,10 @@ begin
   GetClientRect(FWin,r);
   inc(r.Bottom,10);
   br := CreateSolidBrush(GfxColorToWin(col));
-  windows.FillRect(Fgc, r, br);
+  if DrawOnBuffer then
+    windows.FillRect(FBufferGC, r, br)
+  else
+    windows.FillRect(Fgc, r, br);
   DeleteObject(br);
 end;
 {$else}
@@ -2510,12 +2610,22 @@ begin
   begin
     dstrop := ROP_DSPDxax;
   end;
-
-  if img.Masked then
+  if DrawOnBuffer then
   begin
-    MaskBlt(Fgc, x,y, w, h, tmpdc, xi, yi, img.MaskHandle, xi, yi, MakeRop4(dstrop, DSTCOPY));
+    if img.Masked then
+    begin
+      MaskBlt(FBufferGC, x,y, w, h, tmpdc, xi, yi, img.MaskHandle, xi, yi, MakeRop4(dstrop, DSTCOPY));
+    end
+    else BitBlt(FBufferGC, x,y, w, h, tmpdc, xi, yi, dstrop);
   end
-  else BitBlt(Fgc, x,y, w, h, tmpdc, xi, yi, dstrop);
+  else
+  begin
+    if img.Masked then
+    begin
+      MaskBlt(Fgc, x,y, w, h, tmpdc, xi, yi, img.MaskHandle, xi, yi, MakeRop4(dstrop, DSTCOPY));
+    end
+    else BitBlt(Fgc, x,y, w, h, tmpdc, xi, yi, dstrop);
+  end;
 
   DeleteDC(tmpdc);
 {$else}
