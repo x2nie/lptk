@@ -48,23 +48,23 @@ type
   TColumnEditForm = class(TGfxForm)
   public
     {@VFD_HEAD_BEGIN: ColumnEditForm}
-    lbLabel1 : TWGLABEL;
+    lbLabel1 : TwgLabel;
     grid : TColumnsGrid;
-    lbLabel2 : TWGLABEL;
-    lbLabel3 : TWGLABEL;
-    lbLabel4 : TWGLABEL;
-    lbLabel5 : TWGLABEL;
-    lbLabel6 : TWGLABEL;
-    lbCOLNO : TWGLABEL;
-    edTITLE : TWGEDIT;
-    edFIELDNAME : TWGEDIT;
-    edCOLWIDTH : TWGEDIT;
-    chlALIGN : TWGCHOICELIST;
-    btnNew : TWGBUTTON;
-    btnDelete : TWGBUTTON;
-    btnUP : TWGBUTTON;
-    btnDOWN : TWGBUTTON;
-    btnClose : TWGBUTTON;
+    lbLabel2 : TwgLabel;
+    lbLabel3 : TwgLabel;
+    lbLabel4 : TwgLabel;
+    lbLabel5 : TwgLabel;
+    lbLabel6 : TwgLabel;
+    lbCOLNO : TwgLabel;
+    edTITLE : TwgEdit;
+    edFIELDNAME : TwgEdit;
+    edCOLWIDTH : TwgEdit;
+    chlALIGN : TwgChoiceList;
+    btnNew : TwgButton;
+    btnDelete : TwgButton;
+    btnUP : TwgButton;
+    btnDOWN : TwgButton;
+    btnClose : TwgButton;
     {@VFD_HEAD_END: ColumnEditForm}
 
     dbgrid : TwgDBGrid;
@@ -151,7 +151,7 @@ begin
   SetDimensions(281,137,511,269);
   WindowTitle8 := 'Column editor';
 
-  lbLabel1 := TWGLABEL.Create(self);
+  lbLabel1 := TwgLabel.Create(self);
   with lbLabel1 do
   begin
     SetDimensions(8,4,110,16);
@@ -165,80 +165,83 @@ begin
     OnRowChange := {$ifdef FPC}@{$endif}GridRowChange;
   end;
 
-  lbLabel2 := TWGLABEL.Create(self);
+  lbLabel2 := TwgLabel.Create(self);
   with lbLabel2 do
   begin
     SetDimensions(344,24,56,16);
     Text := u8('Column:');
   end;
 
-  lbLabel3 := TWGLABEL.Create(self);
+  lbLabel3 := TwgLabel.Create(self);
   with lbLabel3 do
   begin
     SetDimensions(344,56,34,16);
     Text := u8('Title:');
   end;
 
-  lbLabel4 := TWGLABEL.Create(self);
+  lbLabel4 := TwgLabel.Create(self);
   with lbLabel4 do
   begin
     SetDimensions(344,100,75,16);
     Text := u8('Field Name:');
   end;
 
-  lbLabel5 := TWGLABEL.Create(self);
+  lbLabel5 := TwgLabel.Create(self);
   with lbLabel5 do
   begin
     SetDimensions(344,188,83,16);
     Text := u8('Alignment:');
   end;
 
-  lbLabel6 := TWGLABEL.Create(self);
+  lbLabel6 := TwgLabel.Create(self);
   with lbLabel6 do
   begin
     SetDimensions(344,144,88,16);
     Text := u8('Column width:');
   end;
 
-  lbCOLNO := TWGLABEL.Create(self);
+  lbCOLNO := TwgLabel.Create(self);
   with lbCOLNO do
   begin
     SetDimensions(404,24,54,16);
     Text := u8('1');
   end;
 
-  edTITLE := TWGEDIT.Create(self);
+  edTITLE := TwgEdit.Create(self);
   with edTITLE do
   begin
-    SetDimensions(344,76,160,20);
+    SetDimensions(344,72,160,22);
+    Text := u8('');
     OnChange := {$ifdef FPC}@{$endif}EditChange;
   end;
 
-  edFIELDNAME := TWGEDIT.Create(self);
+  edFIELDNAME := TwgEdit.Create(self);
   with edFIELDNAME do
   begin
-    SetDimensions(344,120,160,20);
+    SetDimensions(344,116,160,22);
+    Text := u8('');
     OnChange := {$ifdef FPC}@{$endif}EditChange;
   end;
 
-  edCOLWIDTH := TWGEDIT.Create(self);
+  edCOLWIDTH := TwgEdit.Create(self);
   with edCOLWIDTH do
   begin
-    SetDimensions(344,160,160,20);
+    SetDimensions(344,160,160,22);
+    Text := u8('');
     OnChange := {$ifdef FPC}@{$endif}EditChange;
   end;
 
-  chlALIGN := TWGCHOICELIST.Create(self);
+  chlALIGN := TwgChoiceList.Create(self);
   with chlALIGN do
   begin
-    SetDimensions(344,204,160,22);
+    SetDimensions(344,206,160,22);
     Items.Add(u8('Left'));
     Items.Add(u8('Right'));
     Items.Add(u8('Center'));
     OnChange := {$ifdef FPC}@{$endif}EditChange;
   end;
 
-  btnNew := TWGBUTTON.Create(self);
+  btnNew := TwgButton.Create(self);
   with btnNew do
   begin
     SetDimensions(8,236,60,24);
@@ -246,7 +249,7 @@ begin
     OnClick := {$ifdef FPC}@{$endif}NewButtonClick;
   end;
 
-  btnDelete := TWGBUTTON.Create(self);
+  btnDelete := TwgButton.Create(self);
   with btnDelete do
   begin
     SetDimensions(76,236,60,24);
@@ -254,7 +257,7 @@ begin
     OnClick := {$ifdef FPC}@{$endif}DeleteButtonClick;
   end;
 
-  btnUP := TWGBUTTON.Create(self);
+  btnUP := TwgButton.Create(self);
   with btnUP do
   begin
     SetDimensions(152,236,60,24);
@@ -262,7 +265,7 @@ begin
     OnClick := {$ifdef FPC}@{$endif}UpDownButtonClick;
   end;
 
-  btnDOWN := TWGBUTTON.Create(self);
+  btnDOWN := TwgButton.Create(self);
   with btnDOWN do
   begin
     SetDimensions(216,236,60,24);
@@ -270,7 +273,7 @@ begin
     OnClick := {$ifdef FPC}@{$endif}UpDownButtonClick;
   end;
 
-  btnClose := TWGBUTTON.Create(self);
+  btnClose := TwgButton.Create(self);
   with btnClose do
   begin
     SetDimensions(444,236,60,24);
@@ -428,6 +431,9 @@ end;
 
 {
   $Log$
+  Revision 1.6  2004/04/26 10:25:08  nvitya
+  look corrections
+
   Revision 1.5  2003/11/10 00:01:50  nvitya
   using wgCustomGrid
 
