@@ -1,4 +1,4 @@
-{ Copyright (c) 2003, Nagy Viktor 
+{ Copyright (c) 2003, Nagy Viktor
 
  A todo manager program (Hungarian)
 }
@@ -15,7 +15,7 @@ uses
   SysUtils, Classes, inifiles, gfxbase, wgedit, unitkeys, schar16, gfxstyle,
   gfxwidget, gfxform, wglabel, wgbutton,
   wglistbox, wgmemo, wgchoicelist, wggrid, sqldb, sqluis,
-  wgdbgrid, gfxdialogs, wgcheckbox;
+  wgdbgrid, gfxdialogs, wgcheckbox, gfxbmpimage;
 
 type
   TFormMain = class(TGfxForm)
@@ -47,8 +47,9 @@ type
     procedure FilterChange(sender : TObject);
 
     procedure ReQuery;
-    
+
     procedure gridDoubleClick(Sender: TObject; x,y : integer; var button : word; var shiftstate : word);
+    procedure gridDrawCell(sender: TObject; row,col : integer; rect : TGfxRect; flags : integer; var stddraw : boolean);
 
   end;
 
@@ -82,7 +83,7 @@ type
     procedure btnCancelClick(sender : TObject);
 
     procedure btnEditPersonsClick(sender : TObject);
-    
+
   end;
 
   TfrmEditPersons = class(TGfxForm)
@@ -120,7 +121,7 @@ type
     {@VFD_HEAD_END: frmAskDelete}
 
     procedure AfterCreate; override;
-    
+
     procedure ButtonClick(Sender : TObject);
 
   end;
@@ -131,6 +132,8 @@ var
   dbconn  : TSqlDBConnection;
   frmMain : TFormMain;
   frmEdit : TFormTodoEdit;
+
+  imgok, imghidden : TGfxImage;
 
 function iifs(expr : boolean; val1,val2 : string) : string;
 begin
@@ -143,7 +146,7 @@ procedure TfrmAskDelete.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: frmAskDelete}
   SetDimensions(300,100,279,83);
-  WindowTitle := 'Törlés';
+  WindowTitle8 := 'Törlés';
 
   lbLabel1 := TwgLabel.Create(self);
   with lbLabel1 do
@@ -190,7 +193,7 @@ procedure TfrmEditPersons.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: frmEditPersons}
   SetDimensions(270,391,343,253);
-  WindowTitle := 'Személyek';
+  WindowTitle8 := 'Személyek';
 
   lbLabel1 := TwgLabel.Create(self);
   with lbLabel1 do
@@ -270,7 +273,7 @@ begin
 
   {@VFD_BODY_BEGIN: FormMain}
   SetDimensions(274,83,781,466);
-  WindowTitle := 'TODO list';
+  WindowTitle8 := 'TODO list';
 
   btnNew := TwgButton.Create(self);
   with btnNew do
@@ -353,6 +356,7 @@ begin
     RowSelect := true;
     OnRowChange := {$ifdef FPC}@{$endif}gridRowChange;
     OnDoubleClick := {$ifdef FPC}@{$endif}gridDoubleClick;
+    OnDrawCell := {$ifdef FPC}@{$endif}gridDrawCell;
   end;
 
   memo := TwgMemo.Create(self);
@@ -444,9 +448,9 @@ end;
 procedure TFormMain.gridRowChange(sender: TObject; row: integer);
 begin
   //writeln('Row changed: ',row);
-  
+
   if row > 0 then sq.RecNo := row;
-  
+
   if not sq.Eof then memo.Text := u8noesc(sq.GetFieldS('megj'))
                 else memo.Text := '';
 end;
@@ -462,9 +466,6 @@ begin
   if sq <> nil then sq.Free;
 
   s := 'SELECT '
-//       + '(case when megoldva = ''T'' and rejtett = ''T'') then ''M X'' when megoldva = ''T'' then ''M'' when rejtett = ''T'' then ''X'' else '''' end) as jel,'
-       + ' CONCAT(case when megoldva = ''T'' then ''M '' else ''    '' end, case when rejtett = ''T'' then ''X'' else '''' end) as jel,'
-//       + '(case when rejtett = ''T'' then ''R'' else '''' end) as jel,'
        + 'megnev, sorszam, temaszam, felelos, prioritas, hatarido, datum, jelzes, megj, rejtett, megoldva FROM feladat ';
 
   s2 := 'WHERE ';
@@ -474,7 +475,7 @@ begin
     s := s + s2 + 'felelos = '''+u16noesc(chlFelelos.Text)+''' ';
     s2 := ' AND ';
   end;
-  
+
   if not cbMegoldott.Checked then
   begin
     s := s + s2 + 'megoldva <> ''T'' ';
@@ -497,10 +498,10 @@ begin
 //  writeln(s);
 
   sq := dbconn.RunQuery(s);
-  
+
   if sq <> nil then sq.FetchAll;
   grid.SetResultSet(sq,false);
-  
+
   grid.FocusRow := ri;
   grid.FollowFocus;
   grid.RePaint;
@@ -511,6 +512,18 @@ begin
   btnEdit.Click;
 end;
 
+procedure TFormMain.gridDrawCell(sender: TObject; row, col: integer; rect: TGfxRect; flags: integer; var stddraw : boolean);
+begin
+  if col = 1 then
+  begin
+    if sq.GetFieldS('megoldva') = 'T' then
+      grid.Canvas.DrawImage(rect.left+1,rect.top+1,imgok);
+    if sq.GetFieldS('rejtett') = 'T' then
+      grid.Canvas.DrawImage(rect.left+18,rect.top+1,imghidden);
+    stddraw := false;
+  end;
+end;
+
 { TFormTodoEdit }
 
 procedure TFormTodoEdit.AfterCreate;
@@ -519,7 +532,7 @@ begin
 
   {@VFD_BODY_BEGIN: FormTodoEdit}
   SetDimensions(463,301,438,387);
-  WindowTitle := 'Szerkesztés';
+  WindowTitle8 := 'Szerkesztés';
 
   lbLabel1 := TwgLabel.Create(self);
   with lbLabel1 do
@@ -689,13 +702,13 @@ end;
 
 var
   //sq : TSqlResult;
-  
+
   psf : TIniFile;
-  
+
   prgpath, conffile : string;
-  
+
   dbdrv, dbsvr, dbdb : string;
-  
+
 procedure TFormTodoEdit.btnEditPersonsClick(sender: TObject);
 var
   frm : TfrmEditPersons;
@@ -758,8 +771,11 @@ begin
   ReQuery;
 end;
 
-var
-  sq : TSqlResult;
+{$I bmp_ok.inc}
+{$I bmp_hidden.inc}
+
+//var
+//  sq : TSqlResult;
 
 begin
   Writeln('LPTK todo');
@@ -769,10 +785,10 @@ begin
   SetCurrentDir(prgpath);  // The Delphi IDE not sets the execution directory!
 
   conffile := prgpath+'app_todo.conf';
-  
+
   Writeln('Reading configuration file: ',conffile);
   psf := TIniFile.Create(conffile);
-  
+
   if not FileExists(conffile) then
   begin
     psf.WriteString('database','title','TODO list');
@@ -783,11 +799,11 @@ begin
     psf.WriteString('database','password','');
     psf.UpdateFile;
   end;
-  
+
   dbdrv := psf.ReadString('database','driver','?');
   dbsvr := psf.ReadString('database','server','?');
   dbdb  := psf.ReadString('database','database','?');
-  
+
   Writeln(' driver=',dbdrv,' server=',dbsvr,' database=',dbdb);
 
   dbconn := TSqlDBConnection.Create;
@@ -816,15 +832,20 @@ begin
     end;
     sq.Free;
   end;
-  
+
   writeln('finished.');
   readln;
   halt;
 }
   GfxOpenDisplay('');
 
+  imgok := CreateBMPImage(@bmp_ok, sizeof(bmp_ok));
+  imgok.CreateMaskFromSample(0,0);
+  imghidden := CreateBMPImage(@bmp_hidden, sizeof(bmp_hidden));
+  imghidden.CreateMaskFromSample(0,0);
+
   frmMain := TFormMain.Create(nil);
-  frmMain.WindowTitle := psf.ReadString('database','title','TODO');
+  frmMain.WindowTitle8 := psf.ReadString('database','title','TODO');
   frmMain.ReQuery;
   frmMain.Show;
 
