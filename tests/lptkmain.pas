@@ -138,6 +138,7 @@ begin
   btn := CreateButton(self, 10,180,85, 'ModalForm', {$ifdef FPC}@{$endif}btnClick);
 
   btnMsg := CreateButton(self, 105,180,85, 'Message', {$ifdef FPC}@{$endif}btnMsgClick);
+  btnMsg.ImageName := 'stdimg.ok';
 
 //  btnClip := CreateButton(self, 105,160,80, 'Clipboard', @btnClipClick);
 
