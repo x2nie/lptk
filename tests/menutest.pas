@@ -41,19 +41,19 @@ begin
 
   pmenu.AddMenuItem8('This is a &very long && menu item','',nil);
   pmenu.AddMenuItem8('-','',nil);
-  pmenu.AddMenuItem8('First is invisible','',@MenuSelect).Visible := false;
-  pmenu.AddMenuItem8('&Second...','CTRL-X',@MenuSelect);
-  pmenu.AddMenuItem8('&Third is disabled','',@MenuSelect).Enabled := false;
-  pmenu.AddMenuItem8('Unicode: bend&^337','',@MenuSelect);
+  pmenu.AddMenuItem8('First is invisible','',{$ifdef FPC}@{$endif}MenuSelect).Visible := false;
+  pmenu.AddMenuItem8('&Second...','CTRL-X',{$ifdef FPC}@{$endif}MenuSelect);
+  pmenu.AddMenuItem8('&Third is disabled','',{$ifdef FPC}@{$endif}MenuSelect).Enabled := false;
+  pmenu.AddMenuItem8('Unicode: bend&^337','',{$ifdef FPC}@{$endif}MenuSelect);
   pmenu.AddMenuItem8('-','',nil);
-  pmenu.AddMenuItem8('E&xit','CTRL-Q', @MenuExit);
+  pmenu.AddMenuItem8('E&xit','CTRL-Q', {$ifdef FPC}@{$endif}MenuExit);
 end;
 
 procedure TMainForm.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
 begin
   inherited;
   
-  if button <> 3 then Exit;
+  if button = 1 then Exit;
   
   writeln('Right click');
   
