@@ -186,10 +186,10 @@ end;
 
 procedure TGeneralPropertyEditor.CreateLayout;
 begin
-  self.Anchors := AllAnchors;
+  self.Anchors := [anTop,anLeft,anRight];
   Edit := TwgEdit.Create(self);
   Edit.SetDimensions(0,0,width,Height);
-  Edit.Anchors := AllAnchors;
+  Edit.Anchors := self.Anchors;
   Edit.OnChange := UpdateProperty;
 end;
 

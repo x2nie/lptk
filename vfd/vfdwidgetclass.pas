@@ -19,6 +19,10 @@ type
   public
     OnUpdate : TNotifyEvent;
 
+    procedure UpdateProperty(sender : TObject);
+
+    property Prop : TVFDWidgetProperty read FProp;
+
     constructor Create(AOwner : TComponent; aprop : TVFDWidgetProperty); reintroduce;
   public
     // virtuals
@@ -27,9 +31,6 @@ type
     procedure LoadValue(wg : TWidget); virtual;
     procedure StoreValue(wg : TWidget); virtual;
 
-    procedure UpdateProperty(sender : TObject);
-
-    property Prop : TVFDWidgetProperty read FProp;
   end;
 
   TVFDWidgetProperty = class
@@ -59,6 +60,7 @@ type
     WidgetClass : TWidgetClass;
     Description : string;
     WidgetIconName : string;
+    NameBase : string;
 
     constructor Create(aClass : TWidgetClass);
     destructor Destroy; override;
@@ -69,6 +71,7 @@ type
     function GetProperty(ind : integer) : TVFDWidgetProperty;
 
     function CreateWidget(AOwner : TComponent) : TWidget;
+
   end;
 
 implementation
@@ -90,11 +93,12 @@ begin
   WidgetClass := aClass;
   FProps := TList.Create;
   Description := '';
+  NameBase := 'Widget';
 end;
 
 function TVFDWidgetClass.CreateWidget(AOwner : TComponent) : TWidget;
 begin
-  result := TWidgetClass.Create(AOwner);
+  result := WidgetClass.Create(AOwner);
 end;
 
 destructor TVFDWidgetClass.Destroy;

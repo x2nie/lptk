@@ -37,9 +37,15 @@ type
     FileMenu : TPopupMenu;
     FormMenu : TPopupMenu;
 
+    function GetSelectedWidget : TVFDWidgetClass;
+    procedure SetSelectedWidget(wgc : TVFDWidgetClass);
+
     procedure AfterCreate; override;
 
     procedure OnPaletteClick(sender : TObject);
+
+    property SelectedWidget : TVFDWidgetClass read GetSelectedWidget write SetSelectedWidget;
+
   end;
 
   TPropertyList = class
@@ -59,6 +65,8 @@ type
     procedure AddItem(aProp : TVFDWidgetProperty);
 
     function GetItem(index : integer) : TVFDWidgetProperty;
+
+
   end;
 
   TwgPropertyList = class(TwgListBox)
@@ -69,6 +77,12 @@ type
 
     editor : TVFDPropertyEditor;
 
+    NameDrag : boolean;
+    NameDragPos : integer;
+
+    procedure ReleaseEditor;
+    procedure AllocateEditor;
+
     constructor Create(AOwner : TComponent); override;
 
     function ItemCount : integer; override;
@@ -78,6 +92,16 @@ type
     procedure OnRowChange(sender : TObject);
 
     procedure OnUpdateProperty(sender : TObject);
+
+    procedure RealignEditor;
+
+    procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
+    procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
+    procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
+
+    procedure DoSetFocus; override;
+    procedure DoKillFocus; override;
+
   end;
 
   TfrmProperties = class(TGfxForm)
@@ -91,6 +115,8 @@ type
     lstProps : TwgPropertyList;
 
     procedure AfterCreate; override;
+
+    procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
   end;
 
 {@VFD_NEWFORM_DECL}
@@ -102,6 +128,8 @@ var
   PropList : TPropertyList;
 
 implementation
+
+uses vfdmain;
 
 {@VFD_NEWFORM_IMPL}
 
@@ -157,6 +185,8 @@ begin
   {@VFD_BODY_END: frmMain}
 
 
+  wgpalette.Focusable := false;
+
   x := 0;
   for n:=1 to VFDWidgetCount do
   begin
@@ -169,8 +199,9 @@ begin
     btn.Text := '';
     btn.Focusable := false;
     btn.OnClick := OnPaletteClick;
-    //btn.AllowDown := true;
-    chlPalette.Items.Add(u8(wgc.WidgetClass.ClassName));
+    btn.GroupIndex := 1;
+    btn.AllowAllUp := true;
+    chlPalette.Items.AddObject(u8(wgc.WidgetClass.ClassName),wgc);
 
     inc(x,32);
   end;
@@ -205,9 +236,14 @@ var
   s : string;
   i : integer;
 begin
-  s := TwgPaletteButton(sender).VFDWidget.WidgetClass.ClassName;
-  i := chlPalette.Items.IndexOf(u8(s));
-  if i >= 0 then chlPalette.FocusItem := i+1;
+  if TwgPaletteButton(sender).Down then
+  begin
+    s := TwgPaletteButton(sender).VFDWidget.WidgetClass.ClassName;
+    i := chlPalette.Items.IndexOf(u8(s));
+    if i >= 0 then chlPalette.FocusItem := i+1;
+  end
+  else chlPalette.FocusItem := 1;
+
 end;
 
 { TfrmProperties }
@@ -261,6 +297,17 @@ begin
   edOther.Anchors := [anLeft,anRight,anBottom];
   edOther.FontName := '#Edit2';
 
+end;
+
+procedure TfrmProperties.HandleKeyPress(var keycode, shiftstate: word;
+  var consumed: boolean);
+begin
+  if (keycode = KEY_ENTER) or (keycode = KEY_F11) then
+  begin
+    if maindsgn.selectedform <> nil then GfxActivateWindow(maindsgn.selectedform.Form.WinHandle);
+    consumed := true;
+  end
+  else inherited;
 end;
 
 { TPropertyList }
@@ -317,30 +364,14 @@ begin
   NameWidth := 80;
   editor := nil;
   OnChange := OnRowChange;
+  BackgroundColor := clWindowBackground;
+  NameDrag := false;
   //FontName := 'arial-10:antialias=false';
 end;
 
 procedure TwgPropertyList.OnRowChange(sender : TObject);
-var
-  x,y : integer;
-  prop : TVFDWidgetProperty;
 begin
-  prop := Props.GetItem(FFocusItem);
-  if prop = nil then Exit;
-
-  self.ActiveWidget := nil;
-  if editor <> nil then editor.Free;
-
-  editor := prop.CreateEditor(Self);
-  x := 3+NameWidth;
-  y := FMargin+(FFocusItem-FFirstItem)*RowHeight;
-  editor.SetDimensions(x,y-1,Width-ScrollBarWidth-x,RowHeight);
-  editor.CreateLayout;
-  editor.OnUpdate := OnUpdateProperty;
-  editor.LoadValue(Props.Widget);
-  editor.ShowWidget;
-
-  self.ActiveWidget := editor;
+  AllocateEditor;
 end;
 
 procedure TwgPropertyList.DrawItem(num: integer; rect: TGfxRect; flags: integer);
@@ -361,17 +392,20 @@ begin
   s := u8(prop.name);
   Canvas.DrawString16(x+1,fy,s);
 
-  Canvas.SetColor(clHilite1);
   inc(x,NameWidth);
+  Canvas.SetColor(clShadow1);
   Canvas.DrawLine(x,rect.top,x,rect.bottom);
-  inc(x,3);
-
+  inc(x);
   // Drawing the contents
-
   r.SetRect(x,y,rect.right-x,rect.height);
-
+  canvas.SetColor(FBackgroundColor);
+  canvas.FillRect(r);
+  Canvas.SetTextColor(clText1);
+  inc(r.left,2);
+  dec(r.width,2);
   prop.DrawValue(props.Widget,canvas,r,flags);
 
+  Canvas.SetColor(clShadow1);
   Canvas.DrawLine(0,rect.bottom,rect.right,rect.bottom);
 end;
 
@@ -390,6 +424,111 @@ begin
   writeln('updating property...');
   editor.StoreValue(props.Widget);
   props.Widget.UpdateWindowPosition;
+end;
+
+procedure TwgPropertyList.HandleMouseMove(x, y: integer; btnstate, shiftstate: word);
+begin
+  if not NameDrag then
+  begin
+    if (x >= FMargin+NameWidth - 2) and (x <= FMargin+NameWidth + 2)
+      then MouseCursor := CUR_DIR_EW
+      else MouseCursor := CUR_DEFAULT;
+  end
+  else
+  begin
+    NameWidth := x - FMargin;
+    ReAlignEditor;
+    RePaint;
+  end;
+  inherited;
+end;
+
+procedure TwgPropertyList.HandleMouseDown(x, y: integer; button, shiftstate: word);
+begin
+  if MouseCursor = CUR_DIR_EW then
+  begin
+    NameDrag := true
+    //NameDragPos := x;
+  end
+  else inherited;
+end;
+
+procedure TwgPropertyList.HandleMouseUp(x, y: integer; button, shiftstate: word);
+begin
+  if NameDrag then NameDrag := false
+              else inherited;
+end;
+
+procedure TwgPropertyList.RealignEditor;
+var
+  x : integer;
+begin
+  if editor = nil then Exit;
+  x := 3+NameWidth;
+  editor.SetDimensions(x,editor.Top,self.Width-ScrollBarWidth-x,editor.Height);
+end;
+
+function TfrmMain.GetSelectedWidget: TVFDWidgetClass;
+begin
+  if chlPalette.FocusItem > 1 then
+  begin
+    result := TVFDWidgetClass(chlPalette.Items.Objects[chlPalette.FocusItem-1]);
+  end
+  else result := nil;
+end;
+
+procedure TfrmMain.SetSelectedWidget(wgc: TVFDWidgetClass);
+var
+  n : integer;
+begin
+  if wgc = nil then
+  begin
+    chlPalette.FocusItem := 1;
+    for n:=0 to wgpalette.ComponentCount-1 do
+      if wgpalette.Components[n] is TwgPaletteButton then TwgPaletteButton(wgpalette.Components[n]).Down := false;
+  end;
+end;
+
+procedure TwgPropertyList.ReleaseEditor;
+begin
+  self.ActiveWidget := nil;
+  if editor <> nil then editor.Free;
+  editor := nil;
+end;
+
+procedure TwgPropertyList.DoKillFocus;
+begin
+  inherited;
+  ReleaseEditor;
+end;
+
+procedure TwgPropertyList.DoSetFocus;
+begin
+  inherited;
+  AllocateEditor;
+end;
+
+procedure TwgPropertyList.AllocateEditor;
+var
+  x,y : integer;
+  prop : TVFDWidgetProperty;
+begin
+  prop := Props.GetItem(FFocusItem);
+  if prop = nil then Exit;
+
+  self.ActiveWidget := nil;
+  if editor <> nil then editor.Free;
+
+  editor := prop.CreateEditor(Self);
+  x := 3+NameWidth;
+  y := FMargin+(FFocusItem-FFirstItem)*RowHeight;
+  editor.SetDimensions(x,y-1,Width-ScrollBarWidth-x,RowHeight);
+  editor.CreateLayout;
+  editor.OnUpdate := OnUpdateProperty;
+  editor.LoadValue(Props.Widget);
+  editor.ShowWidget;
+
+  self.ActiveWidget := editor;
 end;
 
 end.
