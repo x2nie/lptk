@@ -17,9 +17,12 @@ uses
   vfdresizer, vfdforms, vfddesigner, vfdfile, newformdesigner, wgfiledialog;
 
 const
-  program_version = '0.80b';
+  program_version = '0.81';
 
 {version description:
+0.81
+  - somewhat rearranged source
+
 0.80b
   - redesigned interface
   
