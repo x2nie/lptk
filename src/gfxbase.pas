@@ -1,0 +1,2225 @@
+{ gfxbase.pas: base functionality and OS dependent functions
+  File maintainer: nvitya@freemail.hu
+
+History:
+}
+unit gfxbase;
+
+{$ifdef FPC}
+{$mode objfpc}{$H+}
+{$endif}
+
+interface
+
+uses
+  Classes, SysUtils,
+{$ifdef Win32}
+    windows, {$ifndef FPC}messages,{$endif}
+{$else}
+    X, Xlib, XUtil, unitxft,
+{$endif}
+  schar16, messagequeue;
+
+const
+  LINEFEEDSTRING = #13#10;
+
+type
+  TGfxCoord = integer;     // Maybe we will use floating point coordinates in the future...
+
+  TGfxColor = longword;
+
+type
+  TOrientation = (orVertical, orHorizontal);
+
+  TAlignment  = (alLeft, alRight, alCenter, alJustify);
+
+  TAnchor = (anLeft,anRight,anTop,anBottom);
+  TAnchors = set of TAnchor;
+
+  TClipboardKeyType = (ckNone, ckCopy, ckPaste, ckCut);
+
+const
+  AllAnchors = [anLeft,anRight,anTop,anBottom];
+
+type
+  TNotifyEvent = procedure(Sender : TObject) of object;
+
+  TKeyPressNotifyEvent = procedure(Sender: TObject; var keycode: word; var shiftstate: word; var consumed : boolean) of object;
+
+type
+  TSizeParams = record
+    min_width, max_width,
+    min_height, max_height : TGfxCoord;
+  end;
+
+  TGfxRect = object  // not class !
+    top, left,
+    width, height : TGfxCoord;
+    procedure SetRect(aleft,atop,awidth,aheight : TGfxCoord);
+    function bottom : TGfxCoord;
+    function right  : TGfxCoord;
+    procedure SetBottom(value : TGfxCoord);
+    procedure SetRight(value : TGfxCoord);
+  end;
+
+{$ifdef Win32}
+type
+  TWinHandle   = HWND;
+  TGfxFontData = HFONT;
+  TFontHandle  = HFONT;
+  TGContext    = HDC;
+  TGfxDisplay  = HDC;
+
+{$ifndef FPC}
+  WndProc = TFNWndProc;
+{$else}
+const
+  WM_MOUSEWHEEL       = $020A;
+{$endif}
+
+const
+  KEY_LEFT  = $FF25;
+  KEY_RIGHT = $FF27;
+  KEY_DOWN  = $FF28;
+  KEY_UP    = $FF26;
+
+  KEY_PGUP    = $FF21;
+  KEY_PGDN    = $FF22;
+  KEY_END     = $FF23;
+  KEY_HOME    = $FF24;
+  KEY_INSERT  = $FF2D;
+  KEY_DELETE  = $FF2E;
+
+  KEY_ENTER   = $FF0D;
+  KEY_ESC     = $FF1B;
+  KEY_BACKSPACE = $FF08;
+
+  KEY_TAB     = $FF09;
+  KEY_STAB    = $FE09;
+
+  KEY_F1      = $FF70;
+  KEY_F2      = KEY_F1 + 1;
+  KEY_F3      = KEY_F1 + 2;
+  KEY_F4      = KEY_F1 + 3;
+  KEY_F5      = KEY_F1 + 4;
+  KEY_F6      = KEY_F1 + 5;
+  KEY_F7      = KEY_F1 + 6;
+  KEY_F8      = KEY_F1 + 7;
+  KEY_F9      = KEY_F1 + 8;
+  KEY_F10     = KEY_F1 + 9;
+  KEY_F11     = KEY_F1 + 10;
+  KEY_F12     = KEY_F1 + 11;
+
+const
+  MSG_PAINT      = WM_PAINT;
+  MSG_KEYPRESS   = WM_KEYDOWN;
+  MSG_KEYRELEASE = WM_KEYUP;
+
+  MSG_ACTIVATE   = WM_ACTIVATE;
+
+  MSG_MOUSEDOWN  = WM_LBUTTONDOWN;
+  MSG_MOUSEUP    = WM_LBUTTONUP;
+
+  MSG_MOUSEMOVE  = WM_MOUSEMOVE;
+
+  MSG_CLOSE      = WM_CLOSE;
+
+const
+  MSG_LPTKINT = WM_USER;
+
+  MSG_SCROLL     = MSG_LPTKINT + 1;
+  MSG_RESIZE     = MSG_LPTKINT + 2;
+
+  MSG_POPUPCLOSE = MSG_LPTKINT + 3;
+
+  MSG_MOUSEENTER = MSG_LPTKINT + 4;
+  MSG_MOUSEEXIT  = MSG_LPTKINT + 5;
+
+  MSG_DEACTIVATE = MSG_LPTKINT + 6;
+  
+  MSG_MOVE       = MSG_LPTKINT + 7;
+
+const
+  CUR_DEFAULT   = 1;
+  CUR_DIR_EW    = 2;
+  CUR_DIR_NS    = 3;
+  CUR_EDIT      = 4;
+
+  CUR_DIR_NWSE  = 5;
+  CUR_DIR_NESW  = 6;
+
+  CUR_MOVE      = 7;
+
+  CUR_CROSSHAIR = 8;
+
+const
+  ss_Shift   = $0001;
+  ss_Control = $0004;
+  ss_Alt     = $0008;
+
+  ss_CapsLock   = $0002;
+  ss_NumLock    = $0010;
+  ss_ScrollLock = $0080;
+
+{$else}
+
+type
+  TWinHandle   = TXID;
+  TGfxDisplay  = PXDisplay;
+  TGfxFontData = PXftFont;
+  TFontHandle  = PXftFont; 
+  TGContext    = Xlib.TGc;
+
+const
+  KEY_LEFT  = $FF51;
+  KEY_RIGHT = $FF53;
+  KEY_DOWN  = $FF54;
+  KEY_UP    = $FF52;
+
+  KEY_END     = $FF57;
+  KEY_HOME    = $FF50;
+
+  KEY_PGUP    = $FF55;
+  KEY_PGDN    = $FF56;
+  KEY_INSERT  = $FF63;
+  KEY_DELETE  = $FFFF;
+
+  KEY_ENTER   = $FF0D;
+  KEY_ESC     = $FF1B;
+  KEY_BACKSPACE = $FF08;
+
+  KEY_TAB     = $FF09;
+  KEY_STAB    = $FE20;
+
+  KEY_F1      = $FFBE;
+  KEY_F2      = KEY_F1 + 1;
+  KEY_F3      = KEY_F1 + 2;
+  KEY_F4      = KEY_F1 + 3;
+  KEY_F5      = KEY_F1 + 4;
+  KEY_F6      = KEY_F1 + 5;
+  KEY_F7      = KEY_F1 + 6;
+  KEY_F8      = KEY_F1 + 7;
+  KEY_F9      = KEY_F1 + 8;
+  KEY_F10     = KEY_F1 + 9;
+  KEY_F11     = KEY_F1 + 10;
+  KEY_F12     = KEY_F1 + 11;
+
+const
+  MSG_KEYPRESS   = 2;
+  MSG_KEYRELEASE = 3;
+  MSG_PAINT      = 12;
+
+  MSG_ACTIVATE   = 9;
+  MSG_DEACTIVATE = 10;
+
+  MSG_MOUSEDOWN  = 4;
+  MSG_MOUSEUP    = 5;
+
+  MSG_MOUSEMOVE  = 6;
+
+  MSG_MOUSEENTER = 7;
+  MSG_MOUSEEXIT  = 8;
+
+  MSG_CLOSE      = 33;
+
+const
+  MSG_SCROLL     = 65;
+  MSG_RESIZE     = 66;
+
+  MSG_POPUPCLOSE = 67;
+  
+  MSG_MOVE       = 68;
+  
+const
+  CUR_DEFAULT   = 68;
+  CUR_DIR_EW    = 108;
+  CUR_DIR_NS    = 116;
+  CUR_EDIT      = 152;
+  
+  CUR_DIR_NWSE  = 120;
+  CUR_DIR_NESW  = 120;  // Not Perfect!!!
+  
+  CUR_MOVE      = 52;
+  
+  CUR_CROSSHAIR = 34;
+
+const
+  ss_Shift   = $0001;
+  ss_Control = $0004;
+  ss_Alt     = $0008;
+
+  ss_CapsLock   = $0002;
+  ss_NumLock    = $0010;
+  ss_ScrollLock = $0080;
+
+const
+  MWM_HINTS_FUNCTIONS    = 1;       // Definitions for FXMotifHints.flags
+  MWM_HINTS_DECORATIONS  = 2;
+  MWM_HINTS_INPUT_MODE   = 4;
+  MWM_HINTS_ALL          = 7;
+
+  MWM_FUNC_ALL           = 1;       // Definitions for FXMotifHints.functions
+  MWM_FUNC_RESIZE        = 2;
+  MWM_FUNC_MOVE          = 4;
+  MWM_FUNC_MINIMIZE      = 8;
+  MWM_FUNC_MAXIMIZE      = 16;
+  MWM_FUNC_CLOSE         = 32;
+
+  MWM_DECOR_ALL          = 1;       // Definitions for FXMotifHints.decorations
+  MWM_DECOR_BORDER       = 2;
+  MWM_DECOR_RESIZEH      = 4;
+  MWM_DECOR_TITLE        = 8;
+  MWM_DECOR_MENU         = 16;
+  MWM_DECOR_MINIMIZE     = 32;
+  MWM_DECOR_MAXIMIZE     = 64;
+
+  MWM_INPUT_MODELESS                  = 0;   // Values for FXMotifHints.inputmode
+  MWM_INPUT_PRIMARY_APPLICATION_MODAL = 1;
+  MWM_INPUT_SYSTEM_MODAL              = 2;
+  MWM_INPUT_FULL_APPLICATION_MODAL    = 3;
+
+const
+  XA_PRIMARY     = 1;
+  XA_SECONDARY   = 2;
+  XA_ATOM        = 4;
+  XA_BITMAP      = 5;
+  XA_CURSOR      = 8;
+  XA_INTEGER     = 19;
+  XA_PIXMAP      = 20;
+  XA_POINT       = 21;
+  XA_RECTANGLE   = 22;
+  XA_RESOURCE_MANAGER = 23;
+  XA_STRING      = 31;
+  XA_VISUALID    = 32;
+  XA_WINDOW      = 33;
+  XA_WM_COMMAND  = 34;
+  XA_WM_HINTS    = 35;
+  XA_WM_ICON_NAME = 37;
+  XA_WM_ICON_SIZE = 38;
+  XA_WM_NAME      = 39;
+  XA_WM_NORMAL_HINTS = 40;
+  XA_WM_SIZE_HINTS   = 41;
+
+{$endif}
+
+type
+
+  TGfxFont = class
+  private
+    FFont : TGfxFontData;
+{$ifdef Win32}
+    FMetrics : Windows.TEXTMETRIC;
+{$else}{$endif}    
+  public
+    constructor Create(afont : TGfxFontData);
+    destructor Destroy; override;
+
+    function Handle : TFontHandle;
+
+    function TextWidth16(txt : string16) : integer;
+
+    function Ascent  : integer;
+    function Descent : integer;
+    Function Height  : integer;
+  end;
+
+  TGfxCanvas = class
+  private
+     FWin : TWinHandle;
+     Fgc  : TGContext;
+
+     FColorText : TGfxColor;
+     FColor     : TGfxColor;
+     FCurFont   : TGfxFont;
+     //FClipRect  : TGfxRect;
+
+     FLineStyle : integer;
+     FLineWidth : integer;
+
+{$ifdef Win32}
+     FWindowsColor : longword;
+
+     FBrush : HBRUSH;
+     FPen   : HPEN;
+     FClipRegion   : HRGN;
+{$else}
+     FXftDraw : PXftDraw;
+     FColorTextXft : TXftColor;
+     FClipRegion   : TRegion;
+{$endif}
+
+  public
+    constructor Create(winhandle : TWinHandle);
+    destructor Destroy; override;
+
+    procedure SetFont(fnt : TGfxFont);
+    procedure SetTextColor(cl : TGfxColor);
+
+    procedure SetColor(cl : TGfxColor);
+    procedure SetLineStyle(width : integer; dashed : boolean);
+
+    procedure DrawString16(x,y : TGfxCoord; txt : String16);
+
+    procedure FillRectangle(x,y, w,h : TGfxCoord);
+    procedure FillRect(r : TGfxRect);
+
+    procedure FillTriangle(x1,y1, x2,y2, x3,y3 : TGfxCoord);
+
+    procedure DrawRectangle(x,y, w,h : TGfxCoord);
+    procedure DrawRect(r : TGfxRect);
+
+    procedure DrawLine(x1,y1,x2,y2 : TGfxCoord);
+
+    procedure DrawSelectionRectangle(x, y, w, h : TGfxCoord);
+
+    procedure SetClipRect(const rect : TGfxRect);
+    procedure AddClipRect(const rect : TGfxRect);
+    procedure ClearClipRect;
+
+    procedure GetWinRect(var r : TGfxRect);
+
+    procedure Clear(col : TGfxColor);
+  end;
+
+var
+  ScreenWidth, ScreenHeight : integer;
+
+  Display : TGfxDisplay;
+
+{$ifdef Win32}
+
+  WindowClass : TWndClass;
+  WidgetClass : TWndClass;
+
+  hcr_default : HCURSOR;
+  hcr_dir_ew  : HCURSOR;
+  hcr_dir_ns  : HCURSOR;
+  hcr_edit    : HCURSOR;
+
+  hcr_dir_nwse,
+  hcr_dir_nesw,
+  hcr_move,
+  hcr_crosshair : HCURSOR;
+
+  FFocusedWindow : THANDLE;
+
+{$else}
+
+  DisplayDepth : integer;
+
+  DefaultBackground : TGfxColor;
+  DefaultForeground : TGfxColor;
+  DefaultScreen : integer;
+  DefaultVisual : PVisual;
+  DefaultColorMap : TColorMap;
+
+  RootWindow : TWinHandle;
+
+var
+  xia_clipboard        : TAtom;
+  xia_motif_wm_hints   : TAtom;
+  xia_wm_protocols     : TAtom;
+  xia_wm_delete_window : TAtom;
+
+  xia_wm_state       : TAtom;
+  xia_wm_state_modal : TAtom;
+
+  xia_targets        : TAtom;
+{$endif}
+
+function GfxOpenDisplay(DisplayName : string) : boolean;
+procedure GfxCloseDisplay;
+
+function GfxColorToRGB(col : TGfxColor) : TGfxColor;
+
+function GfxGetFont(desc : string) : TGfxFont;
+
+procedure WaitWindowMessage;
+procedure GfxDoMessageLoop;
+
+procedure GfxFlush;
+
+procedure GfxMoveResizeWindow(wh : TWinHandle; x,y,w,h : TGfxCoord);
+procedure GfxMoveWindow(wh : TWinHandle; x,y : TGfxCoord);
+
+procedure GfxActivateWindow(wh : TWinHandle);
+
+procedure GfxGetAbsolutePosition(wh : TWinHandle; x,y : TGfxCoord; var xap, yap : TGfxCoord);
+
+procedure GfxSetMouseCursor(wh : TWinHandle; cur : integer);
+
+function GfxCheckClipboardKey(key, shiftstate : word) : TClipboardKeyType;
+
+function GfxIsAlphaNum16(s : string16) : boolean;
+
+{$ifdef Win32}
+function GfxColorToWin(col : TGfxColor) : TGfxColor;
+{$else}
+procedure SetXftColor(col : TGfxColor; var colxft : TXftColor);
+procedure GfxSetWMOptions(wh : TWinHandle; aflags, afunctions, adecorations, ainputmode : longword);
+function GfxColorToX(col : TGfxColor) : longword;
+{$endif}
+
+procedure GfxHideConsoleWindow;
+
+implementation
+
+uses unitkeys, gfxstyle, gfxwidget, gfxform, gfxclipboard, popupwindow;
+
+{$ifdef Win32}{$else}
+type
+  TXIC = record
+           dummy : pointer;
+         end;
+  PXIC = ^TXIC;
+  TXIM = record
+           dummy : pointer;
+         end;
+  PXIM = ^TXIM;
+
+var
+  InputMethod  : PXIM;
+  InputContext : PXIC;
+
+// defines:
+procedure XRenderSetPictureClipRectangles(disp : PXDisplay; pic : TPicture; xorigin,yorigin : integer; rect : PXRectangle; num : integer); cdecl; external;
+
+// redefines:
+function XmbLookupString(p1 : PXIC; ev : PXKeyPressedEvent; str : PChar; len : longword; ks:PKeySym; stat:PStatus):longint;cdecl; external;
+function XOpenIM(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar):PXIM;cdecl;external;
+function XCreateIC(para1 : PXIM; para2 : array of const):PXIC;cdecl;external;
+
+{$endif}
+
+{$ifdef Win32}
+function GetConsoleWindowHandle : HWND;
+var
+  s, ns : string;
+begin
+  SetLength(s,1024);
+  GetConsoleTitle(@s[1],length(s));
+  ns := 'CONSOLE'+IntToStr(maininstance)+#0;
+  SetConsoleTitle(PChar(ns));
+  Sleep(40);
+  result := FindWindow(nil, PChar(ns));
+  SetConsoleTitle(PChar(s));
+end;
+{$else}{$endif}
+
+procedure GfxHideConsoleWindow;
+{$ifdef Win32}
+var
+  h : HWND;
+begin
+  h := GetConsoleWindowHandle;
+  //Writeln('Console window: ', h);
+
+  if h <> 0 then
+    SetWindowPos(h, 0, 0,0,0,0, SWP_HIDEWINDOW or SWP_NOSIZE or SWP_NOZORDER or SWP_NOMOVE);
+{$else}
+begin
+{$endif}
+end;
+
+procedure GfxFlush;
+begin
+{$ifdef Win32} GdiFlush; {$else} XFlush(display); {$endif}
+end;
+
+procedure GfxMoveResizeWindow(wh : TWinHandle; x,y,w,h : TGfxCoord);
+{$ifdef Win32}
+var
+  rwidth, rheight : integer;
+  ws,es : integer;
+  r : TRect;
+{$endif}  
+begin
+  if wh <= 0 then Exit;
+
+{$ifdef Win32}
+  // windows decoration correction on stupid windows...
+  ws := GetWindowLong(wh, GWL_STYLE);
+  es := GetWindowLong(wh, GWL_EXSTYLE);
+
+  rwidth := w;
+  rheight := h;
+
+  if (ws and WS_CHILD) = 0 then
+  begin
+    r.Left := x;
+    r.Top  := y;
+    r.Right := x + w;
+    r.Bottom := y + h;
+    AdjustWindowRectEx(r, ws, false, es);
+    rwidth := r.Right - r.Left;
+    rheight := r.Bottom - r.Top;
+  end;
+
+  windows.MoveWindow(wh, x,y, rwidth, rheight, true);
+{$else}
+  XMoveResizeWindow(display, wh, x,y,w,h);
+{$endif}
+end;
+
+procedure GfxMoveWindow(wh : TWinHandle; x,y : TGfxCoord);
+begin
+  if wh > 0 then
+{$ifdef Win32}
+       Windows.SetWindowPos(wh,0,x,y,0,0,SWP_NOZORDER or SWP_NOSIZE or SWP_NOREDRAW);
+{$else}
+       XMoveWindow(display, wh, x,y);
+{$endif}
+end;
+
+procedure GfxActivateWindow(wh : TWinHandle);
+begin
+  if wh > 0 then
+  begin
+{$ifdef Win32}
+    Windows.SetActiveWindow(wh);
+{$else}
+    XMapRaised(display, wh);
+    XSetInputFocus(display, wh, RevertToNone, 0);
+{$endif}
+  end;
+end;
+
+procedure GfxGetAbsolutePosition(wh : TWinHandle; x,y : TGfxCoord; var xap, yap : TGfxCoord);
+var
+{$ifdef Win32}
+  pt : TPoint;
+{$else}
+  cw : TWinHandle;
+{$endif}
+begin
+  if wh > 0 then
+  begin
+{$ifdef Win32}
+    pt.X := x;
+    pt.Y := y;
+    ClientToScreen(wh, pt);
+    xap := pt.X;
+    yap := pt.Y;
+{$else}
+    XTranslateCoordinates(display, wh, RootWindow, x, y, @xap, @yap, @cw);
+{$endif}
+  end;
+end;
+
+function GfxIsAlphaNum16(s : string16) : boolean;
+var
+  c : char;
+begin
+  result := true;
+  if length(s) < 2 then
+  begin
+    result := false;
+    exit;
+  end;
+
+  if s[2] > #0 then Exit;
+
+  c := s[1];
+
+  if (c < '0') or
+     ((c > 'Z') and (c < 'a')) or
+     ((c > 'z') and (c < #$C0))
+  then result := false
+end;
+
+procedure GfxSetMouseCursor(wh : TWinHandle; cur : integer);
+var
+{$ifdef Win32}
+  hc : HCURSOR;
+{$else}
+  xc : TCursor;
+{$endif}
+begin
+  if wh <= 0 then Exit;
+
+{$ifdef Win32}
+  case cur of
+  CUR_DIR_EW:  hc := hcr_dir_ew;
+  CUR_DIR_NS:  hc := hcr_dir_ns;
+  CUR_EDIT:    hc := hcr_edit;
+
+  CUR_DIR_NWSE: hc := hcr_dir_nwse;
+  CUR_DIR_NESW: hc := hcr_dir_nesw;
+
+  CUR_MOVE:     hc := hcr_move;
+
+  CUR_CROSSHAIR: hc := hcr_crosshair;
+
+  else
+    hc := hcr_default;
+  end;
+
+  SetCursor(hc);
+  //ShowCursor(true);
+
+{$else}
+  xc := XCreateFontCursor(display, cur);
+  XDefineCursor(display, wh, xc);
+  XFreeCursor(display, xc);
+{$endif}
+end;
+
+function GfxCheckClipboardKey(key, shiftstate : word) : TClipboardKeyType;
+begin
+  result := ckNone;
+
+  if key = KEY_INSERT then
+  begin
+    if (shiftstate and ss_control) <> 0 then result := ckCopy
+    else if (shiftstate and ss_shift) <> 0 then result := ckPaste;
+  end
+  else if (key = KEY_DELETE) and ((shiftstate and ss_control) <> 0) then result := ckCut
+  else
+  if (shiftstate and ss_control) <> 0 then
+  begin
+    case key of
+{$ifdef Win32}
+      $0003:  result := ckCopy;
+      $0016:  result := ckPaste;
+      $0018:  result := ckCut;
+{$else}
+      $0043, $0063:  result := ckCopy;
+      $0056, $0076:  result := ckPaste;
+      $0058, $0078:  result := ckCut;
+{$endif}
+    end;
+  end
+
+end;
+
+function FindKeyboardFocus : TWidget;
+begin
+  Result := nil;
+
+  if FocusRoot <> nil then
+  begin
+    Result := FocusRoot;
+    while (Result <> nil) and (result.ActiveWidget <> nil) do result := result.ActiveWidget;
+  end;
+end;
+
+function WidgetParentForm(wg : TWidget) : TGfxForm;
+var
+  w : TWidget;
+begin
+  w := wg;
+  while w <> nil do
+  begin
+    if w is TGfxForm then
+    begin
+      Result := TGfxForm(w);
+      Exit;
+    end;
+    w := w.Parent;
+  end;
+  result := nil;
+end;
+
+function GfxColorToRGB(col : TGfxColor) : TGfxColor;
+begin
+  if (col and $80000000) <> 0 then
+  begin
+    // named color
+    result := guistyle.GetNamedColorRGB(col) or (col and $7F000000);  // keeping alpha
+  end
+  else result := col;
+end;
+
+{$ifdef Win32}
+
+function GfxColorToWin(col : TGfxColor) : TGfxColor;
+var
+  c : dword;
+begin
+  if (col and $80000000) <> 0 then
+  begin
+    // named color
+    c := guistyle.GetNamedColorRGB(col);
+  end
+  else c := col;
+  //swapping bytes
+  result := ((c and $FF0000) shr 16) or ((c and $0000FF) shl 16) or (c and $00FF00);
+end;
+
+procedure SendMouseMessage(wg : TWidget; msg : UINT; button : integer; wParam : WPARAM; lParam : LPARAM);
+var
+  p3 : integer;
+  x,y : integer;
+  wwg : TWidget;
+  pwg : TWidget;
+  h : THANDLE;
+  pt : TPOINT;
+begin
+  x := SmallInt(lParam and $FFFF);
+  y := SmallInt((lParam and $FFFF0000) shr 16);
+
+  p3 := button shl 8;
+
+  if (wParam and MK_CONTROL) <> 0 then p3 := p3 or ss_control;
+  if (wParam and MK_SHIFT)   <> 0 then p3 := p3 or ss_shift;
+
+
+  wwg := wg;
+
+  if (PopupListFirst <> nil) then
+  begin
+    pt.x := x;
+    pt.y := y;
+
+    ClientToScreen(wg.WinHandle, pt);
+
+    //Writeln('click x=',pt.X,' y=',pt.y);
+
+    h := WindowFromPoint(pt);
+
+    if (h <> 0) and (MainInstance = LongWord(GetWindowLong(h, GWL_HINSTANCE))) then
+    begin
+      wwg := TWidget(Windows.GetWindowLong(h, GWL_USERDATA));
+    end
+    else wwg := nil;
+
+    //if wwg <> nil then writeln('widget ok.');
+
+    pwg := wwg;
+    while (pwg <> nil) and (pwg.Parent <> nil) do pwg := pwg.Parent;
+
+    if ((pwg = nil) or (PopupListFind(pwg.WinHandle) = nil)) and (msg <> MSG_MOUSEMOVE) then
+    begin
+      ClosePopups;
+
+      SendMessage(nil, wwg, MSG_POPUPCLOSE, 0, 0, 0 );
+    end;
+
+    // sending the message...
+    if wwg <> nil then
+    begin
+      ScreenToClient(wwg.WinHandle, pt);
+      x := pt.x;
+      y := pt.y;
+    end;
+  end;
+
+  if GfxTopModalForm <> nil then
+  begin
+    pwg := WidgetParentForm(wwg);
+    if (pwg <> nil) and (GfxTopModalForm <> pwg) then wwg := nil;
+  end;
+
+  if wwg <> nil then
+  begin
+    if (Msg = MSG_MOUSEDOWN) and (PopupListFirst = nil) then
+    begin
+      SetCapture(wwg.WinHandle);
+    end
+    else if (Msg = MSG_MOUSEUP) and (PopupListFirst = nil) then
+    begin
+      ReleaseCapture();
+    end;
+
+    SendMessage(nil, wwg, Msg, x, y, p3);
+
+  end;
+
+end;
+
+function GfxWindowProc(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  wg,kwg : TWidget;
+  kcode,i : integer;
+  sstate : integer;
+  h : THANDLE;
+  p : PChar;
+  pt : TPOINT;
+  r  : TRECT;
+  blockmsg : boolean;
+begin
+  //Writeln('got the message: ',umsg);
+  //writeln('WND=',IntToHex(hwnd,8),' MSG=',IntToHex(uMsg,4),' wp=',IntToHex(wparam,8), ' lp=',IntToHex(lparam,8));
+
+  if uMsg = WM_CREATE then
+  begin
+    wg := TWidget(PCreateStruct(lParam)^.lpCreateParams);
+    //wg.SetWinHandle(hwnd);
+    Windows.SetWindowLong(hwnd, GWL_USERDATA, LongWord(wg));
+  end
+  else if (uMsg = WM_RENDERALLFORMATS) or (uMsg = WM_RENDERFORMAT) then
+  begin
+    writeln('cliboard rendering...');
+
+    if uMsg = WM_RENDERALLFORMATS then
+    begin
+      writeln('ALL');
+      CloseClipboard();
+      OpenClipboard(0);
+    end;
+    // Windoze seems unhappy unless I do these two steps. Documentation
+    // seems to vary on whether opening the clipboard is necessary or
+    // is in fact wrong:
+    // fall through...
+
+    h := GlobalAlloc(GHND, Length(ClipboardData)+1);
+    if (h <> 0) then
+    begin
+      p := GlobalLock(h);
+      move(ClipboardData[1],p^,Length(ClipboardData));
+      inc(p,length(ClipboardData));
+      p^ := #0;
+      GlobalUnlock(h);
+      SetClipboardData(CF_TEXT, h);
+    end;
+
+    // Windoze also seems unhappy if I don't do this. Documentation very
+    // unclear on what is correct:
+    if uMsg = WM_RENDERALLFORMATS then CloseClipboard();
+
+    result := 1;
+    Exit;
+  end;
+
+  wg := TWidget(Windows.GetWindowLong(hwnd, GWL_USERDATA));
+
+  result := 0;
+
+  if not Assigned(wg) then
+  begin
+    Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
+    Exit;
+  end;
+
+  blockmsg := false;
+
+  case uMsg of
+
+    WM_CHAR,
+    WM_KEYDOWN:
+    begin
+      kcode := wParam;
+      if uMsg <> WM_CHAR then kcode := kcode or $FF00;
+
+      sstate := 0;
+      if GetKeyState(VK_SHIFT) < 0 then sstate := sstate + ss_shift;
+      //if GetKeyState(VK_MENU) < 0 then sstate := sstate + ss_alt;
+      if GetKeyState(VK_CONTROL) < 0 then sstate := sstate + ss_control;
+
+      //Writeln('msg: ',umsg,' wp=',IntToHex(wParam,4),' lp=',IntToHex(lparam,8));
+
+      if (kcode = KEY_TAB) and ((sstate and ss_shift) <> 0) then kcode := KEY_STAB;
+
+      case kcode of
+        $0008, $000D, $001B, $0009:
+        begin
+          // don't send it!
+        end;
+      else
+        //writeln('KEYDOWN: ',IntToHex(kcode,4));
+
+        kwg := FindKeyboardFocus;
+        if kwg <> nil then SendMessage(nil, kwg, MSG_KEYPRESS, kcode, sstate, 0 )
+                      else SendMessage(nil, wg,  MSG_KEYPRESS, kcode, sstate, 0 );
+
+      end;
+
+    end;
+
+
+    WM_KEYUP:
+    begin
+      kcode := wParam;
+      sstate := 0;
+      if GetKeyState(VK_SHIFT) < 0 then sstate := sstate + ss_shift;
+      if GetKeyState(VK_CONTROL) < 0 then sstate := sstate + ss_control;
+      kwg := FindKeyboardFocus;
+
+      case kcode of
+        $0008, $000D, $001B, $0009:
+        begin
+          kcode := kcode or $FF00;
+        end;
+      end;
+
+      if (kcode = KEY_TAB) and ((sstate and ss_shift) <> 0) then kcode := KEY_STAB;
+
+      //writeln('KEYUP: ',IntToHex(kcode,4));
+
+      if kwg <> nil then SendMessage(nil, kwg, MSG_KEYRELEASE, kcode, sstate, 0 )
+		    else SendMessage(nil, wg,  MSG_KEYRELEASE, kcode, sstate, 0 );
+    end;
+
+    WM_SETCURSOR:
+    begin
+      //Writeln('Hittest: ',IntToHex((lParam and $FFFF),4));
+      if (lParam and $FFFF) <= 1 then
+      begin
+        GfxSetMouseCursor(wg.WinHandle, wg.MouseCursor);
+        result := 1;
+      end
+      else Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
+    end;
+
+
+    WM_MOUSEMOVE:
+    begin
+      i := 0;
+      if (wParam and MK_LBUTTON) <> 0 then i := i or 1;
+      if (wParam and MK_RBUTTON) <> 0 then i := i or 2;
+      if (wParam and MK_MBUTTON) <> 0 then i := i or 4;
+      SendMouseMessage(wg, MSG_MOUSEMOVE, i, wParam, lParam);
+
+      // OK! Windoze doesn't provide MOUSEENTER and MOUSEEXIT messages, so we
+      // have to generate implicitly 'couse we need it for buttons
+      GetCursorPos(PT);
+      h := WindowFromPoint(PT);
+      if h <> FFocusedWindow then
+      begin
+        if FFocusedWindow > 0 then
+        begin
+           wg := TWidget(Windows.GetWindowLong(FFocusedWindow, GWL_USERDATA));
+           SendMouseMessage(wg, MSG_MOUSEEXIT, 0, 0, 0);
+        end;
+        if Windows.GetWindowLong(h, GWL_WNDPROC) = integer(@GfxWindowProc) then
+        begin
+          FFocusedWindow := h;
+          wg := TWidget(Windows.GetWindowLong(FFocusedWindow, GWL_USERDATA));
+	  SendMouseMessage(wg, MSG_MOUSEENTER, 0, 0, 0);
+        end
+        else
+        begin
+          FFocusedWindow := 0;
+        end;
+      end;
+
+    end;
+
+    WM_LBUTTONDOWN:  SendMouseMessage(wg, MSG_MOUSEDOWN, 1, wParam, lParam);
+    WM_LBUTTONUP:    SendMouseMessage(wg, MSG_MOUSEUP, 1, wParam, lParam);
+
+    WM_RBUTTONDOWN:  SendMouseMessage(wg, MSG_MOUSEDOWN, 2, wParam, lParam);
+    WM_RBUTTONUP:    SendMouseMessage(wg, MSG_MOUSEUP, 2, wParam, lParam);
+
+    WM_MBUTTONDOWN:  SendMouseMessage(wg, MSG_MOUSEDOWN, 3, wParam, lParam);
+    WM_MBUTTONUP:    SendMouseMessage(wg, MSG_MOUSEUP, 3, wParam, lParam);
+
+{
+    WM_SIZING:
+    begin
+
+      GetWindowRect(wg.WinHandle, r);
+      SendMessage(nil, wg, MSG_RESIZE,
+                           (PRect(lParam)^.Right - PRect(lParam)^.Left) - (r.Right - r.Left),
+                           (PRect(lParam)^.Bottom - PRect(lParam)^.Top) - (r.Bottom - r.Top), 0);
+    end;
+}
+
+    WM_SIZE:
+    begin
+
+      //writeln('WM_SIZE: wp=',IntToHex(wparam,8), ' lp=',IntToHex(lparam,8));
+
+      if lparam <> 0 then  // skip minimize...
+        SendMessage(nil, wg, MSG_RESIZE, integer(lParam and $FFFF) - wg.Width, integer((lParam and $FFFF0000) shr 16) - wg.Height, 0);
+
+    end;
+
+    WM_MOVE:
+    begin
+      // window decoration correction on stupid windows...
+
+      r.Left := integer(lParam and $FFFF);
+      r.Top  := integer((lParam and $FFFF0000) shr 16);
+
+      if (GetWindowLong(wg.WinHandle, GWL_STYLE) and WS_CHILD) = 0 then
+      begin
+        GetWindowRect(wg.WinHandle, r);
+      end;
+
+      SendMessage(nil, wg, MSG_MOVE, r.Left, r.Top, 0);
+    end;
+
+    WM_MOUSEWHEEL:
+    begin
+      //writeln('MWHEEL: wp=',IntToHex(wparam,8), ' lp=',IntToHex(lparam,8)); // and $FF00) shr 8);
+
+      pt.x := (lParam and $FFFF);
+      pt.y := ((lParam and $FFFF0000) shr 16);
+
+      h := WindowFromPoint(pt); //, CWP_SKIPINVISIBLE or CWP_SKIPDISABLED);
+      if h > 0 then
+      begin
+        wg := TWidget(Windows.GetWindowLong(h, GWL_USERDATA));
+      end;
+
+      if wg <> nil then
+      begin
+        if int(wParam) < 0 then SendMessage(nil, wg, MSG_SCROLL, 1, 3, 0)
+                           else SendMessage(nil, wg, MSG_SCROLL, 0, 3, 0);
+      end;
+    end;
+
+    WM_ACTIVATE:
+    begin
+      if ((wParam and $FFFF) = WA_INACTIVE) then SendMessage(nil, wg, MSG_DEACTIVATE, 0, 0, 0)
+                                            else SendMessage(nil, wg, MSG_ACTIVATE, 0, 0, 0);
+    end;
+
+    WM_NCACTIVATE:
+    begin
+      if (GfxTopModalForm <> nil) then
+      begin
+        if (wParam = 0) and (GfxTopModalForm = wg) then
+        begin
+          blockmsg := true;
+        end
+        else if (wParam <> 0) and (GfxTopModalForm <> wg) then
+        begin
+          blockmsg := true;
+        end;
+      end;
+
+      //writeln('ncactivate: ', ord(BlockMsg));
+
+      if not BlockMsg then
+        Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
+
+    end;
+
+
+    WM_CLOSE:  SendMessage(nil, wg, MSG_CLOSE, wParam, lParam, 0);
+
+    WM_PAINT:  SendMessage(nil, wg, MSG_PAINT, wParam, lParam, 0);
+
+  else
+    Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
+  end;
+end;
+
+{$else}{$endif}
+
+function GfxOpenDisplay(DisplayName : string) : boolean;
+{$ifdef Win32}
+var
+  h : HWND;
+  r : TRECT;
+begin
+  display := Windows.GetDC(0);
+
+  h := GetDesktopWindow;
+  GetWindowRect(h, r);
+
+  ScreenWidth  := r.Right - r.Left;
+  ScreenHeight := r.Bottom - r.Top;
+
+  //Writeln('Screen resolution: ',ScreenWidth,'x',ScreenHeight);
+
+  with WindowClass do
+  begin
+    style := CS_HREDRAW or CS_VREDRAW or CS_OWNDC;
+    lpfnWndProc := WndProc(@GfxWindowProc);
+    hInstance := MainInstance;
+    hIcon := LoadIcon(0, IDI_APPLICATION);
+    hCursor := LoadCursor(0, IDC_ARROW);
+    hbrBackground := 0; //COLOR_WINDOW;
+    lpszClassName := 'LPTKWIN';
+  end;
+  Windows.RegisterClass( {$ifdef FPC}@{$endif} WindowClass);
+
+  with WidgetClass do
+  begin
+    style := CS_OWNDC;
+    lpfnWndProc := WndProc(@GfxWindowProc);
+    hInstance := MainInstance;
+    hIcon := 0;
+    hCursor := 0;
+    hbrBackground := 0; //COLOR_BACKGROUND;
+    lpszClassName := 'LPTKWIDGET';
+  end;
+  Windows.RegisterClass( {$ifdef FPC}@{$endif} WidgetClass);
+
+  //DefaultFont := GfxGetFont('Arial-10');
+
+  hcr_default := Windows.LoadCursor(0, IDC_ARROW);
+  hcr_dir_ew  := Windows.LoadCursor(0, IDC_SIZEWE);
+  hcr_dir_ns  := LoadCursor(0, IDC_SIZENS);
+  hcr_edit    := LoadCursor(0, IDC_IBEAM);
+
+  hcr_dir_nwse := LoadCursor(0, IDC_SIZENWSE);
+  hcr_DIR_NESW := LoadCursor(0, IDC_SIZENESW);
+
+  hcr_MOVE     := LoadCursor(0, IDC_SIZEALL);
+
+  hcr_CROSSHAIR := LoadCursor(0, IDC_CROSS);
+
+  InitClipboard;
+
+  if pos('-HIDECONSOLE',UpperCase(CmdLine)) > 0 then GfxHideConsoleWindow;
+
+  result := true;
+end;
+{$else}
+var
+  wa : TXWindowAttributes;
+begin
+  Result := false;
+
+  if Display <> nil then GfxCloseDisplay;
+  Display := XOpenDisplay(PChar(@DisplayName));
+
+  if Display = nil then Exit;
+
+  DefaultScreen := XDefaultScreen(Display);
+  RootWindow := XRootWindow(Display, DefaultScreen);
+  DefaultBackground := XBlackPixel(Display, DefaultScreen);
+  DefaultForeground := XWhitePixel(Display, DefaultScreen);
+
+  DefaultVisual := XDefaultVisual(display, DefaultScreen);
+  DisplayDepth := XDefaultDepth(display, DefaultScreen);
+
+  DefaultColorMap := XDefaultColorMap(display, DefaultScreen);
+
+  XGetWindowAttributes(display, RootWindow, @wa);
+  ScreenWidth  := wa.width;
+  ScreenHeight := wa.height;
+
+  // Initialize atoms
+  xia_clipboard := XInternAtom(display, 'CLIPBOARD', longbool(0));
+  xia_targets := XInternAtom(display, 'TARGETS', longbool(0));
+  xia_motif_wm_hints := XInternAtom(display, '_MOTIF_WM_HINTS', longbool(0));
+  xia_wm_protocols     := XInternAtom(display, 'WM_PROTOCOLS', longbool(0));
+  xia_wm_delete_window := XInternAtom(display, 'WM_DELETE_WINDOW', longbool(0));
+
+  xia_wm_state := XInternAtom(display, '_NET_WM_STATE', longbool(0));
+  xia_wm_state_modal := XInternAtom(display, '_NET_WM_STATE_MODAL', longbool(0));
+
+  //writeln('modal=',xia_wm_modal);
+
+//  dpisX := (XDisplayWidth(display,DefaultScreen) * 254 + XDisplayWidthMM(display,DefaultScreen)*5)
+//                  / (XDisplayWidthMM(display,DefaultScreen)*10);
+
+//  dpisY := (XDisplayHeight(display,DefaultScreen) * 254 + XDisplayHeightMM(display,DefaultScreen)*5)
+//                  / (XDisplayHeightMM(display,DefaultScreen)*10);
+
+
+  // for correct keyboard handling
+  InputMethod := XOpenIM(Display,nil,nil,nil);
+  if InputMethod = nil then Exit;
+
+  InputContext := XCreateIC(InputMethod, [XNInputStyle, XIMPreeditNothing or XIMStatusNothing, 0 ] );
+  //InputContext := XCreateIC(im, [XNInputStyle, XIMPreeditNothing or XIMStatusNothing, XNClientWindow, win, 0 ] );
+  if InputContext = nil then Exit;
+  //XGetICValues(ic, [XNFilterEvents, @lw, nil]);
+
+  InitClipboard;
+
+  result := True;
+end;
+{$endif}
+
+procedure GfxCloseDisplay;
+begin
+{$ifdef Win32}{$else}
+  if Display <> nil then
+  begin
+    XCloseDisplay(Display);
+    Display := nil;
+  end;
+{$endif}
+end;
+
+
+{$ifdef Win32}
+
+procedure WaitWindowMessageWin;
+var
+  Msg: TMsg;
+begin
+  Windows.GetMessageW( {$ifdef FPC}@{$endif} Msg, 0, 0, 0);
+  if Windows.TranslateMessage( {$ifdef FPC}@{$endif} msg) then
+  begin
+    //Windows.GetMessageW( {$ifdef FPC}@{$endif} Msg, 0, 0, 0);
+    //Msg.message := MSG_KEYPRESS;
+  end;
+{
+    Writeln('Message: ',msg.message,' wp=',IntToHex(msg.wparam,4),
+      ' lp=',intToHex(msg.lparam,8),
+      ' px=',msg.pt.x, ' py=',msg.pt.y );
+}
+  Windows.DispatchMessage( {$ifdef FPC}@{$endif} msg);
+  
+  DeliverMessages;
+end;
+
+{$else}
+
+procedure ProcessSelection(var ev : TXEvent);
+var
+  s : string;
+  actual : TAtom;
+  format : integer;
+  count, remaining : longword;
+  data : PChar;
+begin
+  //Writeln('selection notify');
+
+  XGetWindowProperty(display, ev.xselection.requestor, ev.xselection._property,
+		      0, 16000,
+                      false, // delete
+                      0, // type
+                      @actual, @format, @count, @remaining,
+                      @data);
+  s := data;
+
+//  Writeln('actual=',actual,' format=',format,' count=',count,' remaining=',remaining);
+//  Writeln('data="',s,'"');
+
+  ClipBoardData := s;
+
+  XFree(data);
+
+  WaitingForSelection := false;
+
+end;
+
+procedure ProcessSelectionRequest(var ev : TXEvent);
+var
+  e : TXSelectionEvent;
+  a : TAtom;
+begin
+
+  e._type := SelectionNotify;
+  e.requestor := ev.xselectionrequest.requestor;
+  e.selection := ev.xselectionrequest.selection;
+  e.selection := xia_clipboard;
+  e.target := ev.xselectionrequest.target;
+  e.time := ev.xselectionrequest.time;
+  e._property := ev.xselectionrequest._property;
+
+//  Writeln('Selection request. selection=',ev.xselectionrequest.selection,' target=',ev.xselectionrequest.target);
+
+  if e.target = xia_targets then
+  begin
+    a := XA_STRING;
+    XChangeProperty(display, e.requestor, e._property,
+		      XA_ATOM, sizeof(TAtom)*8, 0, PByte(@a), sizeof(TAtom)  );
+  end
+  else
+  begin
+    XChangeProperty(display, e.requestor, e._property, e.target, 8, 0,
+          PByte(@ClipBoardData[1]), length(ClipBoardData)  );
+  end;
+
+  XSendEvent(display, e.requestor, false, 0, @e );
+
+end;
+
+function GetParentWindow(wh : TWinHandle; var pw, rw : TWinHandle) : boolean;
+var
+  rootw,
+  parentw : TWinHandle;
+  childs : ^TWinHandle;
+  cnum : longword;
+begin
+  childs := nil;
+  if XQueryTree(display, wh, @rootw, @parentw, @childs, @cnum) <> 0 then
+  begin
+    pw := parentw;
+    rw := rootw;
+    result := true;
+  end
+  else result := false;
+  if childs <> nil then XFree(childs);
+end;
+
+function GetDecorationWindow(wh : TWinHandle) : TWinHandle;
+var
+  lpw, pw, rw : TWinHandle;
+  bok : boolean;
+begin
+  pw := wh;
+  repeat
+    lpw := pw;
+    bok := GetParentWindow(lpw, pw, rw);
+  until (not bok) or (pw = rw);
+  if bok then result := lpw else result := 0;
+end;
+
+procedure WaitWindowMessageX;
+var
+  ev : TXEvent;
+  n,i,r,i2 : integer;
+  wg, ewg : TWidget;
+  ks : integer;
+  uc : word;
+  a : array[1..16] of char;
+  ss, sr : integer;
+  p : PChar;
+  blockmsg : boolean;
+
+  Popup : TWidget;
+  frm : TGfxForm;
+  
+  wh : TWinHandle;
+  wa : TXWindowAttributes;
+  px,py : integer;
+
+begin
+  repeat
+    XNextEvent(display, @ev);
+  until (not XFilterEvent(@ev,0));
+
+
+  blockmsg := false;
+
+  Popup := PopupListFirst;
+
+  //WriteLn('Event ',n,': ', ev._type,' window: ', ev.xany.window);
+
+  case ev._type of
+
+    MSG_KEYPRESS, MSG_KEYRELEASE:
+    begin
+      sr := 0;
+      ss := ev.xkey.state;
+
+      { i know this is a rough hack but...
+        ...otherwise XmbLookupString doesn't work how i want it to work }
+        
+      n := PXKeyPressedEvent(@ev)^._type;
+      PXKeyPressedEvent(@ev)^._type := MSG_KEYPRESS;
+      r := XmbLookupString(InputContext, PXKeyPressedEvent(@ev), @a, 16, @ks, @sr);
+      PXKeyPressedEvent(@ev)^._type := n;
+
+      uc := ks and $FFFF;
+      KeySymToUnicode(ks, @uc);
+
+      Writeln('XKey event: ',ev.xkey.keycode,', shift=',IntToHex(ss,4),' keysym=',IntToHex(ks,4),' unicode=',IntToHex(uc,4));
+
+      wg := FindKeyboardFocus;
+      if wg <> nil then PostMessage(nil, wg, ev.xkey._type, uc, ev.xkey.state, 0 )
+		   else PostMessage(nil, FindWidget(ev.xkey.window), ev.xkey._type, uc, ev.xkey.state, 0 );
+    end;
+
+    MSG_MOUSEDOWN, MSG_MOUSEUP:
+    begin
+
+      if (Popup <> nil) then
+      begin
+        wg := FindWidget(ev.xbutton.window);
+        ewg := wg;
+        while (wg <> nil) and (wg.Parent <> nil) do wg := wg.Parent;
+
+        if (wg <> nil) and (PopupListFind(wg.WinHandle) = nil) then
+        begin
+          ClosePopups;
+          Popup := nil;
+          PostMessage(nil, ewg, MSG_POPUPCLOSE, 0, 0, 0 );
+          //blockmsg := true;
+        end;
+      end;
+
+      ewg := FindWidget(ev.xbutton.window);
+
+      if GfxTopModalForm <> nil then
+      begin
+        wg := WidgetParentForm(ewg);
+        if (wg <> nil) and (GfxTopModalForm <> wg) then blockmsg := true;
+      end;
+
+      if not blockmsg then
+      begin
+
+        if (ev.xbutton.button >= 4) and (ev.xbutton.button <= 7) then  // mouse wheel
+        begin
+          // generate scroll events:
+          if ev._type = MSG_MOUSEDOWN then
+          begin
+            if ev.xbutton.button > 5 then i := 1 else i := 3;  // amount
+            PostMessage(nil, ewg, MSG_SCROLL, ev.xbutton.button mod 4, i, ev.xbutton.state );
+          end;
+        end
+        else
+        begin
+          PostMessage(nil, ewg, ev._type, ev.xbutton.x, ev.xbutton.y,
+             (ev.xbutton.state and $FF) or ((ev.xbutton.button and $FF) shl 8) );
+        end;
+
+      end;
+    end;
+
+    MSG_PAINT:
+    begin
+      repeat until not XCheckTypedWindowEvent(display, ev.xany.window, MSG_PAINT, @ev);
+      PostMessage(nil, FindWidget(ev.xany.window), ev._type, 0,0,0);
+    end;
+
+    MSG_MOUSEMOVE:
+    begin
+      repeat until not XCheckTypedWindowEvent(display, ev.xbutton.window, MSG_MOUSEMOVE, @ev);
+
+      if GfxTopModalForm <> nil then
+      begin
+        wg := WidgetParentForm(FindWidget(ev.xbutton.window));
+        if (wg <> nil) and (GfxTopModalForm <> wg) then blockmsg := true;
+      end;
+
+      //Writeln('Motion: x=',ev.xmotion.x,' y=',ev.xmotion.y,'  st=',ev.xmotion.state);
+
+      if not blockmsg then
+        PostMessage(nil, FindWidget(ev.xbutton.window), ev._type, ev.xmotion.x, ev.xmotion.y, ev.xmotion.state);
+
+    end;
+
+    // message blockings for modal windows
+    MSG_CLOSE:
+    begin
+      if GfxTopModalForm <> nil then
+      begin
+        wg := WidgetParentForm(FindWidget(ev.xbutton.window));
+        if (wg <> nil) and (GfxTopModalForm <> wg) then blockmsg := true;
+      end;
+
+      if not blockmsg then PostMessage(nil, FindWidget(ev.xany.window), ev._type, 0,0,0);
+
+    end;
+
+    ConfigureNotify:
+    begin
+      wg := FindWidget(ev.xconfigure.window);
+      if (wg <> nil) and (wg is TGfxForm) then
+      begin
+        frm := TGfxForm(wg);
+        if (frm.width <> ev.xconfigure.width) or (frm.height <> ev.xconfigure.height) then
+        begin
+          PostMessage(nil, wg, MSG_RESIZE, ev.xconfigure.width - wg.Width, ev.xconfigure.height - wg.Height, 0);
+        end;
+        
+        wh := GetDecorationWindow(ev.xconfigure.window);
+        
+        if wh > 0 then
+        begin
+          XGetWindowAttributes(display, wh, @wa);
+          // Writeln('parent: ',wh);
+          //writeln('form: ',frm.Name);
+          //writeln('parent x:',wa.x,' y:',wa.y);
+          
+          px := wa.x;
+          py := wa.y;
+        end
+        else
+        begin
+          px := ev.xconfigure.x;
+          py := ev.xconfigure.y;
+        end;
+
+        if (frm.Left <> px) or (frm.Top <> py) then
+        begin
+          PostMessage(nil, wg, MSG_MOVE, px, py, 0);
+        end;
+      end;
+    end;
+
+    SelectionNotify:
+    begin
+      ProcessSelection(ev);
+    end;
+
+    SelectionRequest:
+    begin
+      ProcessSelectionRequest(ev);
+    end;
+
+  else
+    PostMessage(nil, FindWidget(ev.xany.window), ev._type, 0,0,0);
+  end;
+
+end;
+
+function GfxColorToX(col : TGfxColor) : longword;
+var
+  xc : TXColor;
+  c : TGfxColor;
+begin
+  if (col and $80000000) <> 0 then
+  begin
+    // named color
+    result := guistyle.GetNamedXColor(col);
+  end
+  else if DisplayDepth >= 24 then
+  begin
+    result := col;
+  end
+  else
+  begin
+    c := col;
+    xc.blue  := (c and $000000FF) shl 8;
+    xc.green := (c and $0000FF00);
+    xc.red   := (c and $00FF0000) shr 8;
+
+    // THIS CALL IS TOO SLOW !!!!!:
+    XAllocColor(display, DefaultColorMap, @xc);
+    result := xc.pixel;
+  end;
+end;
+
+procedure SetXftColor(col : TGfxColor; var colxft : TXftColor);
+var
+  c : TGfxColor;
+begin
+  c := GfxColorToRGB(col);
+
+  colxft.color.red   := (c and $000000FF) shl 8;
+  colxft.color.green := (c and $0000FF00);
+  colxft.color.blue  := (c and $00FF0000) shr 8;
+
+  colxft.color.alpha := (c and $7F000000) shr 15;
+  colxft.color.alpha := colxft.color.alpha xor $FFFF;  // invert: 0 in GfxColor means not translucent
+
+  colxft.pixel := 0;
+end;
+
+procedure GfxSetWMOptions(wh : TWinHandle; aflags, afunctions, adecorations, ainputmode : longword);
+var
+  mhints : array[0..4] of longword;
+begin
+  mhints[0] := aflags;  // flags
+  mhints[1] := afunctions;  // functions
+  mhints[2] := adecorations;  // decorations
+  mhints[3] := ainputmode;  // inputmode
+  mhints[4] := 0;  // ??? dummy
+
+{
+  if wmNoBorder in wmo then
+  begin
+    mhints[0] := mhints[0] or 2;
+    mhints[2] := 0;
+  end;
+}
+
+  XChangeProperty(display, wh, xia_motif_wm_hints, xia_motif_wm_hints, 32, 0, @mhints, 4);
+end;
+
+{$endif}
+
+procedure WaitWindowMessage;
+begin
+{$ifdef Win32}
+    WaitWindowMessageWin;
+{$else}
+    WaitWindowMessageX;
+{$endif}
+end;
+
+procedure GfxDoMessageLoop;
+begin
+  repeat
+{$ifdef Win32}
+    WaitWindowMessageWin;
+{$else}
+    WaitWindowMessageX;
+    DeliverMessages;
+{$endif}
+  until false;
+end;
+
+
+{$ifdef Win32}
+
+function WinOpenFont(desc : string) : TGfxFontData;
+var
+  lf : Windows.LOGFONT;
+
+  facename : string;
+
+  cp : integer;
+  c : char;
+
+  token : string;
+  prop, propval : string;
+
+  function NextC : char;
+  begin
+    inc(cp);
+    if cp > length(desc) then c := #0
+                         else c := desc[cp];
+    result := c;
+  end;
+
+  procedure NextToken;
+  begin
+    token := '';
+    while (c <> #0) and (c in [' ','a'..'z','A'..'Z','_','0'..'9']) do
+    begin
+      token := token + c;
+      NextC;
+    end;
+  end;
+
+begin
+//  Writeln('GfxGetFont(''',desc,''')');
+
+  FillChar(lf,sizeof(lf),0);
+
+  cp := 1;
+  c := desc[1];
+
+  NextToken;
+
+//  Writeln('FaceName=',token);
+
+  facename := token + #0;
+  move(facename[1],lf.lfFaceName[0],length(facename));
+
+  if c = '-' then
+  begin
+    NextC;
+    NextToken;
+    lf.lfHeight := -MulDiv(StrToIntDef(token,0), GetDeviceCaps(display, LOGPIXELSY), 72);
+  end;
+
+  while c = ':' do
+  begin
+    NextC;
+    NextToken;
+
+    prop := UpperCase(token);
+    propval := '';
+
+    if c = '=' then
+    begin
+      NextC;
+      NextToken;
+      propval := UpperCase(token);
+    end;
+
+    if prop = 'BOLD' then
+    begin
+      lf.lfWeight := FW_BOLD;
+      Writeln('bold!');
+    end
+    else if prop = 'ITALIC' then
+    begin
+      lf.lfItalic := 1;
+    end
+    ;
+
+  end;
+
+  result := CreateFontIndirectA({$ifdef FPC}@{$endif}lf);
+
+end;
+
+{$endif}
+
+function GfxGetFont(desc : string) : TGfxFont;
+var
+  fnt : TGfxFontData;
+begin
+{$ifdef Win32}
+  fnt := WinOpenFont(desc);
+{$else}
+  fnt := XftFontOpenName(display, DefaultScreen, PChar(desc) );
+{$endif}
+
+  if {$ifdef Win32}fnt <> 0{$else}fnt <> nil{$endif}
+                then Result := TGfxFont.Create(fnt)
+                else
+                begin
+                  writeln('error opening font.');
+                  Result := nil;
+                end;
+end;
+
+{ TGfxCanvas }
+
+constructor TGfxCanvas.Create(winhandle : TWinHandle);
+{$ifdef Win32}
+begin
+  FWin := winhandle;
+  Fgc := windows.GetDC(FWin);
+  SetTextAlign(Fgc, TA_BASELINE);
+  SetBkMode(Fgc, TRANSPARENT);
+  SetFont(guistyle.DefaultFont);
+  FColor := clText1;
+  FLineStyle := PS_SOLID;
+  FLineWidth := 0;
+  FBrush := CreateSolidBrush(0);
+  FPen := CreatePen(PS_SOLID, 0, 0);
+  SetColor(clText1);
+  SetTextColor(clText1);
+  //SetPolyFillMode(Fgc, WINDING);
+
+  FClipRegion := CreateRectRgn(0,0,1,1);
+end;
+{$else}
+var
+  GcValues : TXGcValues;
+  rw : TWinHandle;
+  x,y : integer;
+  bw,d : longword;
+begin
+  FWin := winhandle;
+  Fgc := XCreateGc(display, FWin, 0, @GcValues);
+  FXftDraw := XftDrawCreate(display, FWin, XDefaultVisual(display, DefaultScreen), XDefaultColormap(display, DefaultScreen));
+  FCurFont := guistyle.DefaultFont;
+  SetTextColor(clText1);
+
+  FLineStyle := LineSolid;
+  FLineWidth := 0;
+
+//  FWinRect.Top := 0;
+//  FWinRect.Left := 0;
+//  XGetGeometry(display, FWin, @rw, @x,@y, @(FWinRect.width), @(FWinRect.height), @bw, @d);
+  FClipRegion := XCreateRegion;
+end;
+{$endif}
+
+destructor TGfxCanvas.Destroy;
+begin
+{$ifdef Win32}
+  DeleteObject(FBrush);
+  DeleteObject(FPen);
+  Windows.ReleaseDC(FWin, Fgc);
+  DeleteObject(FClipRegion);
+{$else}
+  XDestroyRegion(FClipRegion);
+  XFreeGc(display, Fgc);
+  if FXftDraw <> nil then XftDrawDestroy(FXftDraw);
+{$endif}
+  inherited Destroy;
+end;
+
+procedure TGfxCanvas.SetFont(fnt : TGfxFont);
+begin
+  if (FCurFont = fnt) or (fnt = nil) then Exit;
+  FCurFont := fnt;
+{$ifdef Win32}
+  Windows.SelectObject(Fgc, FCurFont.Handle);
+{$else}
+  //XSetFont(display, Fgc, fnt.Handle);
+{$endif}
+end;
+
+procedure TGfxCanvas.SetTextColor(cl : TGfxColor);
+begin
+  FColorText := cl;
+{$ifdef Win32}
+  Windows.SetTextColor(Fgc, GfxColorToWin(cl))
+{$else}
+  SetXftColor(cl,FColorTextXft);
+{$endif}
+end;
+
+procedure TGfxCanvas.SetLineStyle(width : integer; dashed : boolean);
+begin
+  FLineWidth := width;
+{$ifdef Win32}
+  DeleteObject(FPen);
+  if dashed then FLineStyle := PS_DASH else FLineStyle := PS_SOLID;
+  FPen := CreatePen(FLineStyle, FLineWidth, FWindowsColor);
+  SelectObject(Fgc,FPen);
+{$else}
+  if dashed then FLineStyle := LineOnOffDash else FLineStyle := LineSolid;
+  XSetLineAttributes(display, Fgc, FLineWidth, FLineStyle, 0, 0);
+{$endif}
+end;
+
+procedure TGfxCanvas.SetColor(cl: TGfxColor);
+begin
+{$ifdef Win32}
+  DeleteObject(FBrush);
+  DeleteObject(FPen);
+
+  FWindowsColor := GfxColorToWin(cl);
+
+  FBrush := CreateSolidBrush(FWindowsColor);
+  FPen := CreatePen(FLineStyle, FLineWidth, FWindowsColor);
+  SelectObject(Fgc,FBrush);
+  SelectObject(Fgc,FPen);
+{$else}
+  XSetForeGround(display, Fgc, GfxColorToX(cl) );
+{$endif}
+end;
+
+procedure TGfxCanvas.DrawString16(x, y : TGfxCoord; txt : String16);
+begin
+  if length(txt) < 1 then exit;
+{$ifdef Win32}
+  windows.TextOutW(Fgc, x,y, @txt[1], length16(txt));
+{$else}
+  //XDrawString16(display, FWin, Fgc, x, y, PXChar2b(txt), Length16(txt) );
+  XftDrawString16(FXftDraw, FColorTextXft, FCurFont.Handle, x,y, @txt[1], Length16(txt) );
+{$endif}
+end;
+
+procedure TGfxCanvas.FillRectangle(x, y, w, h : TGfxCoord);
+{$ifdef Win32}
+var
+  wr : windows.TRect;
+begin
+  wr.Left := x;
+  wr.Top  := y;
+  wr.Right := x + w;
+  wr.Bottom := y + h;
+  Windows.FillRect(Fgc, wr, FBrush);
+{$else}
+begin
+  //XSetFunction(display, Fgc, GXinvert);
+  XFillRectangle(display, Fwin, Fgc, x,y, w, h);
+{$endif}
+end;
+
+procedure TGfxCanvas.FillRect(r: TGfxRect);
+{$ifdef Win32}
+var
+  wr : windows.TRect;
+begin
+  wr.Left := r.Left;
+  wr.Top  := r.Top;
+  wr.Right := r.left + r.Width;
+  wr.Bottom := r.Top + r.height;
+  Windows.FillRect(Fgc, wr, FBrush);
+{$else}
+begin
+  XFillRectangle(display, Fwin, Fgc, r.Left, r.Top, r.Width, r.Height);
+{$endif}
+end;
+
+procedure TGfxCanvas.FillTriangle(x1, y1, x2, y2, x3, y3: TGfxCoord);
+{$ifdef Win32}
+var
+  pts : array[1..3] of windows.TPoint;
+begin
+  pts[1].X := x1; pts[1].Y := y1;
+  pts[2].X := x2; pts[2].Y := y2;
+  pts[3].X := x3; pts[3].Y := y3;
+  Polygon(Fgc, pts, 3);
+{$else}
+var
+  pts : array[1..3] of TXPoint;
+begin
+  pts[1].x := x1; pts[1].y := y1;
+  pts[2].x := x2; pts[2].y := y2;
+  pts[3].x := x3; pts[3].y := y3;
+
+  //XSetFillRule(display, Fgc, 0);
+  XFillPolygon(display, FWin, Fgc, @pts, 3, 0,0);
+{$endif}
+end;
+
+procedure TGfxCanvas.DrawRectangle(x, y, w, h: TGfxCoord);
+{$ifdef Win32}
+var
+  wr : windows.TRect;
+begin
+  wr.Left := x;
+  wr.Top  := y;
+  wr.Right := x + w;
+  wr.Bottom := y + h;
+  Windows.FrameRect(Fgc, wr, FBrush);
+{$else}
+begin
+  XDrawRectangle(display, Fwin, Fgc, x,y,w-1,h-1);   // transformed into polyline requests!
+{$endif}
+end;
+
+procedure TGfxCanvas.DrawRect(r : TGfxRect);
+{$ifdef Win32}
+var
+  wr : windows.TRect;
+begin
+  wr.Left := r.left;
+  wr.Top  := r.top;
+  wr.Right := r.left + r.width;
+  wr.Bottom := r.Top + r.Height;
+  Windows.FrameRect(Fgc, wr, FBrush);
+{$else}
+begin
+  XDrawRectangle(display, Fwin, Fgc, r.left,r.top,r.width-1,r.height-1);   // transformed into polyline requests!
+{$endif}
+end;
+
+procedure TGfxCanvas.DrawLine(x1, y1, x2, y2 : TGfxCoord);
+{$ifdef Win32}
+var
+  pts : array[1..2] of windows.TPoint;
+begin
+  pts[1].X := x1; pts[1].Y := y1;
+  pts[2].X := x2; pts[2].Y := y2;
+  PolyLine(Fgc, pts, 2);
+  SetPixel(Fgc, x2,y2, FWindowsColor);
+{$else}
+begin
+  XDrawLine(display, Fwin, Fgc, x1,y1,x2,y2 );
+{$endif}
+end;
+
+procedure TGfxCanvas.DrawSelectionRectangle(x, y, w, h : TGfxCoord);
+{$ifdef Win32}
+var
+  wr : windows.TRect;
+//  hb : HBRUSH;
+begin
+  wr.Left := x;
+  wr.Top  := y;
+  wr.Right := x + w + 1;
+  wr.Bottom := y + h + 1;
+
+  Windows.InvertRect(Fgc, wr);
+{
+  hb := CreateSolidBrush(GfxColorToWin(GfxColorToRGB(clSelection) xor $00FFFFFF));
+  SetROP2(Fgc, R2_XORPEN);
+  Windows.FillRect(Fgc, wr, hb);
+  SetROP2(Fgc, R2_COPYPEN);
+  DeleteObject(hb);
+}
+{$else}
+begin
+  XSetForeGround(display, Fgc, GfxColorToX(GfxColorToRGB(clSelection) xor $00FFFFFF));
+  XSetFunction(display, Fgc, GXxor);
+  XFillRectangle(display, Fwin, Fgc, x,y, w, h);
+  XSetForeGround(display, Fgc, 0);
+  XSetFunction(display, Fgc, GXcopy);
+{$endif}
+end;
+
+procedure TGfxCanvas.SetClipRect(const rect : TGfxRect);
+{$ifdef Win32}
+begin
+  DeleteObject(FClipRegion);
+
+  FClipRegion := CreateRectRgn(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height);
+  SelectClipRgn(Fgc, FClipRegion);
+end;
+{$else}
+var
+  r : TXRectangle;
+  rg : TRegion;
+begin
+  //FClipRect := rect;
+
+  r.x := rect.left;
+  r.y := rect.top;
+  r.width := rect.width;
+  r.height := rect.height;
+  rg := XCreateRegion;
+  XUnionRectWithRegion(@r,rg,FClipRegion);
+  XSetRegion(display, Fgc, FClipRegion);
+  XftDrawSetClip(FXftDraw, FClipRegion);
+  XDestroyRegion(rg);
+end;
+{$endif}
+
+procedure TGfxCanvas.AddClipRect(const rect: TGfxRect);
+{$ifdef Win32}
+var
+  rg : HRGN;
+begin
+  rg := CreateRectRgn(rect.left, rect.top, rect.left + rect.width, rect.top + rect.height);
+  CombineRgn(FClipRegion,rg,FClipRegion,RGN_AND);
+  DeleteObject(rg);
+  SelectClipRgn(Fgc, FClipRegion);
+end;
+{$else}
+var
+  r : TXRectangle;
+  rg : TRegion;
+begin
+  r.x := rect.left;
+  r.y := rect.top;
+  r.width := rect.width;
+  r.height := rect.height;
+
+  rg := XCreateRegion;
+  XUnionRectWithRegion(@r,rg,rg);
+  XIntersectRegion(FClipRegion,rg,FClipRegion);
+  XSetRegion(display, Fgc, FClipRegion);
+  XftDrawSetClip(FXftDraw, FClipRegion);
+  XDestroyRegion(rg);
+end;
+{$endif}
+
+procedure TGfxCanvas.ClearClipRect;
+{$ifdef Win32}
+begin
+  SelectClipRgn(Fgc, 0);
+end;
+{$else}
+var
+  r : TGfxRect;
+begin
+  GetWinRect(r);
+  SetClipRect(r);
+end;
+{$endif}
+
+procedure TGfxCanvas.GetWinRect(var r: TGfxRect);
+{$ifdef Win32}
+var
+  wr : windows.TRECT;
+begin
+  GetClientRect(FWin,wr);
+  r.top := wr.Top;
+  r.left := wr.Left;
+  r.width := wr.Right - wr.Left + 1;
+  r.height := wr.Bottom - wr.Top + 1;
+end;
+{$else}
+var
+  rw : TWinHandle;
+  x,y : integer;
+  bw,d : longword;
+begin
+  r.left := 0;
+  r.Top := 0;
+  XGetGeometry(display, FWin, @rw, @x, @y, @(r.width), @(r.height), @bw, @d);
+end;
+{$endif}
+
+procedure TGfxCanvas.Clear(col : TGfxColor);
+{$ifdef Win32}
+var
+  r : windows.TRECT;
+  br : HBRUSH;
+begin
+  GetClientRect(FWin,r);
+  inc(r.Bottom,10);
+  br := CreateSolidBrush(GfxColorToWin(col));
+  windows.FillRect(Fgc, r, br);
+  DeleteObject(br);
+end;
+{$else}
+begin
+  XClearWindow(display, FWin);
+end;
+{$endif}
+
+{ TGfxRect }
+
+procedure TGfxRect.SetRect(aleft, atop, awidth, aheight : TGfxCoord);
+begin
+  left := aleft;
+  top  := atop;
+  width := awidth;
+  height := aheight;
+end;
+
+function TGfxRect.bottom : TGfxCoord;
+begin
+  result := top + height - 1;
+end;
+
+function TGfxRect.right : TGfxCoord;
+begin
+  result := left + width - 1;
+end;
+
+procedure TGfxRect.SetBottom(value : TGfxCoord);
+begin
+  height := value - top + 1;
+end;
+
+procedure TGfxRect.SetRight(value : TGfxCoord);
+begin
+  width := value - left + 1;
+end;
+
+{ TGfxFont }
+
+constructor TGfxFont.Create(afont : TGfxFontData);
+begin
+  FFont := afont;
+{$ifdef Win32}
+  GetTextMetrics(display, FMetrics);
+{$else}{$endif}
+end;
+
+destructor TGfxFont.Destroy;
+begin
+{$ifdef Win32}
+  Windows.DeleteObject(FFont);
+{$else}
+  XftFontClose(Display, FFont);
+  //XFreeFont(display, FFont);
+{$endif}  
+  inherited;
+end;
+
+function TGfxFont.Handle : TFontHandle;
+begin
+//  result := FFont^.Fid;
+  result := FFont;
+end;
+
+function TGfxFont.TextWidth16(txt : string16) : integer;
+var
+{$ifdef Win32}
+  ts : Windows.SIZE;
+{$else}
+  extents : TXGlyphInfo;
+{$endif}
+begin
+  if length(txt) < 1 then
+  begin
+    result := 0;
+    exit;
+  end;
+{$ifdef Win32}
+  SelectObject(display, Handle);
+  GetTextExtentPoint32W( display, @txt[1], length16(txt), ts);
+  result := ts.cx;
+{$else}
+  XftTextExtents16(display, FFont, @txt[1], Length16(txt), extents);
+  result := extents.xOff;
+{$endif}
+end;
+
+function TGfxFont.Ascent : integer;
+begin
+{$ifdef Win32}
+  result := FMetrics.tmAscent;
+{$else}
+  result := FFont^.ascent;
+{$endif}
+end;
+
+function TGfxFont.Descent : integer;
+begin
+{$ifdef Win32}
+  result := FMetrics.tmDescent;
+{$else}
+  result := FFont^.Descent;
+{$endif}
+end;
+
+function TGfxFont.Height : integer;
+begin
+{$ifdef Win32}
+  result := FMetrics.tmHeight;
+{$else}
+  result := FFont^.ascent + FFont^.descent;
+{$endif}
+end;
+
+initialization
+begin
+{$ifdef Win32}
+  FFocusedWindow := 0;
+{$else}
+  Display := nil;
+  InputMethod  := nil;
+  InputContext := nil;
+{$endif}
+end;
+
+finalization
+begin
+{$ifdef Win32}{$else}
+  if Display <> nil then GfxCloseDisplay;
+{$endif}
+end;
+
+end.
+

@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <General>
+      <ProjectType Value="Custom program"/>
+      <MainUnit Value="0"/>
+      <ActiveEditorIndexAtStart Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+      <Title Value="phonebook"/>
+      <OutputDirectory Value="."/>
+      <UnitOutputDirectory Value="."/>
+      <SrcPath Value="../src"/>
+    </General>
+    <JumpHistory Count="5" HistoryIndex="4">
+      <Position1>
+        <Filename Value="phonebook.pas"/>
+        <Caret Line="354" Column="5" TopLine="309"/>
+      </Position1>
+      <Position2>
+        <Filename Value="phonebook.pas"/>
+        <Caret Line="353" Column="23" TopLine="334"/>
+      </Position2>
+      <Position3>
+        <Filename Value="phonebook.pas"/>
+        <Caret Line="344" Column="68" TopLine="310"/>
+      </Position3>
+      <Position4>
+        <Filename Value="phonebook.pas"/>
+        <Caret Line="150" Column="5" TopLine="105"/>
+      </Position4>
+      <Position5>
+        <Filename Value="phonebook.pas"/>
+        <Caret Line="368" Column="15" TopLine="361"/>
+      </Position5>
+    </JumpHistory>
+    <Units Count="9">
+      <Unit0>
+        <CursorPos X="17" Y="369"/>
+        <EditorIndex Value="0"/>
+        <Filename Value="phonebook.pas"/>
+        <IsPartOfProject Value="True"/>
+        <Loaded Value="True"/>
+        <TopLine Value="361"/>
+        <UnitName Value="phonebook"/>
+        <UsageCount Value="25"/>
+      </Unit0>
+      <Unit1>
+        <CursorPos X="15" Y="197"/>
+        <EditorIndex Value="1"/>
+        <Filename Value="/data/workl/lptk/src/sqldb.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="177"/>
+        <UnitName Value="sqldb"/>
+        <UsageCount Value="12"/>
+      </Unit1>
+      <Unit2>
+        <CursorPos X="33" Y="704"/>
+        <Filename Value="/data/workl/lptk/src/wggrid.pas"/>
+        <TopLine Value="701"/>
+        <UnitName Value="wggrid"/>
+        <UsageCount Value="12"/>
+      </Unit2>
+      <Unit3>
+        <CursorPos X="39" Y="76"/>
+        <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
+        <TopLine Value="72"/>
+        <UnitName Value="wgdbgrid"/>
+        <UsageCount Value="12"/>
+      </Unit3>
+      <Unit4>
+        <CursorPos X="34" Y="46"/>
+        <Filename Value="/data/workl/lptk/src/wgmemo.pas"/>
+        <TopLine Value="42"/>
+        <UnitName Value="wgmemo"/>
+        <UsageCount Value="12"/>
+      </Unit4>
+      <Unit5>
+        <CursorPos X="39" Y="66"/>
+        <Filename Value="/data/workl/lptk/src/wgchoicelist.pas"/>
+        <TopLine Value="62"/>
+        <UnitName Value="wgchoicelist"/>
+        <UsageCount Value="12"/>
+      </Unit5>
+      <Unit6>
+        <CursorPos X="15" Y="502"/>
+        <Filename Value="/usr/src/fpc/fcl/inc/classesh.inc"/>
+        <TopLine Value="490"/>
+        <UsageCount Value="11"/>
+      </Unit6>
+      <Unit7>
+        <CursorPos X="31" Y="57"/>
+        <Filename Value="/data/workl/lptk/src/schar16.pas"/>
+        <TopLine Value="53"/>
+        <UnitName Value="schar16"/>
+        <UsageCount Value="11"/>
+      </Unit7>
+      <Unit8>
+        <CursorPos X="21" Y="3"/>
+        <Filename Value="/data/workl/lptk/apps/app_todo.dpr"/>
+        <TopLine Value="1"/>
+        <UnitName Value="app_todo"/>
+        <UsageCount Value="10"/>
+      </Unit8>
+    </Units>
+    <PublishOptions>
+      <Version Value="2"/>
+      <DestinationDirectory Value="$(TestDir)/publishedproject/"/>
+      <IgnoreBinaries Value="False"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication Use="True" PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e bash -i -c '$(TargetCmdLine)'"/>
+      </local>
+    </RunParams>
+  </ProjectOptions>
+  <CompilerOptions>
+    <SearchPaths>
+      <OtherUnitFiles Value="../src"/>
+      <CompilerPath Value="$(CompPath)"/>
+      <LCLWidgetType Value="gtk"/>
+    </SearchPaths>
+    <Parsing>
+      <SymantecChecking>
+        <DelphiCompat Value="True"/>
+        <UseAnsiStrings Value="True"/>
+      </SymantecChecking>
+    </Parsing>
+  </CompilerOptions>
+</CONFIG>

@@ -1,0 +1,16 @@
+LPTK TODO
+
+- Don't fill the background on linux (use XCreateWindow instead of XCreateSimpleWindow)
+
+- Modify mouse handling: 
+  - LMOUSEDOWN / LMOUSEUP events
+  - MOUSEMOVE event with button state, and shift state
+    - dragging must be handled to watch button state
+
+Short term:
+
+- Correct Unicode Clipboard handling
+  - see QT or OpenOffice
+        
+- Menu, menu widgets
+

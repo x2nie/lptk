@@ -1,0 +1,169 @@
+0.68
+  - Applying BSD licence
+
+0.67
+  - wgbutton enhancements
+  - correct keyrelease events
+
+0.65
+  - source tree cleanup
+  - app_todo, phonebook converted to using VFD
+
+0.64
+  - DBColumns editor in VFD
+  
+0.63
+  - sqldb bugfixes: positioning with RecNo
+  
+0.62
+  - many VFD improvements
+
+0.60
+  - New unicode/8bit functions
+  - The VFD stores the text in unicode
+  - The VFD edits the wgMemo, wgChoiceList, wgTextListBox lines
+  - Some button improvements
+  - Bevel widget
+
+0.57
+  - VFD has been rewritten
+  - multiple forms in one pas file
+  - merging works, VFD can edit existing forms without deleting other codes
+  
+0.53
+  - Windows corrections
+    - Mouse cursor handling fixed on windows
+
+0.52
+  - VFD improvements
+    - anchor handling
+    - grid
+    - form move and resize
+  
+0.51
+  - useable VFD
+
+0.50
+  - wgtab, wgcalendar was updated from Erik Grohnwaldt
+  
+0.49
+  - Sources arranged into directories: src, app, test
+  - Corrected focus handling for container widgets
+  - Erik Grohnwaldt's widgets included:
+    - wgtree (tree view widget)
+    - wgcalendar (calendar (german))
+    - wgtab (tab and page control)
+    - tests for these components
+    - for the original or newer versions go to http://www.grohnwaldt.de/lptkframe.html
+  - sql date handling bugfix in sqluis
+    
+0.46
+  - Cross platform version
+  - Checkbox widget
+  - Many bugfixes
+  - Many improvements      
+  
+0.44
+  - Working CTRL-C,V,X on windows
+  - CTRL-LEFT,RIGHT in editing widgets
+
+0.43
+  - Checkbox widget
+  - SQL uis class for SQL updates
+
+0.41
+  - "-hideconsole" command line switch for windows
+
+0.40
+  - Windows port finished. LPTK is cross-platform now.
+
+Win32 version:
+
+0.31
+  - Modal windows
+  - Choicelist port finished
+  - Linedrawing fix
+
+0.30
+
+Linux versions:
+
+0.20
+ - Many small bugfixes
+ - Correct and fast color handling again
+ - app_dic 
+  
+0.19
+ - Many small bugfixes, improvements
+ - Choicelist improvements
+ - app_sql improvements
+ - ODBC Driver and DSN listing
+ 
+0.18
+ - Message box
+ - DBGrid, Grid buxfixes improvements
+ - app_sql improvements
+ 
+0.17
+ - ODBC driver
+   - ResultSet object
+ - Grid widget
+ - DBGrid widget
+   - resizeable columns
+ - Mouse cursor swapping
+ - app_sql - ODBC and DBGrid demo
+ - Anchor based automatic control alignments
+
+0.16
+ - Choicelist widget quite finished
+ - Many small bugfixes / improvements
+ 
+0.15
+ - Memo vidget, (with clipboard handling!)
+ - Preliminary choicelist widget 
+
+0.12
+ - Clipboard handling
+ - Edit widget mouse text selection with drag
+ - Edit widget clipboard handling
+
+0.11
+ - Scrollbar widget
+ - Listbox widget
+
+0.10
+ - Correct color handling for displays with color depth less than 24 bits
+
+0.09
+ - Popup windows
+ 
+0.08
+ - Text width bugfix: uses xOff instead of width
+ - Modal form handling finished.
+ 
+0.07
+ - first steps for modal forms
+ - some mouse handling
+ - button widget
+ - modified creator
+ - named colors
+
+0.06
+ - Widget navigation
+ - Keyboard focus, keypress event sending. processing 
+
+0.05
+ - Label widget
+ - TWidget - based on TComponent
+ - TGfxForm(TWidget)
+
+0.04
+ - Edit widget
+ 
+0.03
+
+0.02
+
+0.01
+
+0.00

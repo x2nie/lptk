@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <General>
+      <ProjectType Value="Custom program"/>
+      <MainUnit Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+      <Title Value="app_dic"/>
+      <OutputDirectory Value="."/>
+      <UnitOutputDirectory Value="."/>
+    </General>
+    <JumpHistory Count="2" HistoryIndex="1">
+      <Position1>
+        <Filename Value="/usr/src/fpc/packages/extra/x11/xlib.pp"/>
+        <Caret Line="1466" Column="58" TopLine="1446"/>
+      </Position1>
+      <Position2>
+        <Filename Value="wgedit.pas"/>
+        <Caret Line="83" Column="30" TopLine="63"/>
+      </Position2>
+    </JumpHistory>
+    <Units Count="15">
+      <Unit0>
+        <CursorPos X="60" Y="6"/>
+        <EditorIndex Value="0"/>
+        <Filename Value="app_dic.pas"/>
+        <IsPartOfProject Value="True"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1"/>
+        <UnitName Value="app_dic"/>
+        <UsageCount Value="23"/>
+      </Unit0>
+      <Unit1>
+        <CursorPos X="88" Y="232"/>
+        <EditorIndex Value="13"/>
+        <Filename Value="wglistbox.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="212"/>
+        <UnitName Value="wglistbox"/>
+        <UsageCount Value="12"/>
+      </Unit1>
+      <Unit2>
+        <CursorPos X="74" Y="80"/>
+        <EditorIndex Value="9"/>
+        <Filename Value="gfxwidget.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="50"/>
+        <UnitName Value="gfxwidget"/>
+        <UsageCount Value="12"/>
+      </Unit2>
+      <Unit3>
+        <CursorPos X="49" Y="592"/>
+        <EditorIndex Value="10"/>
+        <Filename Value="gfxbase.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="579"/>
+        <UnitName Value="gfxbase"/>
+        <UsageCount Value="12"/>
+      </Unit3>
+      <Unit4>
+        <CursorPos X="1" Y="117"/>
+        <EditorIndex Value="14"/>
+        <Filename Value="/usr/src/fpc/fcl/inc/classesh.inc"/>
+        <Loaded Value="True"/>
+        <TopLine Value="97"/>
+        <UsageCount Value="12"/>
+      </Unit4>
+      <Unit5>
+        <CursorPos X="21" Y="216"/>
+        <EditorIndex Value="5"/>
+        <Filename Value="wgedit.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="196"/>
+        <UnitName Value="wgedit"/>
+        <UsageCount Value="12"/>
+      </Unit5>
+      <Unit6>
+        <CursorPos X="24" Y="16"/>
+        <EditorIndex Value="4"/>
+        <Filename Value="gfxform.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1"/>
+        <UnitName Value="gfxform"/>
+        <UsageCount Value="12"/>
+      </Unit6>
+      <Unit7>
+        <CursorPos X="1" Y="640"/>
+        <EditorIndex Value="3"/>
+        <Filename Value="wggrid.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="599"/>
+        <UnitName Value="wggrid"/>
+        <UsageCount Value="12"/>
+      </Unit7>
+      <Unit8>
+        <CursorPos X="32" Y="79"/>
+        <EditorIndex Value="2"/>
+        <Filename Value="schar16.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="64"/>
+        <UnitName Value="schar16"/>
+        <UsageCount Value="12"/>
+      </Unit8>
+      <Unit9>
+        <CursorPos X="7" Y="33"/>
+        <EditorIndex Value="12"/>
+        <Filename Value="unitkeys.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="11"/>
+        <UnitName Value="unitkeys"/>
+        <UsageCount Value="12"/>
+      </Unit9>
+      <Unit10>
+        <CursorPos X="47" Y="148"/>
+        <EditorIndex Value="1"/>
+        <Filename Value="gfxstyle.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="114"/>
+        <UnitName Value="gfxstyle"/>
+        <UsageCount Value="11"/>
+      </Unit10>
+      <Unit11>
+        <CursorPos X="31" Y="58"/>
+        <EditorIndex Value="6"/>
+        <Filename Value="wglabel.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="32"/>
+        <UnitName Value="wglabel"/>
+        <UsageCount Value="10"/>
+      </Unit11>
+      <Unit12>
+        <CursorPos X="31" Y="65"/>
+        <EditorIndex Value="7"/>
+        <Filename Value="wgbutton.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="42"/>
+        <UnitName Value="wgbutton"/>
+        <UsageCount Value="10"/>
+      </Unit12>
+      <Unit13>
+        <CursorPos X="29" Y="58"/>
+        <EditorIndex Value="8"/>
+        <Filename Value="dialogs.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="38"/>
+        <UnitName Value="dialogs"/>
+        <UsageCount Value="10"/>
+      </Unit13>
+      <Unit14>
+        <CursorPos X="21" Y="218"/>
+        <EditorIndex Value="11"/>
+        <Filename Value="/usr/src/fpc/packages/extra/x11/xlib.pp"/>
+        <Loaded Value="True"/>
+        <TopLine Value="190"/>
+        <UnitName Value="xlib"/>
+        <UsageCount Value="10"/>
+      </Unit14>
+    </Units>
+    <PublishOptions>
+      <Version Value="2"/>
+      <DestinationDirectory Value="$(TestDir)/publishedproject/"/>
+      <IgnoreBinaries Value="False"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication Use="True" PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e bash -i -c '$(TargetCmdLine)'"/>
+      </local>
+    </RunParams>
+  </ProjectOptions>
+  <CompilerOptions>
+    <SearchPaths>
+      <CompilerPath Value="$(CompPath)"/>
+      <LCLWidgetType Value="gtk"/>
+    </SearchPaths>
+  </CompilerOptions>
+</CONFIG>

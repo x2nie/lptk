@@ -1,0 +1,299 @@
+{ wgdbgrid.pas: DataGrid widget, displays SQL results
+  File maintainer: nvitya@freemail.hu
+
+History:
+}
+unit wgdbgrid;
+
+{$ifdef FPC}
+{$mode objfpc}{$H+}
+{$endif}
+
+interface
+
+uses
+  Classes, SysUtils, schar16, gfxbase, messagequeue, gfxwidget, wgscrollbar, wggrid, sqldb;
+
+type
+
+  TDBColumn = class
+  public
+    Width : integer;
+    Title : string16;
+    FieldName8 : string;
+    FieldIndex : integer;
+    Alignment : TAlignment;
+  end;
+
+  TwgDBGrid = class(TwgGrid)
+  private
+    function GetColumns(index: integer): TDBColumn;
+  protected
+
+    FColumns : TList;
+    FResultSet : TSqlResult;
+
+  public
+
+    MaxColWidth : integer;
+    MinColWidth : integer;
+
+    function ColumnCount : integer; override;
+    function RowCount : integer; override;
+
+    function ColumnWidth(col : integer) : TGfxCoord; override;
+    procedure ResizeCol(col, cwidth : integer); override;
+
+    procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
+    procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
+
+  public
+
+    procedure SetResultSet(const AValue: TSqlResult; AutoSetUp : boolean);
+
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
+
+    function AddColumn(ATitle : string16; AFieldName8 : string; Awidth : integer; Align : TAlignment) : TDBColumn;
+    function AddColumn8(ATitle : string; AFieldName8 : string; Awidth : integer; Align : TAlignment) : TDBColumn;
+    procedure FreeColumns;
+    
+    procedure DeleteColumn(index : integer);
+    procedure MoveColumn(oldindex, newindex : integer);
+
+    property Columns[index : integer] : TDBColumn read GetColumns;
+    
+    function FocusField(fname : string) : TSqlField;
+
+  end;
+
+implementation
+
+{ TwgDBGrid }
+
+procedure TwgDBGrid.SetResultSet(const AValue: TSqlResult; AutoSetUp : boolean);
+var
+  n,i : integer;
+  f : TSqlField;
+  c : TDBColumn;
+  hw,cw : integer;
+  s : string16;
+  al : TAlignment;
+begin
+  FResultSet:=AValue;
+
+  FFirstRow := 1;
+  FFocusCol := 1;
+  FFocusRow := 1;
+
+  if AutoSetup then
+  begin
+    FreeColumns;
+
+    if (FResultSet <> nil) then
+      with FResultSet do
+      begin
+        for n:=1 to FieldCount do
+        begin
+          f := Field(n);
+          if f <> nil then
+          begin
+            cw := integer(f.FieldSize)*FFont.TextWidth16('0'#0) + 2;
+            s := Str8To16(f.FieldName);
+            hw := FHeaderFont.TextWidth16(s) + 2;
+            if cw < hw then cw := hw;
+
+            if cw > MaxColWidth then cw := MaxColWidth;
+            if cw < MinColWidth then cw := MinColWidth;
+
+            al := alLeft;
+            if f.FieldType in [ftInteger,ftBigInt,ftDouble,ftCurrency] then al := alRight;
+
+            AddColumn(s,f.FieldName,cw,al);
+
+          end;
+        end;
+      end;
+  end;
+  
+  //searching column indexes
+  for n := 0 to FColumns.Count-1 do
+  begin
+    c := TDBColumn(FColumns[n]);
+    if (FResultSet <> nil) then i := FResultSet.GetFieldIndex(c.FieldName8) else i := 0;
+    c.FieldIndex := i;
+  end;
+  
+  if WinHandle > 0 then
+  begin
+    UpdateScrollBar;
+    Repaint;
+  end;
+
+  if FResultSet <> nil then
+  begin
+    // create focuschange events
+    FPrevCol := 0;
+    FPrevRow := 0;
+    CheckFocusChange;
+  end;
+
+  //Writeln('Columns: ',ColumnCount,' rows: ',RowCount);
+end;
+
+procedure TwgDBGrid.FreeColumns;
+var
+  n : integer;
+begin
+  for n:=0 to FColumns.Count-1 do TDBColumn(FColumns[n]).Free;
+  FColumns.Clear;
+end;
+
+procedure TwgDBGrid.DeleteColumn(index: integer);
+var
+  c : TDBColumn;
+begin
+  c := Columns[index];
+  if c <> nil then
+  begin
+    c.Free;
+    FColumns.Delete(index);
+    if FWinHandle > 0 then Update;
+  end;
+end;
+
+procedure TwgDBGrid.MoveColumn(oldindex, newindex: integer);
+begin
+  FColumns.Move(oldindex,newindex);
+  if FWinHandle > 0 then Update;
+end;
+
+function TwgDBGrid.FocusField(fname: string): TSqlField;
+begin
+  if FResultSet <> nil then
+  begin
+    FResultSet.RecNo := FocusRow;
+    result := FResultSet.Field(fname);
+  end
+  else result := nil;
+end;
+
+function TwgDBGrid.ColumnCount: integer;
+begin
+  Result := FColumns.Count;
+end;
+
+function TwgDBGrid.RowCount: integer;
+begin
+  if FResultSet <> nil then result := FResultSet.RowCount
+                       else result := 0;
+end;
+
+function TwgDBGrid.ColumnWidth(col: integer): TGfxCoord;
+begin
+  if (col > 0) and (col <= ColumnCount) then
+    Result := TDBColumn(FColumns[col-1]).Width
+  else
+    result := 10;
+end;
+
+procedure TwgDBGrid.ResizeCol(col, cwidth: integer);
+begin
+  with TDBColumn(FColumns[col-1]) do
+  begin
+    if width <> cwidth then
+    begin
+      width := cwidth;
+      if width < MinColWidth then width := MinColWidth;
+      self.repaint;
+    end;
+  end;
+end;
+
+procedure TwgDBGrid.DrawCell(row, col: integer; rect: TGfxRect; flags: integer);
+var
+  s16 : string16;
+  x, x2, cw : integer;
+  c : TDBColumn;
+begin
+  FResultSet.RecNo := row;
+  c := TDBColumn(FColumns[col-1]);
+
+  if c.FieldIndex < 1 then Exit;
+
+  s16 := Str8to16(FResultSet.GetFieldS(c.FieldIndex));
+  
+  case TDBColumn(FColumns[col-1]).Alignment of
+    alRight :  begin
+                 cw := FFont.TextWidth16(s16);
+                 x := rect.Right - 1 - cw;
+               end;
+
+    alCenter : begin
+                 cw := FFont.TextWidth16(s16);
+                 x2 := (rect.Width div 2) - (cw div 2);
+                 if x2 < 1 then x2 := 1;
+                 x := rect.Left + x2;
+               end;
+  else
+    x := rect.Left + 1;
+  end;
+  canvas.DrawString16(x,FFont.Ascent+rect.top+1,  s16 );
+end;
+
+procedure TwgDBGrid.DrawHeader(col: integer; rect: TGfxRect; flags: integer);
+var
+  s : string16;
+  x : integer;
+begin
+  s := TDBColumn(FColumns[col-1]).Title;
+  x := (rect.width div 2) - (FHeaderFont.TextWidth16(s) div 2);
+  if x < 1 then x := 1;
+  canvas.DrawString16(rect.left + x,  FHeaderFont.Ascent+rect.top+1, s);
+end;
+
+constructor TwgDBGrid.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FResultSet := nil;
+  FColumns := TList.Create;
+  MaxColWidth := 300;
+  MinColWidth := 16;
+end;
+
+destructor TwgDBGrid.Destroy;
+begin
+  FreeColumns;
+  FColumns.Free;
+  inherited Destroy;
+end;
+
+function TwgDBGrid.AddColumn(ATitle : String16; AFieldName8: string;
+            Awidth: integer; Align : TAlignment): TDBColumn;
+var
+  c : TDBColumn;
+begin
+  c := TDBColumn.Create;
+  c.Title := ATitle;
+  c.FieldName8 := AFieldName8;
+  c.FieldIndex := 0;
+  c.Width := AWidth;
+  c.Alignment := Align;
+  FColumns.Add(c);
+  result := c;
+  if FWinHandle > 0 then Update;
+end;
+
+function TwgDBGrid.AddColumn8(ATitle: string; AFieldName8: string; Awidth: integer; Align : TAlignment): TDBColumn;
+begin
+  AddColumn(u8(ATitle),AFieldName8,AWidth,Align);
+end;
+
+function TwgDBGrid.GetColumns(index: integer): TDBColumn;
+begin
+  if (Index < 0) or (Index > FColumns.Count - 1) then result := nil
+  else Result := TDBColumn(FColumns[index]);
+end;
+
+end.
+

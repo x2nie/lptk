@@ -1,0 +1,1 @@
+dcc32 -U../src;c:/delphi/odbc app_vfd.dpr
