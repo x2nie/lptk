@@ -186,11 +186,21 @@ begin
     if ParentForm <> nil then pwh := ParentForm.WinHandle;
     if FWindowPosition = wpAuto then FWindowPosition := wpScreenCenter;
   end
-  else if FWindowPosition = wpAuto then
+  else
   begin
-    FLeft := TGfxCoord(CW_USEDEFAULT);
-    FTop  := TGfxCoord(CW_USEDEFAULT);
-  end;
+    if FWindowPosition = wpAuto then
+    begin
+      FLeft := TGfxCoord(CW_USEDEFAULT);
+      FTop  := TGfxCoord(CW_USEDEFAULT);
+    end;
+    
+    if GfxMainForm <> nil then
+    begin
+      pwh := GfxMainForm.WinHandle;
+      ws := WS_OVERLAPPEDWINDOW;
+      es := 0;
+    end;
+  end;  
 
   if not FResizeable then
   begin
