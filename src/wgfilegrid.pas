@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.7  2003/12/23 18:27:47  aegluke
+// fgDetail-Bugfix in HandleKeyPress
+//
 // Revision 1.6  2003/12/23 08:24:23  aegluke
 // avoid artifacts on directory change
 //
@@ -235,9 +238,7 @@ var
   AVisibleLines : Integer;
 begin
   consumed := false;
-  if not (fgDetail in Options) then
-  begin
-    case KeyCode of
+  case KeyCode of
       KEY_ENTER : begin
         if not (fgDetail in Options) then
           AFilesPos := (FocusCol - 1) * VisibleLines + FocusRow - 1
@@ -263,43 +264,48 @@ begin
           DoFileChose;
       end;
       KEY_UP : begin
-        if (FocusRow = 1) and (FocusCol > 1) then
+        if not (fgDetail in Options) then
         begin
-          FocusCol := FocusCol - 1;
-          FocusRow := RowCount;
-          Consumed := true;
-        end
-        else
-        begin
-          if (FocusRow = 1) and (FocusCol = 1) then
-          begin
-            AVisibleLines := VisibleLines;
-            FocusRow := (FFiles.Count) MOD AVisibleLines;
-            FocusCol := ((FFiles.Count) DIV AVisibleLines) + 1;
-            RePaint;
-            Consumed := true;
-          end;
+             if (FocusRow = 1) and (FocusCol > 1) then
+             begin
+                  FocusCol := FocusCol - 1;
+                  FocusRow := RowCount;
+                  Consumed := true;
+             end
+             else
+             begin
+                  if (FocusRow = 1) and (FocusCol = 1) then
+                  begin
+                       AVisibleLines := VisibleLines;
+                       FocusRow := (FFiles.Count) MOD AVisibleLines;
+                       FocusCol := ((FFiles.Count) DIV AVisibleLines) + 1;
+                       RePaint;
+                       Consumed := true;
+                  end;
+             end;
         end;
       end;
       KEY_DOWN : begin
-        if FocusRow = VisibleLines then
+        if not (fgDetail in Options) then
         begin
-         FocusCol := FocusCol + 1;
-          FocusRow := 1;
-          consumed := true;
-        end
-        else
-        begin
-          AFilesPos := (FocusCol - 1) * VisibleLines + FocusRow - 1;
-          if AFilesPos = FFiles.Count - 1 then
-          begin
-            FocusCol := 1;
-            FocusRow := 1;
-            consumed := true;
-          end;
+             if FocusRow = VisibleLines then
+             begin
+                  FocusCol := FocusCol + 1;
+                  FocusRow := 1;
+                  consumed := true;
+             end
+             else
+             begin
+                  AFilesPos := (FocusCol - 1) * VisibleLines + FocusRow - 1;
+                  if AFilesPos = FFiles.Count - 1 then
+                  begin
+                       FocusCol := 1;
+                       FocusRow := 1;
+                       consumed := true;
+                  end;
+             end;
         end;
       end;
-    end;
   end;
   if not consumed then inherited HandleKeyPress(KeyCode, Shiftstate, Consumed);
 end;
