@@ -35,7 +35,7 @@ var
 
 procedure TMainForm.AfterCreate;
 begin
-  WindowTitle := 'Bevel test';
+  WindowTitle8 := 'Bevel test';
   Height := 205;
   Width := 300;
   Bevel := CreateBevel(Self, 10, 10, 280, 150, bsBox, bsRaised);
