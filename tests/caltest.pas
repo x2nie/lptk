@@ -31,7 +31,7 @@ procedure TMainForm.AfterCreate;
 begin
     inherited;
     SetDimensions(500,10,400,400);
-    WindowTitle := 'TestTitle';
+    WindowTitle8 := 'TestTitle';
     calendar := TwgCalendar.Create(self);
     calendar.top := 100;
     calendar.left := 10;
