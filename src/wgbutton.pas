@@ -245,7 +245,7 @@ begin
 
     if (FImageSpacing = -1) and (FImageMargin >= 0) then
     begin
-      w := (Width-2-x) div 2 - FFont.TextWidth16(AText) div 2;
+      w := (Width-3-x) div 2 - FFont.TextWidth16(AText) div 2;
       if w < 1 then w := 1; // minimal spaceing
       x := x + w;
     end;
