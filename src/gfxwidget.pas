@@ -269,6 +269,7 @@ procedure TWidget.SetEnabled(const AValue: boolean);
 begin
   if FEnabled=AValue then exit;
   FEnabled:=AValue;
+  if Windowed then RePaint;
 end;
 
 procedure TWidget.SetActiveWidget(const AValue: TWidget);
@@ -939,10 +940,13 @@ end;
 
 procedure TWidget.DoKillFocus;
 begin
+  //Writeln('DoKillFocus: ',self.ClassName);
+
   FFocused := false;
   if Windowed then RePaint;
 
   if ActiveWidget <> nil then ActiveWidget.KillFocus;
+
 end;
 
 procedure TWidget.DoSetFocus;
@@ -950,20 +954,33 @@ var
   awg : TWidget;
 begin
   //Writeln('DoSetFocus: ',self.ClassName);
-  FFocused := true;
 
-  if Windowed then RePaint;
+  if not FFocused then
+  begin
+    FFocused := true;
 
-  if ActiveWidget <> nil then
-  begin
-    ActiveWidget.SetFocus;
-  end
-  else
-  begin
-    // try to find it for the first time.
-    awg := FindFocusWidget(nil, sdFirst);
-    if awg <> nil then ActiveWidget := awg;
+    if Windowed then RePaint;
+
+    // focusing a child
+
+    if ActiveWidget <> nil then
+    begin
+      ActiveWidget.SetFocus;
+    end
+    else
+    begin
+      // try to find it for the first time.
+      awg := FindFocusWidget(nil, sdFirst);
+      if awg <> nil then ActiveWidget := awg;
+    end;
   end;
+
+  if Parent <> nil then
+  begin
+    Parent.ActiveWidget := self;
+    Parent.SetFocus;
+  end;
+
 end;
 
 procedure TWidget.MsgPaint(var msg: TMessageRec);
