@@ -101,6 +101,7 @@ end;
 procedure TgfxImageList.SetItem(AIndex : integer; AItem : TgfxImageItem);
 begin
      if AItem = nil then exit;
+     if GetItem(AIndex) = AItem then exit;
      RemoveIndex(AIndex);      // delete existing Item
      AItem.Index := AIndex;
      FList.Add(AItem);
@@ -140,7 +141,7 @@ begin
      if AImage <> FImage then
      begin
           FImage := AImage;
-          FImage.CreateMaskFromSample(0,0);
+          FImage.CreateMaskFromSample(16,1);
      end;
 end;
 
