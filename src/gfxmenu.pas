@@ -8,7 +8,7 @@ unit gfxmenu;
 interface
 
 uses Classes, SysUtils, gfxbase, gfxform, gfxbmpimage, schar16, gfxstyle, gfxstdimg,
-  popupwindow, gfxwidget;
+  popupwindow, gfxwidget, messagequeue;
 
 type
   THotKeyDef = string[16];
@@ -38,6 +38,8 @@ type
     function GetAccelChar : string16;
 
     procedure DrawText(canvas : TGfxCanvas; x,y : TGfxCoord);
+
+    property OnClick : TNotifyEvent read Handler write Handler;
   end;
 
   TMenuBar = class;
@@ -59,6 +61,8 @@ type
 
     function VisibleCount : integer;
     function VisibleItem(ind : integer) : TMenuItem;
+
+    //procedure MsgClose(var msg : TMessageRec); message MSG_CLOSE;
 
   public
     OpenerPopup : TPopupMenu;
@@ -85,7 +89,7 @@ type
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
 
     procedure DoSelect;
-    procedure Close; virtual;
+    procedure Close; override;
 
     function MenuFocused : boolean;
 
@@ -138,6 +142,9 @@ type
     function MenuFocused : boolean;
 
     function SearchItemByAccel(s : string16) : integer;
+
+    procedure DeActivateMenu;
+    procedure ActivateMenu;
 
   public
 
@@ -566,6 +573,8 @@ begin
 
     VisibleItem(FFocusItem).Click;
   end;
+
+  if OpenerMenuBar <> nil then OpenerMenuBar.DeActivateMenu;
 end;
 
 procedure TPopupMenu.Close;
@@ -585,7 +594,17 @@ begin
 
   FocusedPopupMenu := OpenerPopup;
   if (FocusedPopupMenu <> nil) and FocusedPopupMenu.Windowed then FocusedPopupMenu.Repaint;
-  if (OpenerMenuBar <> nil) and OpenerMenuBar.Windowed then OpenerMenuBar.Repaint; 
+
+  if (OpenerMenuBar <> nil) and OpenerMenuBar.Windowed then
+  begin
+    if (OpenerPopup = nil) or not OpenerPopup.Windowed then
+    begin
+      OpenerMenuBar.DeActivateMenu;
+      //OpenerMenuBar.Repaint;
+    end;
+    //else
+    //OpenerMenuBar.Repaint;
+  end;  
 end;
 
 function TPopupMenu.SearchItemByAccel(s: string16): integer;
@@ -732,6 +751,13 @@ begin
   end;
 end;
 
+{
+procedure TPopupMenu.MsgClose(var msg: TMessageRec);
+begin
+  Writeln('popup closed.');
+end;
+}
+
 { TMenuBar }
 
 function TMenuBar.AddMenuItem8(const menuname8: string; HandlerProc: TNotifyEvent): TMenuItem;
@@ -777,7 +803,7 @@ begin
   FItems := TList.Create;
   BeforeShow := nil;
   FFocusItem := 1;
-  FFocusable := true;
+  FFocusable := false
 end;
 
 destructor TMenuBar.Destroy;
@@ -792,10 +818,11 @@ var
 begin
   mi := VisibleItem(FFocusItem);
 
-  CloseSubMenus;
+  CloseSubMenus;  // deactivates menubar!
   
   if mi.SubMenu <> nil then
   begin
+    ActivateMenu;
     // showing the submenu
     mi.SubMenu.ShowAt(self.WinHandle,GetItemPosX(FFocusItem)+2, guistyle.MenuFont.Height+4);
     mi.SubMenu.OpenerPopup := nil;
@@ -810,6 +837,7 @@ begin
   else
   begin
     VisibleItem(FFocusItem).Click;
+    DeActivateMenu;
   end;
 end;
 
@@ -835,6 +863,27 @@ begin
 
     if col = n then
     begin
+{
+      if focus and not MenuFocused then
+      begin
+        canvas.SetColor(clSelection);
+        canvas.SetTextColor(clSelectionText);
+      end
+      else
+      begin
+        if mi.Enabled then
+        begin
+          canvas.SetColor(BackgroundColor);
+          canvas.SetTextColor(clMenuText);
+        end
+        else
+        begin
+          canvas.SetColor(BackgroundColor);
+          canvas.SetTextColor(clMenuDisabled);
+        end;
+      end;
+}
+
       if focus and Focused then
       begin
         if MenuFocused then
@@ -861,6 +910,7 @@ begin
           canvas.SetTextColor(clMenuDisabled);
         end;
       end;
+
       canvas.FillRect(r);
 
       mi.DrawText(canvas,r.left+4,r.top+1);
@@ -1040,6 +1090,8 @@ var
 begin
   inherited HandleMouseDown(x, y, button, shiftstate);
 
+  if not Focused then ActivateMenu;
+
   newf := CalcMouseCol(x);
 
   if NOT VisibleItem(newf).Selectable then Exit;
@@ -1144,6 +1196,16 @@ begin
   if (ind < 1) or (ind > FItems.Count)
     then result := nil
     else result := TMenuItem(FItems.Items[ind-1]);
+end;
+
+procedure TMenuBar.DeActivateMenu;
+begin
+  Parent.ActiveWidget := nil;
+end;
+
+procedure TMenuBar.ActivateMenu;
+begin
+  Parent.ActiveWidget := self;
 end;
 
 end.

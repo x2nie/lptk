@@ -31,7 +31,7 @@ type
     destructor Destroy; override;
 
     procedure ShowAt(wh : TWinHandle; x,y : integer);
-    procedure Close;
+    procedure Close; virtual;
     
     procedure SetDontCloseWidget(awg : TWidget);
 
