@@ -152,7 +152,7 @@ begin
      if AImage <> FImage then
      begin
           FImage := AImage;
-          FImage.CreateMaskFromSample(16,1);
+          FImage.CreateMaskFromSample(0,0);
      end;
 end;
 
