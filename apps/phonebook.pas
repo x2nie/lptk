@@ -69,7 +69,8 @@ type
     procedure EditEntry(id : integer);
     
     procedure GridRowChange(Sender : TObject; row : integer);
-    
+    procedure gridDoubleClick(Sender: TObject; x,y : integer; var button : word; var shiftstate : word);
+
     procedure FilterChange(sender : TObject);
   
   end;
@@ -291,6 +292,7 @@ begin
     AddColumn8('Cat.','CATEGORY',60,alLeft);
     AddColumn8('Phone','PHONE',220,alLeft);
     OnRowChange := {$ifdef FPC}@{$endif}GridRowChange;
+    OnDoubleClick := {$ifdef FPC}@{$endif}gridDoubleClick;
     RowSelect := true;
   end;
 
@@ -469,6 +471,11 @@ procedure TFormMain.GridRowChange(Sender: TObject; row: integer);
 begin
   if grid.RowCount > 0 then txtOther.Text8 := grid.FocusField('OTHER').asString
                        else txtOther.Text8 := '';
+end;
+
+procedure TFormMain.gridDoubleClick(Sender: TObject; x, y: integer; var button: word; var shiftstate: word);
+begin
+  btnEdit.Click;
 end;
 
 procedure TFormMain.FilterChange(sender: TObject);

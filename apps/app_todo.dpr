@@ -47,6 +47,8 @@ type
     procedure FilterChange(sender : TObject);
 
     procedure ReQuery;
+    
+    procedure gridDoubleClick(Sender: TObject; x,y : integer; var button : word; var shiftstate : word);
 
   end;
 
@@ -80,6 +82,7 @@ type
     procedure btnCancelClick(sender : TObject);
 
     procedure btnEditPersonsClick(sender : TObject);
+    
   end;
 
   TfrmEditPersons = class(TGfxForm)
@@ -349,6 +352,7 @@ begin
     AddColumn8('Határid^337','hatarido',70,alLeft);
     RowSelect := true;
     OnRowChange := {$ifdef FPC}@{$endif}gridRowChange;
+    OnDoubleClick := {$ifdef FPC}@{$endif}gridDoubleClick;
   end;
 
   memo := TwgMemo.Create(self);
@@ -490,13 +494,21 @@ begin
     s := s + 'ORDER BY sorszam';
   end;
 
+//  writeln(s);
+
   sq := dbconn.RunQuery(s);
+  
   if sq <> nil then sq.FetchAll;
   grid.SetResultSet(sq,false);
   
   grid.FocusRow := ri;
   grid.FollowFocus;
   grid.RePaint;
+end;
+
+procedure TFormMain.gridDoubleClick(Sender: TObject; x, y: integer; var button: word; var shiftstate: word);
+begin
+  btnEdit.Click;
 end;
 
 { TFormTodoEdit }
@@ -746,6 +758,9 @@ begin
   ReQuery;
 end;
 
+var
+  sq : TSqlResult;
+
 begin
   Writeln('LPTK todo');
 
@@ -790,7 +805,6 @@ begin
   end;
 {
   sq := dbconn.RunQuery('select sorszam, megnev from feladat');
-  
   if sq <> nil then
   begin
     sq.FetchAll;
