@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.3  2004/01/02 19:13:17  aegluke
+// ImageList-Support
+//
 // Revision 1.2  2003/10/30 11:24:41  aegluke
 // pre-read not opened directories
 //
@@ -32,6 +35,7 @@ type
     TwgDirTree = class(TwgTree)
 	private
 	    FActiveDirectory : string;
+            FDirectoryIndex : word;
 	    procedure SetActiveDirectory(aValue : string);
 	protected
 	    function GetAbsoluteDir(aNode : TwgTreeNode) : string;
@@ -42,6 +46,7 @@ type
 	    procedure ReadDirectories(aParentNode : TwgTreeNode);	    
 	    // read's the directory entries of the given dirname in the parent-node.text	    
 	    property ActiveDirectory : string read FActiveDirectory write SetActiveDirectory;
+            property DirectoryIndex : word read FDirectoryIndex write FDirectoryIndex;
     end;
 
 implementation
@@ -83,13 +88,15 @@ var
     Items : TStringList;
     r : TSearchRec;
     i : integer;
+    AItem : TwgTreeNode;
 begin
     Items := TStringList.Create;
     {$IFDEF DEBUG}writeln('ReadDirectories');{$ENDIF}
     if FindFirst(GetAbsoluteDir(aParentNode)+'*',faAnyFile,r)=0 then
     begin
 	repeat
-	    if (faDirectory and r.attr = faDirectory) and (r.name <> '..') and (r.name <> '.') then Items.Append(Str8To16(r.name));
+	    if (faDirectory and r.attr = faDirectory) and (r.name <> '..') and (r.name <> '.') then
+                 Items.Append(Str8To16(r.name));
 	until FindNext(r) <> 0;
     end;
     Items.Sort;
@@ -99,7 +106,10 @@ begin
     
     aParentNode.Clear;
     for i := 0 to Items.Count - 1 do
-	aParentNode.AppendText(Items[i]);
+    begin
+	AItem := aParentNode.AppendText(Items[i]);
+        AItem.ImageIndex := FDirectoryIndex;
+    end;
     Items.Destroy;
 end;
 
