@@ -2,10 +2,11 @@
 
 program app_vfd;
 
+{$APPTYPE GUI}
+{.$APPTYPE CONSOLE}
+
 {$ifdef FPC}
-  {$mode objfpc}{$H+}
-{$else}
-  {$APPTYPE CONSOLE}
+  {$mode delphi}{$H+}
 {$endif}
 
 uses
@@ -46,6 +47,8 @@ uses
 //var
   //vf : TVFDFile;
 begin
+  GfxOpenDisplay('');
+
   writeln('LPTK Visual Form Designer');
 
 //  vf := TVFDFile.Create;
@@ -53,8 +56,6 @@ begin
 //  vf.GetBlocks;
 //  Writeln('Block count: ',vf.BlockCount);
   //Writeln(vf.MergeBlocks);
-
-  GfxOpenDisplay('');
 
   RegisterWidgets;
 

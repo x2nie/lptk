@@ -1,1 +1,1 @@
-dcc32 -U../src;c:/delphi/odbc app_vfd.dpr
+dcc32 -U../src app_vfd.dpr
