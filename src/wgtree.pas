@@ -3,6 +3,10 @@ unit wgtree;
 { 
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
+// $Log$
+// Revision 1.10  2003/10/29 18:01:06  aegluke
+// jump to selected node, expands up to selected node
+//    
     29.10.2003	0.9a	Doubleclick-Handling implemented
     28.10.2003	0.9	TwgTreeNode.Clear added - removes all subnodes - recourse
     20.07.2003	0.8a	bugfix for scrollbar-handling
@@ -136,6 +140,7 @@ type
 	    function MaxNodeWidth : integer;
 	    procedure UpdateScrollbars;
 	    function NodeIsVisible(node : TwgTreeNode) : boolean;
+	    function GetAbsoluteNodeTop(aNode : TwgTreeNode) : integer; // returns the node-top in pixels
 	protected
 	    function StepToRoot(aNode : TwgTreeNode) : integer; 
 	    function NextVisualNode(aNode : TwgTreeNode) : TwgTreeNode;
@@ -166,6 +171,56 @@ implementation
 uses gfxstyle;
 
 { TwgTree }
+
+procedure TwgTree.SetSelection(aValue : TwgTreeNode);
+begin
+    {$IFDEF DEBUG}
+    writeln('SetSelection');
+    {$ENDIF}
+    if aValue <> FSelection then
+    begin
+	FSelection := aValue;
+	if aValue <> nil then
+	begin
+	    aValue := aValue.parent;
+	    while aValue <> nil do	// expandiert rekursiv bis zur rootnode runter
+	    begin
+		aValue.Expand;
+		aValue := aValue.parent;
+	    end;
+	end;
+	if GetAbsoluteNodeTop(Selection)+FFont.Height - FVScrollbar.Position > VisibleHeight then
+	begin
+	    FVScrollbar.Position := GetAbsoluteNodeTop(Selection)+FFont.Height - VisibleHeight;
+	    FYOffset := FVScrollbar.Position;
+	    UpdateScrollBars;
+	end;
+	if GetAbsoluteNodeTop(Selection) - FVScrollbar.Position < 0 then
+	begin
+	    FVScrollbar.Position := GetAbsoluteNodeTop(Selection);
+	    FYOffset := FVScrollbar.Position;
+	    UpdateScrollbars;
+	end;
+	RePaint;
+    end;
+end;
+
+function TwgTree.GetAbsoluteNodeTop(aNode : TwgTreeNode) : integer;
+var
+    i : integer;
+begin
+    {$IFDEF DEBUG}
+    writeln('GetAbsoluteNodeTop');
+    {$ENDIF}
+    i := 0;
+    result := 0;
+    while (aNode <> nil) and (aNode <> RootNode) do
+    begin
+	aNode := PrevVisualNode(aNode);
+	inc(i);
+    end;
+    result := (i - 1) * FFont.Height;
+end;
 
 function TwgTree.NodeIsVisible(node : TwgTreeNode) : boolean;
 begin
@@ -797,10 +852,12 @@ begin
     FHScrollbar.Orientation := orHorizontal;
     FHScrollbar.onScroll := {$IFDEF FPC}@{$ENDIF}FHScrollbarMove;
     FHScrollbar.Visible := false;
+    FHScrollbar.Position := 0;
     FVScrollbar := TwgScrollbar.Create(self);
     FVScrollbar.Orientation := orVertical;
     FVScrollbar.onScroll := {$IFDEF FPC}@{$ENDIF}FVScrollbarMove;
     FVScrollbar.Visible := false;
+    FVScrollbar.Position := 0;
     FBackgroundColor := clListBox;
     FFocusable := true;
     FMoving := false;
@@ -889,17 +946,6 @@ begin
     end;
 end;
 
-procedure TwgTree.SetSelection(aValue : TwgTreeNode);
-begin
-    {$IFDEF DEBUG}
-    writeln('SetSelection');
-    {$ENDIF}
-    if aValue <> FSelection then
-    begin
-	FSelection := aValue;
-	RePaint;
-    end;
-end;
 
 function TwgTree.GetRootNode : TwgTreeNode;
 begin
