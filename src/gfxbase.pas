@@ -493,6 +493,9 @@ var
   xia_targets        : TAtom;
 {$endif}
 
+var
+  GfxImageLibrary : TStringList;   // this is public for listing
+
 function GfxOpenDisplay(DisplayName : string) : boolean;
 procedure GfxCloseDisplay;
 
@@ -530,9 +533,17 @@ function GfxColorToX(col : TGfxColor) : longword;
 
 procedure GfxHideConsoleWindow;
 
+
+function GfxLibAddImage(const imgid : string; img : TGfxImage) : boolean;
+function GfxLibDeleteImage(const imgid : string; freeimg : boolean) : boolean;
+function GfxLibGetImage(const imgid : string) : TGfxImage;
+
+function GfxLibAddBMP(const imgid : string; bmpdata : pointer; bmpsize : integer) : TGfxImage;
+function GfxLibAddMaskedBMP(const imgid : string; bmpdata : pointer; bmpsize : integer; mcx, mcy : integer) : TGfxImage;
+
 implementation
 
-uses unitkeys, gfxstyle, gfxwidget, gfxform, gfxclipboard, popupwindow;
+uses unitkeys, gfxstyle, gfxwidget, gfxform, gfxclipboard, popupwindow, gfxstdimg, gfxbmpimage;
 
 {$ifdef Win32}{$else}
 type
@@ -1174,6 +1185,14 @@ end;
 
 {$else}{$endif}
 
+procedure GfxInternalInit;
+begin
+  GfxImageLibrary := TStringList.Create;
+  InitClipboard;
+
+  GfxCreateStandardImages;
+end;
+
 function GfxOpenDisplay(DisplayName : string) : boolean;
 {$ifdef Win32}
 var
@@ -1228,7 +1247,7 @@ begin
 
   hcr_CROSSHAIR := LoadCursor(0, IDC_CROSS);
 
-  InitClipboard;
+  GfxInternalInit;
 
   if pos('-HIDECONSOLE',UpperCase(CmdLine)) > 0 then GfxHideConsoleWindow;
 
@@ -1287,7 +1306,7 @@ begin
   if InputContext = nil then Exit;
   //XGetICValues(ic, [XNFilterEvents, @lw, nil]);
 
-  InitClipboard;
+  GfxInternalInit;
 
   result := True;
 end;
@@ -2805,6 +2824,64 @@ begin
 end;
 
 {$endif}
+
+function GfxLibGetImage(const imgid : string) : TGfxImage;
+var
+  i : integer;
+begin
+  i := GfxImageLibrary.IndexOf(UpperCase(imgid));
+  if i >= 0 then result := TGfxImage(GfxImageLibrary.Objects[i])
+            else result := nil;
+end;
+
+function GfxLibAddBMP(const imgid : string; bmpdata : pointer; bmpsize : integer) : TGfxImage;
+begin
+  result := CreateBMPImage(bmpdata, bmpsize);
+  if result <> nil then GfxLibAddImage(imgid, result);
+end;
+
+function GfxLibAddMaskedBMP(const imgid : string; bmpdata : pointer; bmpsize : integer;
+           mcx, mcy : integer) : TGfxImage;
+begin
+  result := GfxLibAddBMP(imgid, bmpdata, bmpsize);
+  if result <> nil then result.CreateMaskFromSample(mcx, mcy);
+end;
+
+function GfxLibAddImage(const imgid : string; img : TGfxImage) : boolean;
+var
+  i : integer;
+begin
+  i := GfxImageLibrary.IndexOf(UpperCase(imgid));
+  if i >= 0 then
+  begin
+    GfxImageLibrary.Strings[i] := UpperCase(imgid);
+    GfxImageLibrary.Objects[i] := img;
+    result := false;
+  end
+  else
+  begin
+    GfxImageLibrary.AddObject(UpperCase(imgid), img);
+    result := true;
+  end;
+end;
+
+function GfxLibDeleteImage(const imgid : string; freeimg : boolean) : boolean;
+var
+  i : integer;
+  img : TGfxImage;
+begin
+  i := GfxImageLibrary.IndexOf(UpperCase(imgid));
+  if i >= 0 then
+  begin
+    if freeimg then TGfxImage(GfxImageLibrary.Objects[i]).Free;
+    GfxImageLibrary.Delete(i);
+    result := true;
+  end
+  else
+  begin
+    result := false;
+  end;
+end;
 
 initialization
 begin
