@@ -236,6 +236,7 @@ begin
   PopupListRemove(self);
 {$ifdef Win32}
   ReleaseCapture;
+  if GfxFirstPopup <> nil then SetCapture(GfxFirstPopup.wg.WinHandle);
 {$else}
   if GfxFirstPopup = nil then XUngrabPointer(display, 0);
 {$endif}
@@ -247,7 +248,7 @@ begin
   //Writeln('mouse x=',x,' y=',y);
 end;
 
-initialization
+initialization      
 begin
   GfxFirstPopup := nil;
   GfxLastPopup := nil;

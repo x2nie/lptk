@@ -449,6 +449,8 @@ type
   public
   
     property Font : TGfxFont read FCurFont write SetFont;
+    property TextColor : TGfxColor read FColorText;
+    property Color : TGfxColor read FColor;
   end;
 
 var
@@ -833,6 +835,15 @@ begin
   result := ((c and $FF0000) shr 16) or ((c and $0000FF) shl 16) or (c and $00FF00);
 end;
 
+function GetMyWidgetFromHandle(wh : TWinHandle) : TWidget;
+begin
+  if (wh <> 0) and (MainInstance = LongWord(GetWindowLong(wh, GWL_HINSTANCE))) then
+  begin
+    result := TWidget(Windows.GetWindowLong(wh, GWL_USERDATA));
+  end
+  else result := nil;
+end;
+
 procedure SendMouseMessage(wg : TWidget; msg : UINT; button : integer; wParam : WPARAM; lParam : LPARAM);
 var
   p3 : integer;
@@ -855,6 +866,8 @@ begin
 
   if (PopupListFirst <> nil) then
   begin
+    if wg = nil then Writeln('wg is NIL !!!');
+    
     pt.x := x;
     pt.y := y;
 
@@ -863,14 +876,9 @@ begin
     //Writeln('click x=',pt.X,' y=',pt.y);
 
     h := WindowFromPoint(pt);
+    wwg := GetMyWidgetFromHandle(h);
 
-    if (h <> 0) and (MainInstance = LongWord(GetWindowLong(h, GWL_HINSTANCE))) then
-    begin
-      wwg := TWidget(Windows.GetWindowLong(h, GWL_USERDATA));
-    end
-    else wwg := nil;
-
-    //if wwg <> nil then writeln('widget ok.');
+    // if wwg <> nil then writeln('widget ok.');
 
     pwg := wwg;
     while (pwg <> nil) and (pwg.Parent <> nil) do pwg := pwg.Parent;
@@ -1060,20 +1068,22 @@ begin
 
       // OK! Windoze doesn't provide MOUSEENTER and MOUSEEXIT messages, so we
       // have to generate implicitly 'couse we need it for buttons
+
       GetCursorPos(PT);
       h := WindowFromPoint(PT);
       if h <> FFocusedWindow then
       begin
         if FFocusedWindow > 0 then
         begin
-           wg := TWidget(Windows.GetWindowLong(FFocusedWindow, GWL_USERDATA));
-           SendMouseMessage(wg, MSG_MOUSEEXIT, 0, 0, 0);
+           wg := GetMyWidgetFromHandle(FFocusedWindow);
+           if wg <> nil then SendMouseMessage(wg, MSG_MOUSEEXIT, 0, 0, 0);
         end;
-        if Windows.GetWindowLong(h, GWL_WNDPROC) = integer(@GfxWindowProc) then
+
+        wg := GetMyWidgetFromHandle(h);
+        if wg <> nil then
         begin
           FFocusedWindow := h;
-          wg := TWidget(Windows.GetWindowLong(FFocusedWindow, GWL_USERDATA));
-	  SendMouseMessage(wg, MSG_MOUSEENTER, 0, 0, 0);
+          SendMouseMessage(wg, MSG_MOUSEENTER, 0, 0, 0);
         end
         else
         begin
