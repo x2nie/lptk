@@ -32,6 +32,9 @@ type
 
     FPrevRow, FPrevCol : integer;
 
+    function GetColumnWidth(col : integer) : TGfxCoord; virtual;
+    procedure SetColumnWidth(col : integer; cwidth : TgfxCoord); virtual;
+
   public
     FRowHeight : TGfxCoord;
     FHeaderHeight : TGfxCoord;
@@ -60,11 +63,10 @@ type
     property HeaderFont : TGfxFont read FHeaderFont;
     property Font : TGfxFont read FFont;
 
+    property ColumnWidth[aCol : integer] : TgfxCoord read GetColumnWidth write SetColumnWidth;
+
     function ColumnCount : integer; virtual;
     function RowCount : integer; virtual;
-
-    function ColumnWidth(col : integer) : TGfxCoord; virtual;
-    procedure ResizeCol(col, cwidth : integer); virtual;
 
     procedure FollowFocus;
 
@@ -126,12 +128,12 @@ begin
   result := 24;
 end;
 
-function TwgGrid.ColumnWidth(col: integer): TGfxCoord;
+function TwgGrid.GetColumnWidth(col: integer): TGfxCoord;
 begin
   if col = 2 then result := FTemp else result := 60+(col*16);
 end;
 
-procedure TwgGrid.ResizeCol(col, cwidth: integer);
+procedure TwgGrid.SetColumnWidth(col : integer; cwidth: TgfxCoord);
 begin
   if (col = 2) and (cwidth <> FTemp) then
   begin
@@ -175,7 +177,7 @@ begin
     w := 0;
     for n := FFocusCol downto FFirstCol do
     begin
-      w := w + ColumnWidth(n)+1;
+      w := w + ColumnWidth[n]+1;
       if w > VisibleWidth then
       begin
         if n = FFocusCol then FFirstCol := n else FFirstCol := n+1;
@@ -297,7 +299,7 @@ begin
     Canvas.SetFont(FHeaderFont);
     for col := FFirstCol to ColumnCount do
     begin
-      r.width := ColumnWidth(col);
+      r.width := ColumnWidth[col];
 
       canvas.SetClipRect(clr);
 
@@ -333,7 +335,7 @@ begin
       r.Left := FMargin;
       for col := FFirstCol to ColumnCount do
       begin
-        r.width := ColumnWidth(col);
+        r.width := ColumnWidth[col];
 
         canvas.SetClipRect(clr);
 
@@ -480,8 +482,8 @@ begin
                FFocusCol := FFirstCol;
                while FFocusCol < ColumnCount do
                begin
-                 inc(w, ColumnWidth(FFocusCol)+1);
-                 if w + ColumnWidth(FFocusCol+1)+1 > VisibleWidth then Break;
+                 inc(w, ColumnWidth[FFocusCol]+1);
+                 if w + ColumnWidth[FFocusCol+1]+1 > VisibleWidth then Break;
                  inc(FFocusCol);
                end;
              end;
@@ -599,7 +601,7 @@ begin
     cw := 0;
     for n:=FFirstCol to ColumnCount do
     begin
-      inc(cw, ColumnWidth(n)+1);
+      inc(cw, ColumnWidth[n]+1);
       if (FMargin+cw - 4 <= x) and (x <= FMargin+cw + 4) then
       begin
         Writeln('column resize...');
@@ -616,7 +618,7 @@ begin
         FColResizing := true;
         FResizedCol := n;
         FDragPos := x;
-        ResizeCol(FResizedCol, ColumnWidth(FResizedCol) - (cw+FMargin-x) );
+        SetColumnWidth(FResizedCol, ColumnWidth[FResizedCol] - (cw+FMargin-x) );
 
         break;
 
@@ -634,7 +636,7 @@ begin
     cw := 0;
     for n:=FFirstCol to ColumnCount do
     begin
-      inc(cw, ColumnWidth(n)+1);
+      inc(cw, ColumnWidth[n]+1);
       if FMargin+cw >= x then
       begin
         FFocusCol := n;
@@ -662,7 +664,7 @@ begin
   inherited HandleMouseUp(x, y, button, shiftstate);
 
 //design functionality:
-  if FColResizing then Writeln('Column ',FResizedCol,' width = ',ColumnWidth(FResizedCol));
+  if FColResizing then Writeln('Column ',FResizedCol,' width = ',ColumnWidth[FResizedCol]);
 
   FColResizing := False;
   MouseCursor := CUR_DEFAULT;
@@ -682,7 +684,7 @@ begin
     if (btnstate and 1) = 0 then FColResizing := false
     else
     begin
-      ResizeCol(FResizedCol, ColumnWidth(FResizedCol)+x-FDragPos);
+      SetColumnWidth(FResizedCol, ColumnWidth[FResizedCol]+x-FDragPos);
       FDragPos := x;
     end;
   end
@@ -696,7 +698,7 @@ begin
       cw := 0;
       for n:=FFirstCol to ColumnCount do
       begin
-        inc(cw, ColumnWidth(n)+1);
+        inc(cw, ColumnWidth[n]+1);
         if ((FMargin+cw - 4 <= x) and (x <= FMargin+cw + 4)) or
            (cw > FMargin + VisibleWidth) and (x >= FMargin + VisibleWidth-4)   then
         begin
