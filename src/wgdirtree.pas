@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.9  2004/01/24 18:35:51  aegluke
+// wgfiledialog-changes
+//
 // Revision 1.8  2004/01/19 18:19:35  aegluke
 // TwgDirTreePopup added
 //
@@ -65,7 +68,7 @@ type
 	    procedure ReadDirectories(aParentNode : TwgTreeNode);	    
 	    // read's the directory entries of the given dirname in the parent-node.text	    
 	    property ActiveDirectory : string read FActiveDirectory write SetActiveDirectory;
-            property DirectoryIndex : word read FDirectoryIndex write FDirectoryIndex;
+            property DirectoryIndex : word read FDirectoryIndex write SetDirectoryIndex;
     end;
 
     TwgDirTreePopupTree = class(TwgDirTree)
@@ -406,19 +409,20 @@ begin
      ANode := RootNode;
      ANode.ImageIndex := AValue;
      ANode := RootNode.FirstSubNode;
+     FDirectoryIndex := AValue;
      while ANode <> nil do
      begin
           if (ANode.count > 0) then
           begin
              ANode := ANode.FirstSubNode;
-             ANode.ImageIndex := DirectoryIndex;
+             ANode.ImageIndex := AValue;
           end
           else
           begin
                if ANode.next <> nil then
                begin
                   ANode := ANode.next;
-                  ANode.ImageIndex := DirectoryIndex;
+                  ANode.ImageIndex := AValue;
                end
                else
                begin
@@ -431,7 +435,7 @@ begin
                          end;
                     end;
                     ANode := ANode.next;
-                    ANode.ImageIndex := DirectoryIndex;
+                    ANode.ImageIndex := AValue;
                end;
           end;
      end;

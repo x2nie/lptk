@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.11  2004/01/24 18:35:51  aegluke
+// wgfiledialog-changes
+//
 // Revision 1.10  2004/01/23 12:29:11  aegluke
 // LocateFile added
 //
@@ -89,6 +92,7 @@ type
     FFileColor : TgfxColor;
     FImageList : TgfxImageList;
     FShowImages : Boolean;
+    FSort : Boolean;
   protected
 
     procedure ReadDirectory;
@@ -112,6 +116,8 @@ type
     procedure SetImageList(AValue : TgfxImageList);
     procedure SetShowImages(AValue : Boolean);
     procedure DoImageIndex(AFileData : TwgFileData; var AImageIndex : integer);
+    procedure SetSort(AValue : Boolean);
+    procedure OrderFiles;
     {$IFDEF win32}
     procedure ReadDriveNames;
     {$endif}
@@ -120,14 +126,18 @@ type
     procedure DoShow; override;
     procedure DrawCell(aRow, aCol: integer; aRect: TGfxRect; aFlags: integer); override;
     procedure LocateFile(AFileName : String);
+    
+    constructor Create(aOwner: TComponent); override;
+    destructor Destroy; override;
+    
     property Directory: string read FDirectory write SetDirectory;
     property Options: TfgOptions read FOptions write SetOptions;
     property DirectoryColor : TgfxColor read FDirectoryColor write SetDirectoryColor;
     property FileColor : TgfxColor read FFileColor write SetFileColor;
-    constructor Create(aOwner: TComponent); override;
     property FileName : String read GetFileName write SetFileName;
     property ImageList : TgfxImageList read FImageList write SetImageList;
     property ShowImages : boolean read FShowImages write SetShowImages;
+    property Sort : Boolean read FSort write SetSort;
   public
     onDirectoryChange : TwgFileGridChange;
     onFileChose : TwgFileGridChange;
@@ -146,13 +156,89 @@ const
   DirSeparator = '/';
 {$ENDIF}
 
+procedure TwgFileGrid.OrderFiles;
+var
+   ADirIndex : Integer;
+   ACounter : Integer;
+   AChanged : Boolean;
+   ATmp : Pointer;
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgFileGrid.OrderFiles');
+     {$ENDIF}
+     AChanged := True;
+     ADirIndex := 0;
+     if fgDirectoriesFirst in Options then
+     begin
+          for ACounter := 0 to FFiles.Count - 1 do
+              if TwgFileData(FFiles[ACounter]).FileType = ftDirectory then
+                 ADirIndex := ACounter;
+          while AChanged do
+          begin
+               AChanged := False;
+               for ACounter := 1 to ADirIndex do
+               begin
+                    if CompareText(TwgFileData(FFiles[ACounter-1]).FileName,TwgFileData(FFiles[ACounter]).FileName) > 0 then
+                    begin
+                         ATmp := FFiles[ACounter];
+                         FFiles[ACounter] := FFiles[ACounter-1];
+                         FFiles[ACounter-1] := ATmp;
+                         AChanged := True;
+                    end;
+               end;
+          end;
+          ADirIndex := ADirIndex + 2;
+     end;
+     AChanged := True;
+     while AChanged do
+     begin
+       AChanged := False;
+       for ACounter := ADirIndex to FFiles.Count - 1 do
+       begin
+          if CompareText(TwgFileData(FFiles[ACounter-1]).FileName,TwgFileData(FFiles[ACounter]).FileName) > 0 then
+          begin
+               ATmp := FFiles[ACounter];
+               FFiles[ACounter] := FFiles[ACounter-1];
+               FFiles[ACounter-1] := ATmp;
+               AChanged := True;
+          end;
+       end;
+     end;
+end;
+
+procedure TwgFileGrid.SetSort(AValue : Boolean);
+begin
+     if AValue <> FSort then
+     begin
+          FSort := AValue;
+          ReadDirectory;
+     end;
+end;
+
+destructor TwgFileGrid.Destroy;
+var
+   ACounter : Integer;
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgFileGrid.Destroy');
+     {$ENDIF}
+     for ACounter := 0 to FFiles.Count - 1 do
+     begin
+          TwgFileData(FFiles[ACounter]).Free;
+     end;
+     inherited Destroy;
+end;
+
 procedure TwgFileGrid.LocateFile(AFileName : String);
 var
-   i : Integer;
+   AValue : Integer;
 begin
-     for i := 0 to FFiles.Count - 1 do
+     {$IFDEF DEBUG}
+     writeln('TwgFileGrid.LocateFile');
+     {$ENDIF}
+     for AValue := 0 to FFiles.Count - 1 do
      begin
-          if TwgFileData(FFiles[i]).FileName = AFileName then
+          if TwgFileData(FFiles[AValue]).FileName = AFileName then
           begin
                FileName := AFileName;
                Break;
@@ -609,6 +695,7 @@ begin
   inherited Create(aOwner);
   FFiles := TList.Create;
   ColumnCount := 1;
+  FSort := False;
   FOptions := [fgDetail, fgDirectoriesFirst];
   FFileColor := clUnset;
   FShowImages := false;
@@ -725,7 +812,6 @@ begin
   Container.FileSize := 0;
   Container.FileDate := Now;
   Container.FileType := ftDirectory;
-  FFiles.Add(Container);
   if fgDirectoriesFirst in Options then
   begin
        if fgDirectories in Options then
@@ -736,7 +822,9 @@ begin
   else
   begin
     if (fgDirectories in Options) and (fgFiles in Options) then
-       ReadAll
+    begin
+       ReadAll;
+    end
     else
     begin
         if fgDirectories in Options then
@@ -745,6 +833,8 @@ begin
            ReadFiles;
     end;
   end;
+  OrderFiles;
+  FFiles.Insert(0,Container);
   RecalcGrid;
 end;
 
