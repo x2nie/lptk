@@ -346,8 +346,9 @@ type
   TGfxFont = class
   private
     FFontRes : TGfxFontResource;
+    FName : string;
   public
-    constructor Create(afont : TGfxFontResource);
+    constructor Create(afont : TGfxFontResource; AllocName : string);
     destructor Destroy; override;
 
     function Handle : TFontHandle;
@@ -358,7 +359,9 @@ type
     function Descent : integer;
     function Height  : integer;
 
-    function FontDesc : string;
+    function FontDescx : string;
+    
+    property FontName : string read FName;
   end;
 
   TGfxImage = class
@@ -552,7 +555,7 @@ var
 
 var
   GfxImageLibrary : TStringList;   // this is public for listing
-
+  
 function GfxOpenDisplay(DisplayName : string) : boolean;
 procedure GfxCloseDisplay;
 
@@ -1291,8 +1294,6 @@ begin
   end;
   Windows.RegisterClass( {$ifdef FPC}@{$endif} WidgetClass);
 
-  //DefaultFont := GfxGetFont('Arial-10');
-
   hcr_default := Windows.LoadCursor(0, IDC_ARROW);
   hcr_dir_ew  := Windows.LoadCursor(0, IDC_SIZEWE);
   hcr_dir_ns  := LoadCursor(0, IDC_SIZENS);
@@ -1308,6 +1309,8 @@ begin
   GfxInternalInit;
 
   if pos('-HIDECONSOLE',UpperCase(CmdLine)) > 0 then GfxHideConsoleWindow;
+  
+  DefaultFont := GfxGetFont(DefaultFontDesc);
 
   result := true;
 end;
@@ -1417,25 +1420,31 @@ var
   count, remaining : longword;
   data : PChar;
 begin
-  //Writeln('selection notify');
+  //Writeln('selection notify: ', ev.xselection.requestor, ',', ev.xselection._property);
 
-  XGetWindowProperty(display, ev.xselection.requestor, ev.xselection._property,
-		      0, 16000,
-                      false, // delete
-                      0, // type
-                      @actual, @format, @count, @remaining,
-                      @data);
-  s := data;
+  if ev.xselection._property > 0 then
+  begin
+    XGetWindowProperty(display, ev.xselection.requestor, ev.xselection._property,
+  		      0, 16000,
+                        false, // delete
+                        0, // type
+                        @actual, @format, @count, @remaining,
+                        @data);
+    s := data;
 
-//  Writeln('actual=',actual,' format=',format,' count=',count,' remaining=',remaining);
-//  Writeln('data="',s,'"');
+  //  Writeln('actual=',actual,' format=',format,' count=',count,' remaining=',remaining);
+  //  Writeln('data="',s,'"');
 
-  ClipBoardData := s;
+    ClipBoardData := s;
 
-  XFree(data);
+    XFree(data);
+  end
+  else
+  begin
+    ClipBoardData := '';
+  end;
 
   WaitingForSelection := false;
-
 end;
 
 procedure ProcessSelectionRequest(var ev : TXEvent);
@@ -1952,30 +1961,34 @@ var
   fnt : TGfxFontData;
   fr : TGfxFontResource;
   n : integer;
+  fdesc : string;
 begin
+  fdesc := desc;
+  if copy(fdesc,1,1)='#' then fdesc := guistyle.GetNamedFontDesc(copy(desc,2,length(desc)));
+  
   for n := 0 to FFontResourceList.Count-1 do
   begin
-    if TGfxFontResource(FFontResourceList[n]).FontDesc = desc then
+    if TGfxFontResource(FFontResourceList[n]).FontDesc = fdesc then
     begin
       fr := TGfxFontResource(FFontResourceList[n]);
       inc(fr.FRefCount);
       //Writeln(fr.FRefCount,': ',fr.FontDesc);
-      result := TGfxFont.Create(fr);
+      result := TGfxFont.Create(fr, desc);
       Exit;
     end;
   end;
 
 {$ifdef Win32}
-  fnt := WinOpenFont(desc);
+  fnt := WinOpenFont(fdesc);
 {$else}
-  fnt := XftFontOpenName(display, GfxDefaultScreen, PChar(desc) );
+  fnt := XftFontOpenName(display, GfxDefaultScreen, PChar(fdesc) );
 {$endif}
 
   if {$ifdef Win32}fnt <> 0{$else}fnt <> nil{$endif} then
   begin
-    fr := TGfxFontResource.Create(fnt, desc);
+    fr := TGfxFontResource.Create(fnt, fdesc);
     FFontResourceList.Add(fr);
-    Result := TGfxFont.Create(fr);
+    Result := TGfxFont.Create(fr, desc);
   end
   else
   begin
@@ -2171,29 +2184,32 @@ end;
 {$ENDIF}
 
 procedure TgfxCanvas.MoveResizeWindow(x,y,w,h : TGfxCoord);
-{$ifdef Win32}
 var
   rwidth, rheight : integer;
+{$ifdef Win32}
   ws,es : integer;
   r : TRect;
 {$endif}
 begin
   if FWin <= 0 then Exit;
 
+  rwidth := w;
+  rheight := h;
+  
+  if rwidth < 1 then rwidth := 1;
+  if rheight < 1 then rheight := 1;
+  
 {$ifdef Win32}
   // windows decoration correction on stupid windows...
   ws := GetWindowLong(FWin, GWL_STYLE);
   es := GetWindowLong(FWin, GWL_EXSTYLE);
 
-  rwidth := w;
-  rheight := h;
-
   if (ws and WS_CHILD) = 0 then
   begin
     r.Left := x;
     r.Top  := y;
-    r.Right := x + w;
-    r.Bottom := y + h;
+    r.Right := x + rwidth;
+    r.Bottom := y + rheight;
     AdjustWindowRectEx(r, ws, false, es);
     rwidth := r.Right - r.Left;
     rheight := r.Bottom - r.Top;
@@ -2211,7 +2227,7 @@ begin
   if FBufferWin > 0 then
      XdbeDeallocateBackBufferName(Display, FBufferWin);
   {$ENDIF}
-  XMoveResizeWindow(display, FWin, x,y,w,h);
+  XMoveResizeWindow(display, FWin, x,y,rwidth,rheight);
   {$IFDEF BUFFERING}
   FBufferWin := XdbeAllocateBackBufferName(Display, FWin,nil);
   {$ENDIF}
@@ -2894,9 +2910,10 @@ end;
 
 { TGfxFont }
 
-constructor TGfxFont.Create(afont : TGfxFontResource);
+constructor TGfxFont.Create(afont : TGfxFontResource; AllocName : string);
 begin
   FFontRes := afont;
+  FName := AllocName;
 end;
 
 destructor TGfxFont.Destroy;
@@ -2978,7 +2995,7 @@ begin
 {$endif}
 end;
 
-function TGfxFont.FontDesc: string;
+function TGfxFont.FontDescx: string;
 begin
   result := FFontRes.FontDesc;
 end;
