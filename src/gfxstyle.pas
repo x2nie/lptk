@@ -13,12 +13,15 @@ interface
 
 uses
   Classes, SysUtils, gfxbase;
-  
+
+const
+  UserNamedColorStart = 128;
+
 // named colors
 const
   clWindowBackground     = $80000001;
   clBoxColor             = $80000002;
-  
+
   clButtonFace           = $80000003;
 
   clShadow1              = $80000004;
@@ -43,30 +46,24 @@ const
 
   clGridLines            = $80000012;
   clGridHeader           = $80000013;
-  
+
   clWidgetFrame          = $80000014;
   clInactiveWgFrame      = $80000015;
-  
+
   clTextCursor           = $80000016;
 
   clChoiceListBox        = $80000017;
-  
+
   clUnset		 = $80000018;
-  
+
   clMenuText             = $80000019;
   clMenuDisabled         = $8000001A;
-  
-  LastColorIndex         = $0000001A;
 
 type
-{$ifdef Win32}{$else}
-  TColorCacheRec = record
-    rgb : dword;
-    xcolor : dword;
-  end;
-{$endif}
 
   TGfxStyle = class
+  private
+    FNamedColors : array[0..255] of longword;
   public
     LabelFont1,
     LabelFont2,
@@ -77,7 +74,7 @@ type
 
     GridFont,
     GridHeaderFont   : TGfxFont;
-    
+
     MenuFont,
     MenuAccelFont,
     MenuDisabledFont : TGfxFont;
@@ -89,13 +86,9 @@ type
 
     function GetNamedColorRGB(col : TGfxColor) : TGfxColor;
 
-{$ifdef Win32}{$else}
-    public
-      NamedColors : array[1..LastColorIndex] of TColorCacheRec;
+  public
 
-      function GetNamedXColor(col : TGfxColor) : dword;
-      procedure AllocateNamedColors;
-{$endif}
+    procedure SetNamedColor(colorid, rgbvalue : longword);
 
   end;
 
@@ -103,7 +96,7 @@ function guistyle : TGfxStyle;
 
 procedure DrawButtonFace(canvas : TGfxCanvas; x,y,w,h : TGfxCoord);
 procedure DrawDirectionArrow(canvas : TGfxCanvas; x,y,w,h : TGfxCoord; direction : integer);
-  
+
 implementation
 
 {$ifdef Win32}{$else}
@@ -138,91 +131,51 @@ begin
   MenuAccelFont := GfxGetFont('arial-10:bold');
   MenuDisabledFont := GfxGetFont('arial-10:italic');
 
-{$ifdef Win32}{$else}
-  AllocateNamedColors;
-{$endif}
+
+  SetNamedColor( clWindowBackground,    $C0C0C0);
+  SetNamedColor( clBoxColor,            $FFFFFF);
+
+  SetNamedColor( clShadow1,             $808080);
+  SetNamedColor( clShadow2,             $202020);
+  SetNamedColor( clHilite1,             $E0E0E0);
+  SetNamedColor( clHilite2,             $FFFFFF);
+
+  SetNamedColor( clText1,               $000000);
+  SetNamedColor( clText2,               $000040);
+  SetNamedColor( clText3,               $800000);
+  SetNamedColor( clText4,               $404000);
+
+  SetNamedColor( clSelection,           $000080);
+  SetNamedColor( clSelectionText,       $FFFFFF);
+
+  SetNamedColor( clInactiveSel,         $D0D0FF);
+  SetNamedColor( clInactiveSelText,     $000000);
+
+  SetNamedColor( clScrollBar,           $D0D0D0);
+  SetNamedColor( clButtonFace,          $C0C0C0);
+
+  SetNamedColor( clListBox,             $FFFFFF);
+
+  SetNamedColor( clGridLines,           $A0A0A0);
+  SetNamedColor( clGridHeader,          $E0E0E0);
+
+  SetNamedColor( clWidgetFrame,         $000000);
+  SetNamedColor( clInactiveWgFrame,     $A0A0A0);
+
+  SetNamedColor( clTextCursor,          $000000);
+
+  SetNamedColor( clChoiceListBox,       $E8E8E8);
+
+  SetNamedColor( clUnset,               $D0D0FF);
+
+  SetNamedColor( clMenuText,            $000000);
+  SetNamedColor( clMenuDisabled,        $909090);
 end;
 
 function TGfxStyle.GetNamedColorRGB(col : TGfxColor) : TGfxColor;
 begin
-  case col of
-//                                    $rrggbb
-    clWindowBackground:     result := $C0C0C0;
-    clBoxColor:             result := $FFFFFF;
-
-    clShadow1:              result := $808080;
-    clShadow2:              result := $202020;
-    clHilite1:              result := $E0E0E0;
-    clHilite2:              result := $FFFFFF;
-
-    clText1:                result := $000000;
-    clText2:                result := $000040;
-    clText3:                result := $800000;
-    clText4:                result := $404000;
-
-    clSelection:            result := $000080;
-    clSelectionText:        result := $FFFFFF;
-
-    clInactiveSel:          result := $D0D0FF;
-    clInactiveSelText:      result := $000000;
-
-    clScrollBar:            result := $D0D0D0;
-    clButtonFace:           result := $C0C0C0;
-
-    clListBox:              result := $FFFFFF;
-
-    clGridLines:            result := $A0A0A0;
-    clGridHeader:           result := $E0E0E0;
-
-    clWidgetFrame:          result := $000000;
-    clInactiveWgFrame:      result := $A0A0A0;
-    
-    clTextCursor:           result := $000000;
-
-    clChoiceListBox:        result := $E8E8E8;
-    
-    clUnset:		    result := $D0D0FF;
-    
-    clMenuText:             result := $000000;
-    clMenuDisabled:         result := $909090;
-
-  else
-    result := 0;
-  end;
+  result := FNamedColors[col and $FF];
 end;
-
-{$ifdef Win32}{$else}
-procedure TGfxStyle.AllocateNamedColors;
-var
-  n : integer;
-  xc : TXColor;
-  c : dword;
-begin
-  for n:=1 to LastColorIndex do
-  begin
-    c := GetNamedColorRGB(longword($80000000) + longword(n));
-    NamedColors[n].rgb := c;
-    xc.blue  := (c and $000000FF) shl 8;
-    xc.green := (c and $0000FF00);
-    xc.red   := (c and $00FF0000) shr 8;
-
-    XAllocColor(display, GfxDefaultColorMap, @xc);
-    NamedColors[n].xcolor := xc.pixel;
-  end;
-end;
-
-function TGfxStyle.GetNamedXColor(col: TGfxColor): dword;
-var
-  c : dword;
-begin
-  c := col and $FFFF;
-  if (c >= 1) and (c <= LastColorIndex) then
-  begin
-    result := NamedColors[c].xcolor;
-  end
-  else result := 0;
-end;
-{$endif}
 
 destructor TGfxStyle.Destroy;
 begin
@@ -307,6 +260,17 @@ begin
     canvas.FillTriangle(peekx, peeky, basex, peeky-side, basex, peeky+side );
   end;
 
+end;
+
+procedure TGfxStyle.SetNamedColor(colorid, rgbvalue: longword);
+var
+  i : longword;
+begin
+  if (colorid and $80000000) = 0 then Exit;
+
+  i := colorid and $FF;
+
+  FNamedColors[i] := rgbvalue;
 end;
 
 initialization

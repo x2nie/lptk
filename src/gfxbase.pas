@@ -321,14 +321,32 @@ const
 
 type
 
-  TGfxFont = class
+  TGfxFontResource = class
   private
     FFont : TGfxFontData;
+    FRefCount : integer;
+    FFontDesc : string;
 {$ifdef Win32}
     FMetrics : Windows.TEXTMETRIC;
 {$else}{$endif}
   public
-    constructor Create(afont : TGfxFontData);
+    constructor Create(afont : TGfxFontData; FontDesc : string);
+    destructor Destroy; override;
+
+    function Handle : TFontHandle;
+
+    property FontDesc : string read FFontDesc;
+
+{$ifdef Win32}
+    property Metrics : Windows.TEXTMETRIC read FMetrics;
+{$else}{$endif}
+  end;
+
+  TGfxFont = class
+  private
+    FFontRes : TGfxFontResource;
+  public
+    constructor Create(afont : TGfxFontResource);
     destructor Destroy; override;
 
     function Handle : TFontHandle;
@@ -337,7 +355,9 @@ type
 
     function Ascent  : integer;
     function Descent : integer;
-    Function Height  : integer;
+    function Height  : integer;
+
+    function FontDesc : string;
   end;
 
   TGfxImage = class
@@ -434,7 +454,7 @@ type
      FClipRegion   : TRegion;
 {$endif}
   protected
-           procedure SetDrawOnBuffer(AValue : Boolean);
+    procedure SetDrawOnBuffer(AValue : Boolean);
   public
     {$IFDEF win32}
     procedure _ReCreateBuffer(AWidth, AHeight : Integer);
@@ -578,6 +598,9 @@ function GfxLibAddMaskedBMP(const imgid : string; bmpdata : pointer; bmpsize : i
 implementation
 
 uses unitkeys, gfxstyle, gfxwidget, gfxform, gfxclipboard, popupwindow, gfxstdimg, gfxbmpimage;
+
+var
+  FFontResourceList : TList;
 
 {$ifdef Win32}{$else}
 type
@@ -1220,6 +1243,7 @@ end;
 
 procedure GfxInternalInit;
 begin
+  FFontResourceList := TList.Create;
   GfxImageLibrary := TStringList.Create;
   InitClipboard;
 
@@ -1702,15 +1726,17 @@ begin
   if (col and $80000000) <> 0 then
   begin
     // named color
-    result := guistyle.GetNamedXColor(col);
+    c := guistyle.GetNamedColorRGB(col);
   end
-  else if DisplayDepth >= 24 then
+  else c := col
+
+  if DisplayDepth >= 24 then
   begin
-    result := col;
+    result := c;
   end
   else if DisplayDepth = 16 then
   begin
-    result := ConvertTo565Pixel(col);
+    result := ConvertTo565Pixel(c);
   end
   else
   begin
@@ -1921,22 +1947,39 @@ end;
 function GfxGetFont(desc : string) : TGfxFont;
 var
   fnt : TGfxFontData;
+  fr : TGfxFontResource;
+  n : integer;
 begin
+  for n := 0 to FFontResourceList.Count-1 do
+  begin
+    if TGfxFontResource(FFontResourceList[n]).FontDesc = desc then
+    begin
+      fr := TGfxFontResource(FFontResourceList[n]);
+      inc(fr.FRefCount);
+      //Writeln(fr.FRefCount,': ',fr.FontDesc);
+      result := TGfxFont.Create(fr);
+      Exit;
+    end;
+  end;
+
 {$ifdef Win32}
   fnt := WinOpenFont(desc);
 {$else}
   fnt := XftFontOpenName(display, GfxDefaultScreen, PChar(desc) );
 {$endif}
 
-  if {$ifdef Win32}fnt <> 0{$else}fnt <> nil{$endif}
-                then Result := TGfxFont.Create(fnt)
-                else
-                begin
-                  writeln('error opening font.');
-                  Result := nil;
-                end;
+  if {$ifdef Win32}fnt <> 0{$else}fnt <> nil{$endif} then
+  begin
+    fr := TGfxFontResource.Create(fnt, desc);
+    FFontResourceList.Add(fr);
+    Result := TGfxFont.Create(fr);
+  end
+  else
+  begin
+    writeln('error opening font.');
+    Result := nil;
+  end;
 end;
-
 
 {$ifdef Win32}
 
@@ -2846,30 +2889,38 @@ end;
 
 { TGfxFont }
 
-constructor TGfxFont.Create(afont : TGfxFontData);
+constructor TGfxFont.Create(afont : TGfxFontResource);
 begin
-  FFont := afont;
-{$ifdef Win32}
-  SelectObject(display, afont);
-  GetTextMetrics(display, FMetrics);
-{$else}{$endif}
+  FFontRes := afont;
 end;
 
 destructor TGfxFont.Destroy;
+var
+  n : integer;
 begin
-{$ifdef Win32}
-  Windows.DeleteObject(FFont);
-{$else}
-  XftFontClose(Display, FFont);
-  //XFreeFont(display, FFont);
-{$endif}  
+  if FFontRes.FRefCount > 1 then
+  begin
+    dec(FFontRes.FRefCount);
+  end
+  else
+  begin
+    for n := 0 to FFontResourceList.Count-1 do
+    begin
+      if FFontResourceList[n] = FFontRes then
+      begin
+        FFontRes.Free;
+        FFontResourceList.Delete(n);
+        Exit;
+      end;
+    end;
+  end;
+  
   inherited;
 end;
 
 function TGfxFont.Handle : TFontHandle;
 begin
-//  result := FFont^.Fid;
-  result := FFont;
+  result := FFontRes.Handle;
 end;
 
 function TGfxFont.TextWidth16(txt : string16) : integer;
@@ -2886,11 +2937,11 @@ begin
     exit;
   end;
 {$ifdef Win32}
-  SelectObject(display, Handle);
+  SelectObject(display, FFontRes.Handle);
   GetTextExtentPoint32W( display, @txt[1], length16(txt), ts);
   result := ts.cx;
 {$else}
-  XftTextExtents16(display, FFont, @txt[1], Length16(txt), extents);
+  XftTextExtents16(display, FFontRes.Handle, @txt[1], Length16(txt), extents);
   result := extents.xOff;
 {$endif}
 end;
@@ -2898,28 +2949,33 @@ end;
 function TGfxFont.Ascent : integer;
 begin
 {$ifdef Win32}
-  result := FMetrics.tmAscent;
+  result := FFontRes.Metrics.tmAscent;
 {$else}
-  result := FFont^.ascent;
+  result := FFontRes.Handle^.ascent;
 {$endif}
 end;
 
 function TGfxFont.Descent : integer;
 begin
 {$ifdef Win32}
-  result := FMetrics.tmDescent;
+  result := FFontRes.FMetrics.tmDescent;
 {$else}
-  result := FFont^.Descent;
+  result := FFontRes.Handle^.Descent;
 {$endif}
 end;
 
 function TGfxFont.Height : integer;
 begin
 {$ifdef Win32}
-  result := FMetrics.tmHeight;
+  result := FFontRes.FMetrics.tmHeight;
 {$else}
-  result := FFont^.ascent + FFont^.descent;
+  result := FFontRes.Handle^.height; //ascent + FFontRes.Handle^.descent;
 {$endif}
+end;
+
+function TGfxFont.FontDesc: string;
+begin
+  result := FFontRes.FontDesc;
 end;
 
 { TGfxImage }
@@ -2939,7 +2995,7 @@ begin
 {$ifdef Win32}
   FBMPHandle := 0;
   FMaskHandle := 0;
-{$endif}  
+{$endif}
 end;
 
 destructor TGfxImage.Destroy;
@@ -3405,8 +3461,38 @@ begin
   end;
 end;
 
+{ TGfxFontResource }
+
+constructor TGfxFontResource.Create(afont: TGfxFontData; FontDesc: string);
+begin
+  FFont := afont;
+  FFontDesc := FontDesc;
+  FRefCount := 1;
+{$ifdef Win32}
+  SelectObject(display, afont);
+  GetTextMetrics(display, FMetrics);
+{$else}{$endif}
+end;
+
+destructor TGfxFontResource.Destroy;
+begin
+{$ifdef Win32}
+  Windows.DeleteObject(FFont);
+{$else}
+  XftFontClose(Display, FFont);
+  //XFreeFont(display, FFont);
+{$endif}
+  inherited;
+end;
+
+function TGfxFontResource.Handle: TFontHandle;
+begin
+  result := FFont;
+end;
+
 initialization
 begin
+  FFontResourceList := nil;
 {$ifdef Win32}
   FFocusedWindow := 0;
 {$else}
