@@ -4,24 +4,17 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.30  2004/02/06 06:09:30  aegluke
+// Bugfix in HandleDoubleClick
+//
 // Revision 1.29  2004/01/16 12:48:37  aegluke
 // List-Index-Exception in GetColumnLeft fixed
 //
 // Revision 1.28  2004/01/16 07:17:40  aegluke
 // Windows Buffer completion
 //
-// Revision 1.26  2004/01/14 13:06:17  aegluke
-// visiblity-change of GetNodeHeight
-// Bugfix in RePaint, line for single nodes missed
-//
 // Revision 1.25  2004/01/14 08:22:52  aegluke
 // Add recourse-param to FindSubNode
-//
-// Revision 1.24  2004/01/13 19:27:44  aegluke
-// removed litte mistakes on win32
-//
-// Revision 1.23  2004/01/13 17:40:41  aegluke
-// speed-improvements
 //
 // Revision 1.22  2004/01/13 10:38:28  aegluke
 // Doublebuffer-Support
@@ -432,14 +425,17 @@ begin
   {$ENDIF}
   HandleMouseUp(x, y, button, shiftstate);
   inherited HandleDoubleClick(x, y, button, shiftstate);
-  if Selection.Collapsed then
+  if Selection <> nil then
   begin
-    Selection.Expand;
-    DoExpand(Selection);
-  end
-  else
-    Selection.Collapse;
-  RePaint;
+    if Selection.Collapsed then
+    begin
+      Selection.Expand;
+      DoExpand(Selection);
+    end
+    else
+      Selection.Collapse;
+    RePaint;
+  end;
 end;
 
 procedure TwgTree.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
@@ -467,10 +463,6 @@ begin
     x := x + FXOffset;
     SetColumnWidth(FMovingCol, GetColumnWidth(FMovingCol) + x - FMovingPos);
     FMoving := false;
-{$IFDEF DEBUG}
-    writeln('New Column Size: ', GetColumnWidth(FMovingCol) + x - FMovingPos, ' for Column: ', FMovingCol);
-    writeln(GetColumnWidth(FMovingCol));
-{$ENDIF}
   end
   else
   begin
@@ -499,7 +491,6 @@ begin
     if (not cancel) or (node <> nil) then
     begin
       // +/- or node-selection?
-      w := 0;
       i1 := StepToRoot(node);
       w := GetColumnLeft(i1);
       if (x >= w - GetColumnWidth(i1) div 2 - 3) and (x <= w - GetColumnWidth(i1) div 2 + 6) then
@@ -604,8 +595,6 @@ function TwgTree.MaxNodeWidth: integer;
 var
   h: TwgTreeNode;
   w: integer;
-  i1: integer;
-  i: integer;
   r: integer;
 begin
   {$IFDEF DEBUG}
@@ -1138,7 +1127,6 @@ begin
 {$IFDEF DEBUG}
   writeln('TwgTree.VisibleHeight');
 {$ENDIF}
-  result := 0;
   if FShowColumns then
   begin
     if MaxNodeWidth > Width - 2 then
