@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.24  2004/01/13 19:27:44  aegluke
+// removed litte mistakes on win32
+//
 // Revision 1.23  2004/01/13 17:40:41  aegluke
 // speed-improvements
 //
@@ -73,7 +76,7 @@ unit wgtree;
 
 interface
 
-uses gfxwidget, gfxbase, schar16, classes, sysutils, wgscrollbar, gfximagelist, xlib;
+uses gfxwidget, gfxbase, schar16, classes, sysutils, wgscrollbar, gfximagelist;
 
 type
   PWgTreeColumnWidth = ^TwgTreeColumnWidth;

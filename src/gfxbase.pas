@@ -1937,7 +1937,7 @@ constructor TGfxCanvas.Create(winhandle : TWinHandle);
 {$ifdef Win32}
 begin
   FWin := winhandle;
-  FDrawOnCanvas := False;
+  FDrawOnBuffer := False;
   Fgc := windows.GetDC(FWin);
   SetTextAlign(Fgc, TA_BASELINE);
   SetBkMode(Fgc, TRANSPARENT);
