@@ -1,5 +1,8 @@
 unit vfdwidgets;
 
+{$ifdef FPC}
+  {$mode delphi}
+{$endif}
 {$H+}
 
 interface

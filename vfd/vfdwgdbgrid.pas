@@ -1,7 +1,9 @@
 unit vfdwgdbgrid;
 
+{$ifdef FPC}
+  {$mode delphi}
+{$endif}
 {$H+}
-// {$ifdef FPC}
 
 interface
 
