@@ -620,16 +620,18 @@ begin
   y := rect.top+1;
   s := '';
 
-  if e.etype = etDir then canvas.SetFont(FHeaderFont) else canvas.SetFont(FFont);
+  if (e.etype = etDir) and (col=1)
+    then canvas.SetFont(FHeaderFont)
+    else canvas.SetFont(FFont);
 
   case col of
   1: begin
-       case e.etype of
-        etDir: img := GfxLibGetImage('stdimg.folder');
+       if e.etype = etDir then img := GfxLibGetImage('stdimg.folder')
        else
+       begin
          img := GfxLibGetImage('stdimg.document');
 {$ifndef Win32}
-         if (e.mode and $40) <> 0 then img := GfxLibGetImage('stdimg.yes');
+         if (e.mode and $40) <> 0 then img := GfxLibGetImage('stdimg.yes'); // executable
 {$endif}
        end;
 
