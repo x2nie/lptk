@@ -102,24 +102,28 @@ type
     btnCancel : TwgButton;
     lb1 : TwgLabel;
     lb2 : TwgLabel;
+    btnUpDir : TwgButton;
+    btnDirNew : TwgButton;
     {@VFD_HEAD_END: frmFileList}
-    
+
     procedure AfterCreate; override;
 
     procedure ListChange(Sender : TObject; row : integer);
     procedure DirChange(Sender : TObject);
     procedure GridDblClick(Sender : TObject; x,y : integer; var btnstate, shiftstate : word);
 
+    procedure UpDirClick(sender : TObject);
+
     procedure CancelClick(sender : TObject);
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
-    
+
     procedure SetCurrentDirectory(const dir : string);
 
     function SelectFile(const fname : string) : boolean;
 
   end;
-  
+
 function GetGroupName(gid : integer) : string;
 {$ifdef Win32}
 begin
@@ -149,6 +153,11 @@ end;
 {$endif}
 
 
+procedure TfrmFileList.UpDirClick(sender: TObject);
+begin
+  SetCurrentDirectory('..');
+end;
+
 function TfrmFileList.SelectFile(const fname: string): boolean;
 var
   n : integer;
@@ -157,7 +166,7 @@ begin
   begin
     if grid.flist.Entry[n].Name = fname then
     begin
-      Writeln('selection: ',n);
+      //Writeln('selection: ',n);
       grid.FocusRow := n;
       result := true;
       exit;
@@ -362,7 +371,7 @@ begin
   FDirectoryName := ExtractFileDir(fmask);
   if FDirectoryName = '' then GetDir(0,dname) else dname := FDirectoryName;
   if dname = '' then dname := DirectorySeparator;
-  Writeln('dname: ', dname);
+  //Writeln('dname: ', dname);
 
   hff := FindFirstFile(PChar(fmask), fdata);
 
@@ -431,7 +440,7 @@ begin
   FDirectoryName := dirname(fmask);
   if FDirectoryName = '' then GetDir(0,dname) else dname := FDirectoryName;
   if dname = '' then dname := '/';
-  Writeln('dname: ', dname);
+  //Writeln('dname: ', dname);
 
   if (FDirectoryName <> '') and (copy(FDirectoryName,Length(FDirectoryName),1) <> '/') then FDirectoryName := FDirectoryName+'/';
   gres := glob(fmask);
@@ -561,7 +570,6 @@ end;
 
 procedure TfrmFileList.AfterCreate;
 begin
-  Writeln('aftercreate');
 
   {@VFD_BODY_BEGIN: frmFileList}
   SetDimensions(303,171,640,460);
@@ -570,7 +578,7 @@ begin
   chlDir := TwgChoiceList.Create(self);
   with chlDir do
   begin
-    SetDimensions(8,12,538,22);
+    SetDimensions(8,12,546,22);
     Anchors := [anLeft,anRight,anTop];
     FontName := '#List';
     OnChange := DirChange;
@@ -661,6 +669,31 @@ begin
     FontName := '#Label1';
   end;
 
+  btnUpDir := TwgButton.Create(self);
+  with btnUpDir do
+  begin
+    SetDimensions(564,11,28,24);
+    Anchors := [anRight,anTop];
+    Text := u8('');
+    FontName := '#Label1';
+    ImageName := 'stdimg.folderup';
+    ModalResult := 0;
+    Focusable := false;
+    OnClick := UpDirClick;
+  end;
+
+  btnDirNew := TwgButton.Create(self);
+  with btnDirNew do
+  begin
+    SetDimensions(600,11,28,24);
+    Anchors := [anRight,anTop];
+    Text := u8('');
+    FontName := '#Label1';
+    ImageName := 'stdimg.foldernew';
+    ModalResult := 0;
+    Focusable := false;
+  end;
+
   {@VFD_BODY_END: frmFileList}
 
   SetCurrentDirectory('.');
@@ -672,7 +705,7 @@ end;
 
 procedure TfrmFileList.ListChange(sender: TObject; row : integer);
 var
-  s : string;
+  s : string;         
 begin
   if grid.currententry = nil then Exit;
   s := grid.currententry.Name;
@@ -749,7 +782,7 @@ begin
   chlDir.Items.Clear;
 
   if dir <> '..' then fsel := '';
-  Writeln('fsel=',fsel);
+  //Writeln('fsel=',fsel);
 
   GetDir(0,ds);
 
