@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.4  2004/01/02 19:35:02  aegluke
+// SetDirectoryIndex-Update
+//
 // Revision 1.3  2004/01/02 19:13:17  aegluke
 // ImageList-Support
 //
@@ -41,6 +44,7 @@ type
 	    function GetAbsoluteDir(aNode : TwgTreeNode) : string;
 	    procedure DoChange; override;
 	    procedure DoExpand(aNode : TwgTreeNode); override;
+            procedure SetDirectoryIndex(AValue : Word);
 	public
 	    constructor Create(aOwner : TComponent); override;
 	    procedure ReadDirectories(aParentNode : TwgTreeNode);	    
@@ -53,6 +57,47 @@ implementation
 
 uses
     sysutils;
+
+procedure TwgDirTree.SetDirectoryIndex(AValue : Word);
+var
+   ANode : TwgTreeNode;
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgDirTree.SetDirectoryIndex');
+     {$ENDIF}
+     ANode := RootNode;
+     ANode.ImageIndex := AValue;
+     ANode := RootNode.FirstSubNode;
+     while ANode <> nil do
+     begin
+          if (ANode.count > 0) then
+          begin
+             ANode := ANode.FirstSubNode;
+             ANode.ImageIndex := DirectoryIndex;
+          end
+          else
+          begin
+               if ANode.next <> nil then
+               begin
+                  ANode := ANode.next;
+                  ANode.ImageIndex := DirectoryIndex;
+               end
+               else
+               begin
+                    while ANode.next = nil do
+                    begin
+                         ANode := ANode.parent;
+                         if ANode = nil then
+                         begin
+                              Exit;
+                         end;
+                    end;
+                    ANode := ANode.next;
+                    ANode.ImageIndex := DirectoryIndex;
+               end;
+          end;
+     end;
+end;
 
 procedure TwgDirTree.DoExpand(aNode : TwgTreeNode);
 var
