@@ -23,6 +23,33 @@ const
   DirectorySeparator = '\';
 {$endif}
 
+function GetGroupName(gid : integer) : string;
+{$ifdef Win32}
+begin
+  result := IntToStr(gid);
+end;
+{$else}
+var
+  p : PGroup;
+begin
+  p := getgrgid(gid);
+  if p <> nil then result := p^.gr_name;
+end;
+{$endif}
+
+function GetUserName(uid : integer) : string;
+{$ifdef Win32}
+begin
+  result := IntToStr(uid);
+end;
+{$else}
+var
+  p : PPasswd;
+begin
+  p := getpwuid(uid);
+  if p <> nil then result := p^.pw_name else result := '';
+end;
+{$endif}
 
 type
 
@@ -52,23 +79,20 @@ type
   TFileList = class
   private
     FEntries : TList;
-    FCurDirEntry : TFileEntry;
-    
     FDirectoryName : string;
-    
+
     function GetEntry(i : integer): TFileEntry;
   public
 
     constructor Create;
     destructor Destroy; override;
-    
+
     procedure Clear;
     function Count : integer;
-    
+
     property Entry[i : integer] : TFileEntry read GetEntry;
-    property CurDirEntry : TFileEntry read FCurDirEntry;
     property DirectoryName : string read FDirectoryName;
-    
+
     function ReadDirectory(const fmask : string) : integer;
 
     procedure Sort(order : TFileListSortOrder);
@@ -82,16 +106,20 @@ type
 
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
-    
+
     function GetRowCount : integer; override;
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
-    
+
     function CurrentEntry : TFileEntry;
   end;
 
-  TfrmFileList = class(TGfxForm)
+  TfrmFileDialog = class(TGfxForm)
+  private
+    FFilterList : TStringList;
+    FFilter: string;
+    procedure SetFilter(const Value: string);
   public
-    {@VFD_HEAD_BEGIN: frmFileList}
+    {@VFD_HEAD_BEGIN: frmFileDialog}
     chlDir : TwgChoiceList;
     grid : TwgFileGrid;
     panel1 : TwgBevel;
@@ -104,12 +132,14 @@ type
     lb2 : TwgLabel;
     btnUpDir : TwgButton;
     btnDirNew : TwgButton;
-    {@VFD_HEAD_END: frmFileList}
+    {@VFD_HEAD_END: frmFileDialog}
 
     procedure AfterCreate; override;
+    destructor Destroy; override;
 
     procedure ListChange(Sender : TObject; row : integer);
     procedure DirChange(Sender : TObject);
+    procedure FilterChange(Sender : TObject);
     procedure GridDblClick(Sender : TObject; x,y : integer; var btnstate, shiftstate : word);
 
     procedure UpDirClick(sender : TObject);
@@ -122,43 +152,34 @@ type
 
     function SelectFile(const fname : string) : boolean;
 
+    procedure ProcessFilterString;
+
+    function GetFileFilter : string;
+
+  public
+    FileName : string;
+
+    property Filter : string read FFilter write SetFilter;
+
+    function RunOpenFile : boolean;
+
+
   end;
 
-function GetGroupName(gid : integer) : string;
-{$ifdef Win32}
-begin
-  result := IntToStr(gid);
-end;
-{$else}
-var
-  p : PGroup;
-begin
-  p := getgrgid(gid);
-  if p <> nil then result := p^.gr_name;
-end;
-{$endif}
+{ TfrmFileDialog }
 
-function GetUserName(uid : integer) : string;
-{$ifdef Win32}
+procedure TfrmFileDialog.SetFilter(const Value: string);
 begin
-  result := IntToStr(uid);
+  FFilter := Value;
+  ProcessFilterString;  
 end;
-{$else}
-var
-  p : PPasswd;
-begin
-  p := getpwuid(uid);
-  if p <> nil then result := p^.pw_name else result := '';
-end;
-{$endif}
 
-
-procedure TfrmFileList.UpDirClick(sender: TObject);
+procedure TfrmFileDialog.UpDirClick(sender: TObject);
 begin
   SetCurrentDirectory('..');
 end;
 
-function TfrmFileList.SelectFile(const fname: string): boolean;
+function TfrmFileDialog.SelectFile(const fname: string): boolean;
 var
   n : integer;
 begin
@@ -175,6 +196,147 @@ begin
   result := false;
 end;
 
+
+function TfrmFileDialog.RunOpenFile: boolean;
+var
+  sdir : string;
+begin
+  //ProcessFilterString;
+  sdir := ExtractFileDir(FileName);
+  if sdir = '' then sdir := '.';
+  SetCurrentDirectory(sdir);
+  FileName := ExtractFileName(FileName);
+  if not SelectFile(FileName) then edFilename.Text8 := FileName;
+  if ShowModal > 0 then
+  begin
+    Writeln('selected: ');
+    result := true;
+  end
+  else result := false;
+end;
+
+procedure TfrmFileDialog.ProcessFilterString;
+var
+  p : integer;
+  s, fs, fm : string;
+begin
+  s := FFilter;
+  FFilterList.Clear;
+  chlFilter.Items.Clear;
+
+  repeat
+    fs := ''; fm := '';
+    p := pos('|',s);
+    if p > 0 then
+    begin
+      fs := copy(s,1,p-1);
+      delete(s,1,p);
+      p := pos('|',s);
+      if p > 0 then
+      begin
+        fm := copy(s,1,p-1);
+        delete(s,1,p);
+      end
+      else
+      begin
+        fm := s;
+        s := '';
+      end;
+    end;
+
+    if (fs <> '') and (fm <> '') then
+    begin
+      chlFilter.Items.Add(u8(fs));
+      FFilterList.Add(fm);
+    end;
+
+  until (fs = '') or (fm = '');
+
+end;
+
+destructor TfrmFileDialog.Destroy;
+begin
+  FFilterList.Free;
+  inherited;
+end;
+
+procedure TfrmFileDialog.FilterChange(Sender: TObject);
+begin
+  SetCurrentDirectory('.');
+end;
+
+function StringMatches(const astr, apat : string) : boolean;
+var
+  pati, si : longint;
+begin
+  result := true;
+  pati := 1;
+  si := 1;
+  while result and (si <= length(astr)) and (pati <= length(apat)) do
+  begin
+    if (apat[pati] = '?') or (apat[pati] = astr[si]) then
+    begin
+      inc(si);
+      inc(pati);
+    end
+    else if (apat[pati] = '*') then
+    begin
+      while (pati <= length(apat)) and (apat[pati] in ['?','*']) do inc(pati);
+      if pati > length(apat) then
+      begin
+        si := length(astr)+1;
+        Break;   // * at the end
+      end;
+
+      while (si <= length(astr)) and (astr[si] <> apat[pati]) do inc(si);
+      if si > length(astr) then result := false;
+    end
+    else
+    begin
+      result := false;
+    end;
+  end;
+
+  result := result and (si > length(astr));
+end;
+
+function FileNameMatches(const astr, apats : string) : boolean;   // multiple patterns separated with ;
+var
+  cpat : string;
+  p : integer;
+  s : string;
+  astrupper : string;
+begin
+  astrupper := UpperCase(astr);
+  result := false;
+  s := apats;
+  repeat
+    cpat := '';
+    p := pos(';',s);
+    if p > 0 then
+    begin
+      cpat := copy(s,1,p-1);
+      delete(s,1,p);
+    end
+    else
+    begin
+      cpat := s;
+      s := '';
+    end;
+    cpat := UpperCase(trim(cpat));
+    if cpat <> '' then result := StringMatches(astrupper,cpat);
+  until result or (cpat = '');
+end;
+
+function TfrmFileDialog.GetFileFilter: string;
+var
+  i : integer;
+begin
+  i := chlFilter.FocusItem;
+  if (i > 0) and (i <= FFilterList.Count)
+    then Result := FFilterList[i-1]
+    else Result := '*'; 
+end;
 
 { TwgFileGrid }
 
@@ -332,13 +494,11 @@ end;
 constructor TFileList.Create;
 begin
   FEntries := TList.Create;
-  FCurDirEntry := nil;
   FDirectoryName := '';
 end;
 
 destructor TFileList.Destroy;
 begin
-  if FCurDirEntry <> nil then FCurDirEntry.Free;
   clear;
   FEntries.Free;
   inherited;
@@ -363,17 +523,16 @@ function TFileList.ReadDirectory(const fmask : string): integer;
 var
   hff : THANDLE;
   fdata : WIN32_FIND_DATA;
-  dname : string;
   e : TFileEntry;
   ftime : SYSTEMTIME;
 begin
   Clear;
-  FDirectoryName := ExtractFileDir(fmask);
-  if FDirectoryName = '' then GetDir(0,dname) else dname := FDirectoryName;
-  if dname = '' then dname := DirectorySeparator;
-  //Writeln('dname: ', dname);
 
-  hff := FindFirstFile(PChar(fmask), fdata);
+  GetDir(0,FDirectoryName);
+  if (FDirectoryName <> '') and (copy(FDirectoryName,Length(FDirectoryName),1) <> DirectorySeparator)
+    then FDirectoryName := FDirectoryName + DirectorySeparator;
+
+  hff := FindFirstFile('*', fdata);
 
   if hff <> INVALID_HANDLE_VALUE then
   begin
@@ -401,14 +560,11 @@ begin
 
       //write('  (',e.linktarget,')');
 
-      if e.name = '.' then
+      if (e.name = '.') or
+         ((e.etype = etFile) and not FileNameMatches(e.Name,fmask))  then
       begin
-        if FCurDirEntry <> nil then FCurDirEntry.Free;
-        FCurDirEntry := e;
-      end
-      else if (e.name = '..') and (dname = DirectorySeparator) then
-      begin
-        // do not add for the root
+        // do not add this entry
+        e.Free;
       end
       else
         FEntries.Add(e)
@@ -434,16 +590,15 @@ Var
   e : TFileEntry;
   fullname : string;
   info : stat;
-  dname : string;
+  //dname : string;
 begin
   Clear;
-  FDirectoryName := dirname(fmask);
-  if FDirectoryName = '' then GetDir(0,dname) else dname := FDirectoryName;
-  if dname = '' then dname := '/';
+  GetDir(0,FDirectoryName);
   //Writeln('dname: ', dname);
+  if (FDirectoryName <> '') and (copy(FDirectoryName,Length(FDirectoryName),1) <> '/')
+    then FDirectoryName := FDirectoryName+'/';
 
-  if (FDirectoryName <> '') and (copy(FDirectoryName,Length(FDirectoryName),1) <> '/') then FDirectoryName := FDirectoryName+'/';
-  gres := glob(fmask);
+  gres := glob('*');
   p := gres;
   while p <> nil do
   begin
@@ -474,14 +629,12 @@ begin
 
       //write('  (',e.linktarget,')');
 
-      if e.name = '.' then
+      if (e.name = '.') or
+         ((e.name = '..') and (FDirectoryName = '/')) or
+         ((e.etype = etFile) and not FileNameMatches(e.Name,fmask))  then
       begin
-        if FCurDirEntry <> nil then FCurDirEntry.Free;
-        FCurDirEntry := e;
-      end
-      else if (e.name = '..') and (dname = '/') then
-      begin
-        // do not add for the root
+        // do not add this entry
+        e.Free;
       end
       else
         FEntries.Add(e)
@@ -568,12 +721,13 @@ end;
 
 {@VFD_NEWFORM_IMPL}
 
-procedure TfrmFileList.AfterCreate;
+procedure TfrmFileDialog.AfterCreate;
 begin
+  FFilterList := TStringList.Create;
 
-  {@VFD_BODY_BEGIN: frmFileList}
+  {@VFD_BODY_BEGIN: frmFileDialog}
   SetDimensions(303,171,640,460);
-  WindowTitle8 := 'frmFileList';
+  WindowTitle8 := 'frmFileDialog';
 
   chlDir := TwgChoiceList.Create(self);
   with chlDir do
@@ -626,6 +780,7 @@ begin
     SetDimensions(8,397,622,22);
     Anchors := [anLeft,anRight,anBottom];
     FontName := '#List';
+    OnChange := FilterChange;
   end;
 
   btnOK := TwgButton.Create(self);
@@ -636,7 +791,7 @@ begin
     Text := u8('OK');
     FontName := '#Label1';
     ImageName := 'stdimg.ok';
-    ModalResult := 0;
+    ModalResult := 1;
   end;
 
   btnCancel := TwgButton.Create(self);
@@ -647,7 +802,7 @@ begin
     Text := u8('Cancel');
     FontName := '#Label1';
     ImageName := 'stdimg.cancel';
-    ModalResult := 0;
+    ModalResult := -1;
     OnClick := CancelClick;
   end;
 
@@ -694,16 +849,19 @@ begin
     Focusable := false;
   end;
 
-  {@VFD_BODY_END: frmFileList}
+  {@VFD_BODY_END: frmFileDialog}
 
-  SetCurrentDirectory('.');
+  FileName := '';
+  Filter := 'All Files (*)|*';
+
+//  SetCurrentDirectory('.');
 
 //  grid.flist.ReadDirectory('*');
 //  grid.flist.Sort(soFileName);
 //  grid.Update;
 end;
 
-procedure TfrmFileList.ListChange(sender: TObject; row : integer);
+procedure TfrmFileDialog.ListChange(sender: TObject; row : integer);
 var
   s : string;         
 begin
@@ -712,19 +870,20 @@ begin
   
   if grid.currententry.islink then s := s + ' -> '+grid.currententry.linktarget;
 
-  if grid.currententry.etype = etDir
-    then edFileName.Text := ''
-    else edFileName.Text8 := grid.currententry.Name;
+  if grid.currententry.etype <> etDir
+    then edFileName.Text8 := grid.currententry.Name;
+    
+//    then edFileName.Text := ''
 
   lbFileInfo.Text8 := s;
 end;
 
-procedure TfrmFileList.DirChange(Sender: TObject);
+procedure TfrmFileDialog.DirChange(Sender: TObject);
 begin
   SetCurrentDirectory(chlDir.Text8);
 end;
 
-procedure TfrmFileList.GridDblClick(Sender: TObject; x, y: integer; var btnstate, shiftstate: word);
+procedure TfrmFileDialog.GridDblClick(Sender: TObject; x, y: integer; var btnstate, shiftstate: word);
 var
   e : TFileEntry;
 begin
@@ -735,12 +894,12 @@ begin
   end;
 end;
 
-procedure TfrmFileList.CancelClick(sender: TObject);
+procedure TfrmFileDialog.CancelClick(sender: TObject);
 begin
   Close;
 end;
 
-procedure TfrmFileList.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
+procedure TfrmFileDialog.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
 var
   e : TFileEntry;
 begin
@@ -759,7 +918,7 @@ begin
   if not consumed then inherited;
 end;
 
-procedure TfrmFileList.SetCurrentDirectory(const dir: string);
+procedure TfrmFileDialog.SetCurrentDirectory(const dir: string);
 var
   ds : string;
   n  : integer;
@@ -838,7 +997,7 @@ begin
   end;
 {$endif}
 
-  grid.flist.ReadDirectory('*');
+  grid.flist.ReadDirectory(GetFileFilter());
 
   grid.flist.Sort(soFileName);
 
@@ -850,14 +1009,20 @@ begin
 end;
 
 var
-  frm : TfrmFileList;
+  frm : TfrmFileDialog;
 begin
 //  TestFileList;
 //  Exit;
 
+//  if StringMatches('asztakutyafajat','?szta*j?') then Writeln('matches') else Writeln('no match');
+//  readln;
+//  exit;
+
   GfxOpenDisplay('');
-  frm := TfrmFileList.Create(nil);
-  frm.Show;
+  frm := TfrmFileDialog.Create(nil);
+  frm.FileName := 'caltest.pas';
+  frm.Filter := 'Pascal files (*.pas)|*.pas;*.inc|Include Files (*.inc)|*.inc|All Files (*)|*';
+  frm.RunOpenFile;
   GfxDoMessageLoop;
   GfxCloseDisplay;
 end.
