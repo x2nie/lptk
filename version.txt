@@ -1,3 +1,9 @@
+0.70
+  - TGfxForm.WindowTitle altered to WindowTitle8
+  - app_sms SMS sender application
+  - doubleclick events
+  - BMP image handling
+  
 0.68
   - Applying BSD licence
 
