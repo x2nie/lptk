@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.29  2004/01/16 12:48:37  aegluke
+// List-Index-Exception in GetColumnLeft fixed
+//
 // Revision 1.28  2004/01/16 07:17:40  aegluke
 // Windows Buffer completion
 //
@@ -493,12 +496,12 @@ begin
       inc(i);
       last := node;
     end;
-    if not cancel then
+    if (not cancel) or (node <> nil) then
     begin
       // +/- or node-selection?
       w := 0;
       i1 := StepToRoot(node);
-      w := GetColumnLeft(StepToRoot(node));
+      w := GetColumnLeft(i1);
       if (x >= w - GetColumnWidth(i1) div 2 - 3) and (x <= w - GetColumnWidth(i1) div 2 + 6) then
       // collapse or expand?
       begin // yes
@@ -776,16 +779,18 @@ var
 begin
      if FColumnLeft = nil then
         PreCalcColumnLeft;
-     if AIndex > FColumnLeft.Count - 1 then
-     begin
+     if AIndex < 0 then Result := 0
+     else
+       if AIndex > FColumnLeft.Count - 1 then
+       begin
           AColumnLeft := FColumnLeft[FColumnLeft.Count - 1];
           result := AColumnLeft^;
-     end
-     else
-     begin
+       end
+       else
+       begin
          AColumnLeft := FColumnLeft[AIndex];
          result := AColumnLeft^;
-     end;
+       end;
 end;
 
 procedure TwgTree.RePaint;
