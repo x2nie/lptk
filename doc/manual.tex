@@ -1,0 +1,49 @@
+\documentclass{book}
+\usepackage[latin1]{inputenc}
+\usepackage{english}
+\usepackage[dvips]{graphicx}
+\textwidth144mm
+\textheight244mm
+\title{LPTK}
+\begin{document}
+\title{LPTK}
+\maketitle
+\chapter[Basics]{Basics}
+\section[Types]{Types}
+Describes the basic types defined by the lptk.
+\subsection[TAlignment]{TAlignment}
+\textit{Declaration:} \texttt{\textbf{Type} TAlignment = (alCenter, alJustify, alLeft, alRight);}\newline
+\textit{Values:}
+\begin{itemize}
+    \item alCenter
+    \item alJustify
+    \item alLeft
+    \item alRight
+\end{itemize}
+\textit{Defined in:} gfxbase
+
+\subsection[TOrientation]{TOrientation}
+\textit{Declaration:} \texttt{\textbf{Type} TOrientation = (orHorizontal, orVertical);}\newline
+\textit{Values:}
+\begin{itemize}
+    \item orHorizontal
+    \item orVertical
+\end{itemize}
+\textit{Defined in:} gfxbase
+
+\chapter[Classes and Objects]{Classes and Objects}
+You can find a description of objects and classes come with the lptk-core package.
+
+\section[TWidget]{TWidget}
+TWidget is the base of all other visual lptk-widgets. Every widget is an descendant of TWidget.
+\subsection[protected]{protected}
+\begin{itemize}
+    \item	\texttt{\textbf{procedure} SetDimensions(Left, Top, Width, Height : TgfxCoord);} 
+		\newline Sets the position and size of the widget.
+    \item 	\texttt{\textbf{procedure} MoveResizeBy(DeltaLeft, DeltaTop, DeltaWidth, DeltaHeight : TgfxCoord);} 
+		\newline Moves and/or resizes the widget based of the differences given by the parameters.
+\end{itemize}
+\subsection[public]{public}
+\subsection[events]{events}
+\textit{Defined in:} gfxwidget
+\end{document}
