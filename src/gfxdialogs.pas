@@ -14,7 +14,7 @@ interface
 
 uses
   Classes, SysUtils, GfxBase, GfxForm, schar16, GfxStyle,
-  wgButton, wgLabel, wgListBox, wgCheckBox, wgEdit;
+  gfxwidget, wgButton, wgLabel, wgListBox, wgCheckBox, wgEdit;
 
 type
 
@@ -78,6 +78,71 @@ type
     function GetFontDesc : string;
     procedure SetFontDesc(desc : string);
   end;
+  
+  TwgShowColor = class(TWidget)
+  public
+    Color : TGfxColor;
+
+    OnClick : TNotifyEvent;
+
+    constructor Create(AOwner : TComponent); override;
+
+    procedure RePaint; override;
+    procedure HandleMouseDown(X, Y: Integer; Button: Word; ShiftState: Word); override;
+
+  end;
+
+  TwgPredefColors = class(TWidget)
+  protected
+    Flastx, FLasty : integer;
+
+    FBoxWidth : integer;
+    FBoxHeight : integer;
+    FGap : integer;
+
+    FColors : TList;
+
+  public
+    OnColorClick : TNotifyEvent;
+
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
+
+    procedure AddColor(col : TGfxColor);
+
+  end;
+
+  TfrmSelectColor = class(TGfxForm)
+  public
+    {@VFD_HEAD_BEGIN: frmSelectColor}
+    lbLabel1 : TWGLABEL;
+    lbLabel2 : TWGLABEL;
+    lbLabel3 : TWGLABEL;
+    edRComp : TWGEDIT;
+    edGComp : TWGEDIT;
+    edBComp : TWGEDIT;
+    lbLabel4 : TWGLABEL;
+    edHex : TWGEDIT;
+    lbLabel5 : TWGLABEL;
+    ShowColor : TwgShowColor;
+    PredefColors : TwgPredefColors;
+    btnOK : TWGBUTTON;
+    btnCancel : TWGBUTTON;
+    {@VFD_HEAD_END: frmSelectColor}
+
+    procedure AfterCreate; override;
+
+    procedure ColorClick(sender : TObject);
+
+    procedure SetCurColor(col : TGfxColor);
+
+    procedure RGBChange(sender : TObject);
+    procedure HexChange(sender : TObject);
+
+    procedure ButtonClick(sender : TObject);
+
+  end;
+
 
 {@VFD_NEWFORM_DECL}
 
@@ -85,10 +150,26 @@ procedure ShowMessage8(msg, title : string); overload;
 procedure ShowMessage8(msg : string); overload;
 
 function SelectFontDialog(var fontdesc : string) : boolean;
+function SelectColorDialog(var color : TGfxColor) : boolean;
 
 implementation
 
 {@VFD_NEWFORM_IMPL}
+
+function SelectColorDialog(var color : TGfxColor) : boolean;
+var
+  frm : TfrmSelectColor;
+begin
+  result := false;
+  frm := TfrmSelectColor.Create(nil);
+  frm.SetCurColor(color);
+  if frm.ShowModal > 0 then
+  begin
+    color := frm.ShowColor.Color;
+    result := true;
+  end;
+  frm.Free;
+end;
 
 function SelectFontDialog(var fontdesc : string) : boolean;
 var
@@ -516,6 +597,275 @@ begin
   inherited;
 end;
 
+{ Color selectors }
+
+{ TwgPredefColors }
+
+constructor TwgPredefColors.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  FLastx := 0; Flasty := 0;
+  FBoxWidth := 32;
+  FBoxHeight := 16;
+  FGap := 4;
+
+  OnColorClick := nil;
+
+  FColors := TList.Create;
+end;
+
+destructor TwgPredefColors.Destroy;
+begin
+  FColors.Free;
+  inherited Destroy;
+end;
+
+procedure TwgPredefColors.AddColor(col: TGfxColor);
+var
+  sc : TwgShowColor;
+begin
+  FColors.Add(Pointer(col));
+
+  sc := TwgShowColor.Create(self);
+  sc.Color := col;
+  sc.Left := FLastx;
+  sc.Top := FLasty;
+  sc.width := FBoxWidth;
+  sc.height := FBoxHeight;
+  sc.OnClick := OnColorClick;
+
+  Inc(Flastx,FBoxWidth+FGap);
+  if Flastx+FBoxWidth > Width then
+  begin
+    inc(Flasty,FBoxHeight+FGap);
+    FLastx := 0;
+  end;
+end;
+
+{ TwgShowColor }
+
+constructor TwgShowColor.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  color := $AA2233;
+  OnClick := nil;
+end;
+
+procedure TwgShowColor.RePaint;
+begin
+  canvas.SetColor(color);
+  canvas.FillRectangle(1,1,Width-2,Height-2);
+  canvas.SetColor(0);
+  canvas.DrawRectangle(0,0,Width,Height);
+end;
+
+procedure TwgShowColor.HandleMouseDown(X, Y: Integer; Button: Word;
+  ShiftState: Word);
+begin
+  inherited HandleMouseDown(X, Y, Button, ShiftState);
+  if Assigned(OnClick) then OnClick(self);
+end;
+
+{@VFD_NEWFORM_DECL}
+
+{@VFD_NEWFORM_IMPL}
+
+procedure TfrmSelectColor.AfterCreate;
+begin
+  {@VFD_BODY_BEGIN: frmSelectColor}
+  SetDimensions(286,126,328,262);
+  WindowTitle8 := 'Select Color';
+
+  lbLabel1 := TWGLABEL.Create(self);
+  with lbLabel1 do
+  begin
+    SetDimensions(8,10,22,16);
+    Text := u8('R:');
+  end;
+
+  lbLabel2 := TWGLABEL.Create(self);
+  with lbLabel2 do
+  begin
+    SetDimensions(8,34,22,16);
+    Text := u8('G:');
+  end;
+
+  lbLabel3 := TWGLABEL.Create(self);
+  with lbLabel3 do
+  begin
+    SetDimensions(8,58,22,16);
+    Text := u8('B:');
+  end;
+
+  edRComp := TWGEDIT.Create(self);
+  with edRComp do
+  begin
+    SetDimensions(24,8,62,20);
+    Text := u8('255');
+    OnChange := RGBChange;
+  end;
+
+  edGComp := TWGEDIT.Create(self);
+  with edGComp do
+  begin
+    SetDimensions(24,32,62,20);
+    Text := u8('64');
+    OnChange := RGBChange;
+  end;
+
+  edBComp := TWGEDIT.Create(self);
+  with edBComp do
+  begin
+    SetDimensions(24,56,62,20);
+    Text := u8('45');
+    OnChange := RGBChange;
+  end;
+
+  lbLabel4 := TWGLABEL.Create(self);
+  with lbLabel4 do
+  begin
+    SetDimensions(8,84,54,16);
+    Text := u8('Hex:');
+  end;
+
+  edHex := TWGEDIT.Create(self);
+  with edHex do
+  begin
+    SetDimensions(8,104,78,20);
+    Text := u8('edHex');
+    OnChange := HexChange;
+  end;
+
+  lbLabel5 := TWGLABEL.Create(self);
+  with lbLabel5 do
+  begin
+    SetDimensions(8,136,57,16);
+    Text := u8('Preview:');
+  end;
+
+  ShowColor := TwgShowColor.Create(self);
+  with ShowColor do
+  begin
+    SetDimensions(8,156,308,60);
+  end;
+
+  PredefColors := TwgPredefColors.Create(self);
+  with PredefColors do
+  begin
+    SetDimensions(104,8,212,116);
+    OnColorClick := ColorClick;
+  end;
+
+  btnOK := TWGBUTTON.Create(self);
+  with btnOK do
+  begin
+    SetDimensions(8,228,105,24);
+    Text := u8('OK');
+    OnClick := ButtonClick;
+  end;
+
+  btnCancel := TWGBUTTON.Create(self);
+  with btnCancel do
+  begin
+    SetDimensions(212,228,105,24);
+    Text := u8('Cancel');
+    OnClick := ButtonClick;
+  end;
+
+  {@VFD_BODY_END: frmSelectColor}
+
+  with PredefColors do
+  begin
+    AddColor($000000);
+    AddColor($000080);
+    AddColor($008000);
+    AddColor($800000);
+    AddColor($008080);
+    AddColor($800080);
+    AddColor($808000);
+    AddColor($808080);
+    AddColor($8080ff);
+    AddColor($80ff80);
+    AddColor($ff8080);
+    AddColor($80ffff);
+    AddColor($ff80ff);
+    AddColor($ffff80);
+    AddColor($ffffff);
+
+//    AddColor($000000);
+//    AddColor($000000);
+//    AddColor($000000);
+//    AddColor($000000);
+  end;
+
+  SetCurColor(12345);
+
+end;
+
+procedure TfrmSelectColor.ColorClick(sender: TObject);
+begin
+  Writeln('color clicked: ',IntToHex(TwgShowColor(sender).color,6));
+
+  SetCurColor(TwgShowColor(sender).color);
+end;
+
+procedure TfrmSelectColor.SetCurColor(col: TGfxColor);
+begin
+  showcolor.color := col;
+  if showcolor.WinHandle > 0 then showcolor.RePaint;
+
+  edHex.Text8 := IntToHex(col,6);
+
+  edBComp.Text8 := IntToStr((col and $0000FF));
+  edGComp.Text8 := IntToStr((col and $00FF00) shr 8);
+  edRComp.Text8 := IntToStr((col and $FF0000) shr 16);
+end;
+
+procedure TfrmSelectColor.RGBChange(sender: TObject);
+var
+  col : TGfxColor;
+begin
+  col := StrToIntDef(edBComp.Text8,0)
+         + StrToIntDef(edGComp.Text8,0) shl 8
+         + StrToIntDef(edRComp.Text8,0) shl 16;
+
+  showcolor.color := col;
+  if showcolor.WinHandle > 0 then showcolor.RePaint;
+
+  edHex.Text8 := IntToHex(col,6);
+end;
+
+function StrToHex(hnum : string) : longword;
+var
+  n : integer;
+begin
+  result := 0;
+  for n:=1 to length(hnum) do
+  begin
+    result := (result shl 4) + longword(pos(upcase(hnum[n]),'123456789ABCDEF'));
+  end;
+end;
+
+procedure TfrmSelectColor.HexChange(sender: TObject);
+var
+  col : TGfxColor;
+begin
+  col := StrToHex(edHex.Text8);
+
+  showcolor.color := col;
+  if showcolor.WinHandle > 0 then showcolor.RePaint;
+
+  edBComp.Text8 := IntToStr((col and $0000FF));
+  edGComp.Text8 := IntToStr((col and $00FF00) shr 8);
+  edRComp.Text8 := IntToStr((col and $FF0000) shr 16);
+end;
+
+procedure TfrmSelectColor.ButtonClick(sender: TObject);
+begin
+  if sender = btnOK then ModalResult := 1 else ModalResult := -1;
+  Close;
+end;
 
 end.
 
