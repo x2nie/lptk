@@ -67,17 +67,20 @@ type
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
 
-    property Items : TStringList read FItems;
-
     function Text : string16;
     function Text8 : string;
-    
+
     property Font : TGfxFont read FFont;
-    property FontName : string read GetFontName write SetFontName;
 
   public
 
     OnChange : TNotifyEvent;
+
+  published
+
+    property FontName : string read GetFontName write SetFontName;
+
+    property Items : TStringList read FItems;
 
   end;
 
@@ -137,6 +140,7 @@ begin
   FMargin := 3;
 
   FHeight := FFont.Height + 2*FMargin;
+  FWidth := 120;
   FDroppedDown := false;
 
   OnChange := nil;

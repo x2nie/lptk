@@ -34,8 +34,9 @@ type
     procedure RePaint; override;
     property Font : TGfxFont read FFont;
     property Text8 : string read GetText8 write SetText8;
-
+                           
   published
+
     property Text : String16 read FText write SetText;
 
     property FontName : string read GetFontName write SetFontName;
@@ -101,9 +102,10 @@ end;
 constructor TwgLabel.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
-  FText := '';
+  FText := u8('Label');
   FFont := GfxGetFont('#Label1');
   FHeight := FFont.Height;
+  FWidth := 80;
   FColor := clText1;
 end;
 

@@ -19,6 +19,8 @@ type
   private
     procedure SetText(const AValue : String16);
     procedure SetChecked(const Value: boolean);
+    function GetFontName: string;
+    procedure SetFontName(const AValue: string);
   protected
     FText : String16;
     FFont : TGfxFont;
@@ -37,13 +39,18 @@ type
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
 
-    property Text : String16 read FText write SetText;
     property Font : TGfxFont read FFont;
-    property Checked : boolean read FChecked write SetChecked;
 
   public
 
     OnChange : TNotifyEvent;
+
+  published
+
+    property Text : String16 read FText write SetText;
+    property Checked : boolean read FChecked write SetChecked;
+
+    property FontName : string read GetFontName write SetFontName;
 
   end;
 
@@ -76,9 +83,10 @@ end;
 constructor TwgCheckBox.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
-  FText := '';
+  FText := u8('CheckBox');
   FFont := GfxGetFont('#Label1');
   FHeight := FFont.Height + 4;
+  FWidth := 120;
 
   FFocusable := true;
 
@@ -177,6 +185,18 @@ begin
     if keycode <> KEY_ENTER then Consumed := true;
   end;
 
+end;
+
+function TwgCheckBox.GetFontName: string;
+begin
+  result := FFont.FontName;
+end;
+
+procedure TwgCheckBox.SetFontName(const AValue: string);
+begin
+  FFont.Free;
+  FFont := GfxGetFont(AValue);
+  if Windowed then RePaint;
 end;
 
 end.

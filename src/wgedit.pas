@@ -104,6 +104,7 @@ begin
   FFont := GfxGetFont('#Edit1');  // owned object !
   
   FHeight := FFont.Height + 6;
+  FWidth := 120;
   FBackgroundColor := clBoxColor;
 
   FSelecting := false;
@@ -138,6 +139,7 @@ begin
   FSelStart  := FCursorPos;
   FSelOffset := 0;
   FDrawOffset := 0;
+  AdjustCursor;
   if FWinHandle > 0 then RePaint;
 end;
 
