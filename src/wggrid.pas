@@ -56,6 +56,9 @@ type
     property FocusRow : integer read FFocusRow write SetFocusRow;
 
     property RowHeight : TGfxCoord read FRowHeight;
+    
+    property HeaderFont : TGfxFont read FHeaderFont;
+    property Font : TGfxFont read FFont;
 
     function ColumnCount : integer; virtual;
     function RowCount : integer; virtual;
