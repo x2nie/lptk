@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.2  2003/10/30 11:24:41  aegluke
+// pre-read not opened directories
+//
 // Revision 1.1  2003/10/29 12:48:47  aegluke
 // simple directory tree - first release - not tested on windows
 //
@@ -11,7 +14,7 @@ unit wgdirtree;
     {$mode objfpc}
     {$H+}
 {$ENDIF}
-{$DEFINE DEBUG}
+{//$DEFINE DEBUG}
 
 interface
 
@@ -33,6 +36,7 @@ type
 	protected
 	    function GetAbsoluteDir(aNode : TwgTreeNode) : string;
 	    procedure DoChange; override;
+	    procedure DoExpand(aNode : TwgTreeNode); override;
 	public
 	    constructor Create(aOwner : TComponent); override;
 	    procedure ReadDirectories(aParentNode : TwgTreeNode);	    
@@ -44,6 +48,23 @@ implementation
 
 uses
     sysutils;
+
+procedure TwgDirTree.DoExpand(aNode : TwgTreeNode);
+var
+    tmpNode : TwgTreeNode;
+begin
+    inherited DoExpand(aNode);
+    tmpNode := aNode.FirstSubNode;
+    while tmpNode <> nil do
+    begin
+	if TmpNode.Count = 0 then
+	begin
+	    ReadDirectories(tmpNode);
+	    tmpNode.Collapse;
+	end;
+	TmpNode := TmpNode.next;
+    end;
+end;
 
 procedure TwgDirTree.DoChange;
 begin
@@ -122,14 +143,36 @@ begin
 	RootNode.Clear;		
 	RootNode.AppendText8(copy(aValue,1,pos(cDirSeparator,aValue)-1));
 	ReadDirectories(RootNode.FirstSubNode);
-	delete(aValue,1,pos(cDirSeparator,aValue));	
+	delete(aValue,1,pos(cDirSeparator,aValue));
+	aNode := RootNode.FirstSubNode;
+	while aNode <> nil do	// on windows - maybe there are more than one drive :)
+	begin
+	    ReadDirectories(aNode);
+	    aNode.Collapse;
+	    aNode := aNode.Next;
+	end;
+	aNode := RootNode.FirstSubNode.FirstSubNode;
+	while aNode <> nil do
+	begin
+	    ReadDirectories(aNode);
+	    aNode.Collapse;
+	    aNode := aNode.Next;
+	end;
 	aNode := RootNode.FirstSubNode;
 	while pos(cDirSeparator,aValue) <> 0 do
 	begin
 	    searchstr := copy(aValue,1,pos(cDirSeparator,aValue)-1);
 	    aNode := aNode.FindSubNode(Str8To16(searchstr));
+	    aNode.Expand;
 	    delete(aValue,1,pos(cDirSeparator,aValue));
 	    ReadDirectories(aNode);
+	    tmpNode := aNode.FirstSubNode;
+	    while tmpNode <> nil do
+	    begin
+		ReadDirectories(tmpNode);
+		tmpNode.Collapse;
+		tmpNode := tmpNode.Next;
+	    end;
 	end;
     end
     else
@@ -154,13 +197,20 @@ begin
 		end
 		else
 		begin
-		    aNode := tmpNode;
+		    aNode := tmpNode;		
 		    if length(aValue) <> 0 then aNode.Expand;
 		end;
 	    end
 	    else	// directory not read yet
 	    begin
 		ReadDirectories(aNode);
+		tmpNode := aNode.FirstSubNode;
+		while tmpNode <> nil do
+		begin
+		    ReadDirectories(tmpNode);
+		    tmpNode.Collapse;
+		    tmpNode := tmpNode.Next;
+		end;
 		tmpNode := aNode.FindSubNode(Str8To16(searchstr));
 		if tmpNode = nil then
 		begin
