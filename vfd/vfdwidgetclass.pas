@@ -5,67 +5,89 @@ unit vfdwidgetclass;
 
 interface
 
-uses Classes, SysUtils, gfxwidget;
+uses Classes, SysUtils, gfxbase, gfxwidget, schar16,
+  wgLabel, wgEdit;
 
 type
-  TVFDPropertyEditor = class(TGfxWidget)
+  TVFDPropertyEditor = class(TWidget)
   public
-    procedure SetWidgetProperty(wg : TGfxWidget; propname : string); virtual;
-    procedure GetWidgetProperty(wg : TGfxWidget; propname : string); virtual;
-
-  public
-    OnChage : TNotifyEvent;
+    OnChange : TNotifyEvent;
 
     constructor Create(AOwner : TComponent); override;
+  public
+    // virtuals
+    procedure CreateLayout; virtual;
+
+    procedure SetWidgetProperty(wg : TWidget; propname : string); virtual;
+    procedure GetWidgetProperty(wg : TWidget; propname : string); virtual;
   end;
 
   TVFDPropertyEditorClass = class of TVFDPropertyEditor;
 
+  TWidgetClass = class of TWidget;
+
   TVFDWidgetProperty = class
+  protected
+    FEditorClass : TVFDPropertyEditorClass;
   public
     Name : string;
-    EditorClass : TVFDPropertyEditorClass;
     Description : string;
 
-    constructor Create;
+    function CreateEditor(AOwner : TComponent) : TVFDPropertyEditor;
 
-    // load / store
-    function ParseSourceLine(wg : TGfxWidget; const line : string) : boolean; virtual;
-    function GetPropertySource(wg : TGfxWidget) : string; virtual;
+  public
+    // Virtuals
+    constructor Create; virtual;  // override to set EditorClass
 
-    // Editing
-    procedure SetValue(wg : TGfxWidget; editorwg : TVFDPropertyEditor);
-    procedure GetValue(wg : TGfxWidget; editorwg : TVFDPropertyEditor);
+    function ParseSourceLine(wg : TWidget; const line : string) : boolean; virtual;
+    function GetPropertySource(wg : TWidget) : string; virtual;
   end;
+
+  TVFDPropertyClass = class of TVFDWidgetProperty;
 
   TVFDWidgetClass = class
   private
     FProps : TList;
   public
-    WidgetClassName : string;
+    WidgetClass : TWidgetClass;
     Description : string;
 
-    constructor Create;
+    constructor Create(aClass : TWidgetClass);
     destructor Destroy; override;
 
-    procedure AddProperty(aprop : TVFDWidgetProperty);
+    function AddProperty(apropname : string; apropclass : TVFDPropertyClass; desc : string) : TVFDWidgetProperty;
+
+    function PropertyCount : integer;
+    function GetProperty(ind : integer) : TVFDWidgetProperty;
+
+    function CreateWidget(AOwner : TComponent) : TWidget;
   end;
 
 implementation
 
-uses TypInfo;
+uses TypInfo, vfdformparser;
 
 { TVFDWidgetClass }
 
-procedure TVFDWidgetClass.AddProperty(aprop: TVFDWidgetProperty);
+function TVFDWidgetClass.AddProperty(apropname : string; apropclass : TVFDPropertyClass;
+  desc : string) : TVFDWidgetProperty;
 begin
-  FProps.Add(aprop);
+  result := apropclass.Create;
+  result.Name := apropname;
+  result.Description := desc;
+  FProps.Add(result);
 end;
 
-constructor TVFDWidgetClass.Create;
+constructor TVFDWidgetClass.Create(aClass : TWidgetClass);
 begin
+  WidgetClass := aClass;
   FProps := TList.Create;
   Description := '';
+end;
+
+function TVFDWidgetClass.CreateWidget(AOwner : TComponent) : TWidget;
+begin
+  result := TWidgetClass.Create(AOwner);
 end;
 
 destructor TVFDWidgetClass.Destroy;
@@ -77,33 +99,38 @@ begin
   inherited;
 end;
 
+function TVFDWidgetClass.GetProperty(ind: integer): TVFDWidgetProperty;
+begin
+  result := TVFDWidgetProperty(FProps[ind]);
+end;
+
+function TVFDWidgetClass.PropertyCount: integer;
+begin
+  result := FProps.Count;
+end;
+
 { TVFDWidgetProperty }
 
 constructor TVFDWidgetProperty.Create;
 begin
   Name := '???';
   Description := '';
-  EditorClass := nil;
+  FEditorClass := nil;
 end;
 
-function TVFDWidgetProperty.GetPropertySource(wg: TGfxWidget): string;
+function TVFDWidgetProperty.GetPropertySource(wg: TWidget): string;
 begin
 
 end;
 
-procedure TVFDWidgetProperty.GetValue(wg, editorwg: TGfxWidget);
+function TVFDWidgetProperty.ParseSourceLine(wg: TWidget; const line: string): boolean;
 begin
-
+  result := false;
 end;
 
-function TVFDWidgetProperty.ParseSourceLine(wg: TGfxWidget; const line: string): boolean;
+function TVFDWidgetProperty.CreateEditor(AOwner : TComponent): TVFDPropertyEditor;
 begin
-
-end;
-
-procedure TVFDWidgetProperty.SetValue(wg, editorwg: TGfxWidget);
-begin
-
+  result := FEditorClass.Create(AOwner);
 end;
 
 { TVFDPropertyEditor }
@@ -112,14 +139,20 @@ constructor TVFDPropertyEditor.Create(AOwner: TComponent);
 begin
   inherited;
   OnChange := nil;
+  CreateLayout;
 end;
 
-procedure TVFDPropertyEditor.GetWidgetProperty(wg: TGfxWidget; propname: string);
+procedure TVFDPropertyEditor.CreateLayout;
+begin
+  //abstract
+end;
+
+procedure TVFDPropertyEditor.GetWidgetProperty(wg: TWidget; propname: string);
 begin
   Writeln('abstract: GetWidgetProperty');
 end;
 
-procedure TVFDPropertyEditor.SetWidgetProperty(wg: TGfxWidget; propname: string);
+procedure TVFDPropertyEditor.SetWidgetProperty(wg: TWidget; propname: string);
 begin
   Writeln('abstract: SetWidgetProperty');
   // check property type
@@ -127,5 +160,6 @@ begin
   // PPropInfo := GetPropInfo(object, 'propname');
   // if PPropInfo^.PropType^.name =
 end;
+
 
 end.
