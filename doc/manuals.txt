@@ -1,0 +1,9 @@
+The LPTK manuals distributed independently from the source.
+Checkout the manuals module from the cvs.
+
+cvs -d :pserver:cvs@cvs.sourceforge.net:/cvsroot/lptk checkout manuals
+
+(or something like that)
+
+The manuals are in OpenOffice writer format (sxw). You need an OpenOffice installed to read it.
+They can be very easily converted into PDF format using OO.
