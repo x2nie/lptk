@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.18  2004/01/02 11:07:20  aegluke
+// ShowColumns-support fixed, ScrollBar-handling fixed
+//
 // Revision 1.17  2003/12/30 15:30:44  aegluke
 // Message-Cleanup
 //
@@ -242,7 +245,7 @@ begin
           if ShowImages and (ImageList <> nil) then
           begin
                AImage := ImageList.Item[ANode.ImageIndex];
-               if AImage <> nil then result := result + AImage.Image.Width;
+               if AImage <> nil then result := result + AImage.Image.Width + 2;
           end;
      end;
 end;
@@ -465,6 +468,7 @@ begin
           end
           else
             node.collapse;
+          ReSetScrollBar;
           RePaint;
         end;
       end
@@ -493,11 +497,13 @@ begin
       begin
         Selection.Collapsed := false;
         DoExpand(Selection);
+        ResetScrollbar;
         RePaint;
       end;
     KEY_LEFT:
       begin
         Selection.Collapsed := true;
+        ResetScrollbar;
         RePaint;
       end;
     KEY_UP:
@@ -576,7 +582,7 @@ begin
           h := h.parent;
           if h = nil then
           begin
-            result := r;
+            result := r + 4;
             exit;
           end;
         end;
@@ -655,8 +661,8 @@ begin
   {$IFDEF DEBUG}
   writeln('TwgTree.DoShow');
   {$ENDIF}
-  inherited DoShow;
   ReSetScrollbar;
+  inherited DoShow;
 end;
 
 function TwgTree.SpaceToVisibleNext(aNode: TwgTreeNode): integer;
@@ -844,8 +850,7 @@ begin
            if AImageItem <> nil then
            begin
                  Canvas.DrawImagePart(w - FXOffset + 1, ACenterPos - 4, AImageItem.Image,0,0,16,16);
-                 Canvas.SetClipRect(r);
-                 Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width, ACenterPos - FFont.Ascent div 2, h.text);
+                 Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width + 2, ACenterPos - FFont.Ascent div 2, h.text);
            end
            else
                Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
@@ -862,8 +867,7 @@ begin
            if AImageItem <> nil then
            begin
                  Canvas.DrawImagePart(w - FXOffset + 1, ACenterPos - 4, AImageItem.Image,0,0,16,16);
-                 Canvas.SetClipRect(r);
-                 Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width, ACenterPos - FFont.Ascent div 2, h.text);
+                 Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width + 2, ACenterPos - FFont.Ascent div 2, h.text);
            end
            else
                Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
