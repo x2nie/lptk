@@ -2,6 +2,7 @@
   File maintainer: nvitya@freemail.hu
 
 History:
+    17.07.2003	read only property Cursorline added (Erik Grohnwaldt)
 }
 unit wgmemo;
 
@@ -78,6 +79,7 @@ type
     
     procedure SetFont(const Value: TGfxFont);
 
+    procedure SetCursorLine(aValue : integer);
   protected
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
@@ -111,7 +113,7 @@ type
     property Text8 : string read GetText8 write SetText8;
 
     property Font : TGfxFont read FFont write SetFont;
-
+    property CursorLine : integer read FCursorLine write SetCursorLine;
   public
 
     OnChange : TNotifyEvent;
@@ -124,6 +126,48 @@ uses
   GfxClipboard;
 
 { TwgMemo }
+
+procedure TwgMemo.SetCursorLine(aValue : integer);
+var
+    i : integer;
+    MaxLine : integer;
+    yp : integer;
+begin
+    if (aValue < 1) or (aValue = FCursorLine) then exit; // wrong value
+    if aValue < FFirstLine then
+    begin
+	FFirstLine := aValue; // moves the selected line to the top of the displayed rectangle
+	FCursorLine := aValue;
+	FCursorPos := 0;
+	RePaint;	
+	exit;
+    end;
+    yp := 2;
+    for i := FFirstLine to LineCount do
+    begin
+	yp := yp + LineHeight;	
+	if yp > Height then 
+	begin
+	    MaxLine := i - 1;
+	    break;
+	end;
+    end;
+    if MaxLine < aValue then
+    begin	
+	FFirstLine := aValue;
+	FCursorLine := aValue;
+	FCursorPos := 0;
+	RePaint;
+	exit;
+    end
+    else
+    begin
+	FCursorLine := aValue;
+	FCursorPos := 0;
+	RePaint;
+	exit;
+    end;
+end;
 
 constructor TwgMemo.Create(AOwner : TComponent);
 begin
