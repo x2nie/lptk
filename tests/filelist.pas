@@ -93,7 +93,7 @@ type
     property Entry[i : integer] : TFileEntry read GetEntry;
     property DirectoryName : string read FDirectoryName;
 
-    function ReadDirectory(const fmask : string) : integer;
+    function ReadDirectory(const fmask : string; ShowHidden : boolean) : integer;
 
     procedure Sort(order : TFileListSortOrder);
   end;
@@ -118,20 +118,23 @@ type
     FFilterList : TStringList;
     FFilter: string;
     procedure SetFilter(const Value: string);
+    function GetShowHidden: boolean;
+    procedure SetShowHidden(const Value: boolean);
   public
     {@VFD_HEAD_BEGIN: frmFileDialog}
     chlDir : TwgChoiceList;
     grid : TwgFileGrid;
+    btnUpDir : TwgButton;
+    btnDirNew : TwgButton;
+    btnShowHidden : TwgButton;
     panel1 : TwgBevel;
     lbFileInfo : TwgLabel;
     edFilename : TwgEdit;
     chlFilter : TwgChoiceList;
-    btnOK : TwgButton;
-    btnCancel : TwgButton;
     lb1 : TwgLabel;
     lb2 : TwgLabel;
-    btnUpDir : TwgButton;
-    btnDirNew : TwgButton;
+    btnOK : TwgButton;
+    btnCancel : TwgButton;
     {@VFD_HEAD_END: frmFileDialog}
 
     procedure AfterCreate; override;
@@ -162,6 +165,8 @@ type
     property Filter : string read FFilter write SetFilter;
 
     function RunOpenFile : boolean;
+
+    property ShowHidden : boolean read GetShowHidden write SetShowHidden;
 
 
   end;
@@ -336,6 +341,16 @@ begin
   if (i > 0) and (i <= FFilterList.Count)
     then Result := FFilterList[i-1]
     else Result := '*'; 
+end;
+
+function TfrmFileDialog.GetShowHidden: boolean;
+begin
+  result := btnShowHidden.Down;
+end;
+
+procedure TfrmFileDialog.SetShowHidden(const Value: boolean);
+begin
+  btnShowHidden.Down := Value;
 end;
 
 { TwgFileGrid }
@@ -519,7 +534,7 @@ end;
 
 {$ifdef Win32}
 
-function TFileList.ReadDirectory(const fmask : string): integer;
+function TFileList.ReadDirectory(const fmask : string; ShowHidden : boolean): integer;
 var
   hff : THANDLE;
   fdata : WIN32_FIND_DATA;
@@ -541,7 +556,7 @@ begin
       e.Name := PChar(@fdata.cFileName);
       //Write(e.Name);
       e.NameExt := ExtractFileExt(e.Name);
-
+      
       //fullname := FDirectoryName + e.Name;
 
       e.islink := false;  // Windows does not support ?
@@ -561,6 +576,7 @@ begin
       //write('  (',e.linktarget,')');
 
       if (e.name = '.') or
+         (not ShowHidden and ((e.attributes and FILE_ATTRIBUTE_HIDDEN) <> 0)) or
          ((e.etype = etFile) and not FileNameMatches(e.Name,fmask))  then
       begin
         // do not add this entry
@@ -584,7 +600,7 @@ begin
   result := EncodeDate(w1,w2,w3)+EncodeTime(w4,w5,w6,0);
 end;
 
-function TFileList.ReadDirectory(const fmask : string): integer;
+function TFileList.ReadDirectory(const fmask : string; ShowHidden : boolean): integer;
 Var
   gres,p : PGlob;
   e : TFileEntry;
@@ -706,7 +722,7 @@ var
   n : integer;
 begin
   fl := TFileList.Create;
-  Writeln('entry count: ',fl.ReadDirectory('/workl/*'));
+  Writeln('entry count: ',fl.ReadDirectory('*',true));
   fl.Sort(soFileExt);
   for n := 1 to fl.Count do
   begin
@@ -731,7 +747,7 @@ begin
   chlDir := TwgChoiceList.Create(self);
   with chlDir do
   begin
-    SetDimensions(8,12,546,22);
+    SetDimensions(8,12,526,22);
     Anchors := [anLeft,anRight,anTop];
     FontName := '#List';
     OnChange := DirChange;
@@ -744,6 +760,45 @@ begin
     Anchors := [anLeft,anRight,anTop,anBottom];
     OnRowChange := ListChange;
     OnDoubleClick := GridDblClick;
+  end;
+
+  btnUpDir := TwgButton.Create(self);
+  with btnUpDir do
+  begin
+    SetDimensions(540,11,26,24);
+    Anchors := [anRight,anTop];
+    Text := u8('');
+    FontName := '#Label1';
+    ImageName := 'stdimg.folderup';
+    ModalResult := 0;
+    Focusable := false;
+    OnClick := UpDirClick;
+  end;
+
+  btnDirNew := TwgButton.Create(self);
+  with btnDirNew do
+  begin
+    SetDimensions(572,11,26,24);
+    Anchors := [anRight,anTop];
+    Text := u8('');
+    FontName := '#Label1';
+    ImageName := 'stdimg.foldernew';
+    ModalResult := 0;
+    Focusable := false;
+  end;
+
+  btnShowHidden := TwgButton.Create(self);
+  with btnShowHidden do
+  begin
+    SetDimensions(604,11,26,24);
+    Text := u8('');
+    FontName := '#Label1';
+    ImageName := 'stdimg.hidden';
+    ModalResult := 0;
+    Focusable := false;
+    GroupIndex := 1;
+    AllowAllUp := true;
+    OnClick := DirChange;
   end;
 
   panel1 := TwgBevel.Create(self);
@@ -782,6 +837,24 @@ begin
     OnChange := FilterChange;
   end;
 
+  lb1 := TwgLabel.Create(self);
+  with lb1 do
+  begin
+    SetDimensions(8,335,80,16);
+    Anchors := [anLeft,anBottom];
+    Text := u8('Filename:');
+    FontName := '#Label1';
+  end;
+
+  lb2 := TwgLabel.Create(self);
+  with lb2 do
+  begin
+    SetDimensions(8,379,64,16);
+    Anchors := [anLeft,anBottom];
+    Text := u8('File type:');
+    FontName := '#Label1';
+  end;
+
   btnOK := TwgButton.Create(self);
   with btnOK do
   begin
@@ -803,49 +876,6 @@ begin
     ImageName := 'stdimg.cancel';
     ModalResult := -1;
     OnClick := CancelClick;
-  end;
-
-  lb1 := TwgLabel.Create(self);
-  with lb1 do
-  begin
-    SetDimensions(8,335,80,16);
-    Anchors := [anLeft,anBottom];
-    Text := u8('Filename:');
-    FontName := '#Label1';
-  end;
-
-  lb2 := TwgLabel.Create(self);
-  with lb2 do
-  begin
-    SetDimensions(8,379,64,16);
-    Anchors := [anLeft,anBottom];
-    Text := u8('File type:');
-    FontName := '#Label1';
-  end;
-
-  btnUpDir := TwgButton.Create(self);
-  with btnUpDir do
-  begin
-    SetDimensions(564,11,28,24);
-    Anchors := [anRight,anTop];
-    Text := u8('');
-    FontName := '#Label1';
-    ImageName := 'stdimg.folderup';
-    ModalResult := 0;
-    Focusable := false;
-    OnClick := UpDirClick;
-  end;
-
-  btnDirNew := TwgButton.Create(self);
-  with btnDirNew do
-  begin
-    SetDimensions(600,11,28,24);
-    Anchors := [anRight,anTop];
-    Text := u8('');
-    FontName := '#Label1';
-    ImageName := 'stdimg.foldernew';
-    ModalResult := 0;
-    Focusable := false;
   end;
 
   {@VFD_BODY_END: frmFileDialog}
@@ -996,7 +1026,7 @@ begin
   end;
 {$endif}
 
-  grid.flist.ReadDirectory(GetFileFilter());
+  grid.flist.ReadDirectory(GetFileFilter(),ShowHidden);
 
   grid.flist.Sort(soFileName);
 
