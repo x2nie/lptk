@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.12  2003/11/04 09:19:47  aegluke
+// DrawString16 changes
+//
 // Revision 1.11  2003/10/30 11:21:30  aegluke
 // DoExpand and onExpand-Event
 //
@@ -637,11 +640,11 @@ begin
         Canvas.SetColor(h.ParentSelColor);
         Canvas.FillRectangle(w-FXOffset,YPos-FYOffset+col-FFont.Height + FFont.Ascent div 2 - 2,FFont.TextWidth16(h.text)+2,FFont.Height);
 	Canvas.SetTextColor(h.ParentSelTextColor);
-        Canvas.DrawString16(w-FXOffset+1,YPos-FYOffset+col,h.text);
-	Canvas.SetTextColor(h.ParentTextColor);	
+        Canvas.DrawString16(w-FXOffset+1,YPos-FYOffset+col-FFont.Height+FFont.Ascent div 2 - 1,h.text);
+	Canvas.SetTextColor(h.ParentTextColor);
       end
       else
-        Canvas.DrawString16(w-FXOffset+1,YPos-FYOffset+col,h.text);
+        Canvas.DrawString16(w-FXOffset+1,YPos-FYOffset+col-FFont.Height+FFont.Ascent div 2 - 1,h.text);
       Canvas.SetColor(clText1);
       if h.Count > 0 then	// subnodes? 
       begin
