@@ -1261,11 +1261,14 @@ var
   r : TRECT;
 begin
   // The lptk uses several writelines that we redirect to nul if {$APPTYPE GUI}
-  if GetStdHandle(STD_OUTPUT_HANDLE) <= 0 then
+  {$I-}
+  Writeln('LPTK-Win32');
+  if ioresult <> 0 then
   begin
     Assign(output,'nul');
     rewrite(output);
   end;
+  {$I+}
 
   display := Windows.GetDC(0);
 
@@ -2004,14 +2007,14 @@ end;
 
 {$ifdef Win32}
 
-function MyFontEnumerator(var LogFont: TLogFont; var TextMetric: TTextMetric;
-  FontType: Integer; data: Pointer): Integer; stdcall;
+function MyFontEnumerator(var LogFont: ENUMLOGFONTEX; var TextMetric: NEWTEXTMETRICEX;
+  FontType: Integer; data: LPARAM): Integer; stdcall;
 var
   sl : TStringList;
   s : string;
 begin
   sl := TStringList(data);
-  s := LogFont.lfFaceName;
+  s := LogFont.elfLogFont.lfFaceName;
   if ((sl.Count = 0) or (sl.Strings[sl.Count-1] <> s)) then sl.Add(s);
   Result := 1;
 end;
@@ -2023,7 +2026,7 @@ begin
   result := TStringList.Create;
   FillChar(LFont, sizeof(LFont), 0);
   LFont.lfCharset := DEFAULT_CHARSET;
-  EnumFontFamiliesEx(display, LFont, @MyFontEnumerator, LongInt(result), 0);
+  EnumFontFamiliesEx(display, {$ifdef FPC}@{$endif}LFont, @MyFontEnumerator, LongInt(result), 0);
   result.Sort;
 end;
 
