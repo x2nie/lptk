@@ -1,8 +1,10 @@
 unit vfdwidgets;
 
+{$H+}
+
 interface
 
-uses SysUtils, Classes, gfxbase, vfdwidgetclass, vfdprops;
+uses SysUtils, Classes, gfxbase, vfdwidgetclass, vfdprops, typinfo;
 
 procedure RegisterWidgets;
 
@@ -13,10 +15,15 @@ function VFDWidget(ind : integer) : TVFDWidgetClass;
 
 function VFDFormWidget : TVFDWidgetClass;
 
+var
+  VFDOtherWidget : TVFDWidgetClass;
+
 implementation
 
-uses gfxform,
-  wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox
+uses vfddesigner, gfxform,
+  wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox,
+  wgbevel,
+  vfdwgdbgrid
   ;
 
 var
@@ -48,9 +55,9 @@ end;
 procedure LoadIcons;
 begin
   GfxLibAddMaskedBMP(
-                   'vfd.default',
-            @stdimg_vfd_default,
-      sizeof(stdimg_vfd_default),
+                   'vfd.arrow',
+            @stdimg_vfd_arrow,
+      sizeof(stdimg_vfd_arrow),
             0,0 );
 
   GfxLibAddMaskedBMP(
@@ -65,11 +72,61 @@ begin
       sizeof(stdimg_vfd_edit),
             0,0 );
 
+
+  GfxLibAddMaskedBMP(
+                   'vfd.memo',
+            @stdimg_vfd_memo,
+      sizeof(stdimg_vfd_memo),
+            0,0 );
+
+  GfxLibAddMaskedBMP(
+                   'vfd.button',
+            @stdimg_vfd_button,
+      sizeof(stdimg_vfd_button),
+            0,0 );
+
   GfxLibAddMaskedBMP(
                    'vfd.checkbox',
             @stdimg_vfd_checkbox,
       sizeof(stdimg_vfd_checkbox),
             0,0 );
+
+  GfxLibAddMaskedBMP(
+                   'vfd.listbox',
+            @stdimg_vfd_listbox,
+      sizeof(stdimg_vfd_listbox),
+            0,0 );
+  GfxLibAddMaskedBMP(
+                   'vfd.choicelist',
+            @stdimg_vfd_choicelist,
+      sizeof(stdimg_vfd_choicelist),
+            0,0 );
+
+  GfxLibAddMaskedBMP(
+                   'vfd.panel',
+            @stdimg_vfd_panel,
+      sizeof(stdimg_vfd_panel),
+            0,0 );
+
+
+  GfxLibAddMaskedBMP(
+                   'vfd.other',
+            @stdimg_vfd_other,
+      sizeof(stdimg_vfd_other),
+            0,0 );
+
+  GfxLibAddMaskedBMP(
+                   'vfd.dbgrid',
+            @stdimg_vfd_dbgrid,
+      sizeof(stdimg_vfd_dbgrid),
+            15,0 );
+{
+  GfxLibAddMaskedBMP(
+                   'vfd.',
+            @stdimg_vfd_,
+      sizeof(stdimg_vfd_),
+            0,0 );
+}
 end;
 
 procedure AddWidgetPosProps(wgc : TVFDWidgetClass);
@@ -89,17 +146,12 @@ begin
 
   wc := TVFDWidgetClass.Create(TGfxForm);
   wc.NameBase := 'frm';
-  wc.AddProperty('Left',TPropertyInteger,'');
-  wc.AddProperty('Top',TPropertyInteger,'');
-  wc.AddProperty('Width',TPropertyInteger,'');
-  wc.AddProperty('Height',TPropertyInteger,'');
   wc.AddProperty('WindowTitle',TPropertyString16,'');
   FVFDFormWidget := wc;
 
   // Label
   wc := TVFDWidgetClass.Create(TwgLabel);
   wc.NameBase := 'lb';
-  AddWidgetPosProps(wc);
   wc.AddProperty('Text',TPropertyString16,'Label text (string16)');
   wc.AddProperty('FontName',TPropertyString8,'The font used displaying the label text');
   wc.WidgetIconName := 'vfd.label';
@@ -108,26 +160,32 @@ begin
   // Edit
   wc := TVFDWidgetClass.Create(TwgEdit);
   wc.NameBase := 'ed';
-  AddWidgetPosProps(wc);
   wc.AddProperty('Text',TPropertyString16,'Initial text (string16)');
   wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
   wc.WidgetIconName := 'vfd.edit';
   RegisterVFDWidget(wc);
 
+  // Memo
+  wc := TVFDWidgetClass.Create(TwgMemo);
+  wc.NameBase := 'memo';
+  wc.AddProperty('Lines',TPropertyStringList,'');
+  wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
+  wc.WidgetIconName := 'vfd.memo';
+  RegisterVFDWidget(wc);
+
   // Button
   wc := TVFDWidgetClass.Create(TwgButton);
   wc.NameBase := 'btn';
-  AddWidgetPosProps(wc);
   wc.AddProperty('Text',TPropertyString16,'Initial text (string16)');
   wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
   wc.AddProperty('ImageName',TPropertyString8,'');
+  wc.AddProperty('ModalResult',TPropertyInteger,'');
   wc.WidgetIconName := 'vfd.button';
   RegisterVFDWidget(wc);
 
   // CheckBox
   wc := TVFDWidgetClass.Create(TwgCheckBox);
   wc.NameBase := 'cb';
-  AddWidgetPosProps(wc);
   wc.AddProperty('Text',TPropertyString16,'Initial text (string16)');
   wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
   wc.WidgetIconName := 'vfd.checkbox';
@@ -136,12 +194,45 @@ begin
   // ChoiceList
   wc := TVFDWidgetClass.Create(TwgChoiceList);
   wc.NameBase := 'chl';
-  AddWidgetPosProps(wc);
   //wc.AddProperty('Text',TPropertyString16,'');
+  wc.AddProperty('Items',TPropertyStringList,'');
   wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
-  wc.WidgetIconName := '';
+  wc.WidgetIconName := 'vfd.choicelist';
   RegisterVFDWidget(wc);
 
+  // TextListBox
+  wc := TVFDWidgetClass.Create(TwgTextListBox);
+  wc.NameBase := 'lst';
+  //wc.AddProperty('Text',TPropertyString16,'');
+  wc.AddProperty('Items',TPropertyStringList,'');
+  wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
+  wc.WidgetIconName := 'vfd.listbox';
+  RegisterVFDWidget(wc);
+
+  // DBGrid
+  wc := TVFDWidgetClass.Create(TwgDBGrid);
+  wc.NameBase := 'grid';
+  wc.AddProperty('Columns',TPropertyDBColumns,'');
+  wc.AddProperty('FontName',TPropertyString8,'');
+  wc.AddProperty('HeaderFontName',TPropertyString8,'');
+  wc.WidgetIconName := 'vfd.dbgrid';
+  RegisterVFDWidget(wc);
+
+  // Panel
+  wc := TVFDWidgetClass.Create(TwgBevel);
+  wc.NameBase := 'panel';
+  wc.AddProperty('shape',TPropertyEnum,'');
+  wc.AddProperty('style',TPropertyEnum,'');
+  wc.WidgetIconName := 'vfd.panel';
+  wc.Container := true;
+  RegisterVFDWidget(wc);
+
+  // Other - do not delete!!! this should be the last...
+  wc := TVFDWidgetClass.Create(TOtherWidget);
+  wc.NameBase := 'wg';
+  wc.WidgetIconName := 'vfd.other';
+  RegisterVFDWidget(wc);
+  VFDOtherWidget := wc;
 
 end;
 

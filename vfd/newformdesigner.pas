@@ -36,6 +36,7 @@ type
 
     FileMenu : TPopupMenu;
     FormMenu : TPopupMenu;
+    SetMenu : TPopupMenu;
 
     function GetSelectedWidget : TVFDWidgetClass;
     procedure SetSelectedWidget(wgc : TVFDWidgetClass);
@@ -112,6 +113,10 @@ type
     edName  : TwgEdit;
     edOther : TwgMemo;
 
+    btnTop, btnLeft, btnWidth, btnHeight : TwgButton;
+
+    btnAnLeft, btnAnTop, btnAnRight, btnAnBottom : TwgButton;
+
     lstProps : TwgPropertyList;
 
     procedure AfterCreate; override;
@@ -131,6 +136,47 @@ implementation
 
 uses vfdmain;
 
+Const
+  vfd_anchorbottom : Array[0..121] of byte = (
+      66, 77,122,  0,  0,  0,  0,  0,  0,  0, 62,  0,  0,  0, 40,  0,  0,
+       0, 15,  0,  0,  0, 15,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,
+      60,  0,  0,  0,235, 10,  0,  0,235, 10,  0,  0,  2,  0,  0,  0,  2,
+       0,  0,  0,255,255,255,  0,  0,  0,  0,  0,255,254,  0,  0,128,  2,
+       0,  0,254,254,  0,  0,252,126,  0,  0,248, 62,  0,  0,240, 30,  0,
+       0,255,254,  0,  0,255,254,  0,  0,255,254,  0,  0,255,254,  0,  0,
+     255,254,  0,  0,255,254,  0,  0,255,254,  0,  0,255,254,  0,  0,255,
+     254,  0,  0);
+
+  vfd_anchorleft : Array[0..121] of byte = (
+      66, 77,122,  0,  0,  0,  0,  0,  0,  0, 62,  0,  0,  0, 40,  0,  0,
+       0, 15,  0,  0,  0, 15,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,
+      60,  0,  0,  0,235, 10,  0,  0,235, 10,  0,  0,  2,  0,  0,  0,  2,
+       0,  0,  0,255,255,255,  0,  0,  0,  0,  0,255,254,  0,  0,191,254,
+       0,  0,191,254,  0,  0,191,254,  0,  0,187,254,  0,  0,179,254,  0,
+       0,163,254,  0,  0,131,254,  0,  0,163,254,  0,  0,179,254,  0,  0,
+     187,254,  0,  0,191,254,  0,  0,191,254,  0,  0,191,254,  0,  0,255,
+     254,  0,  0);
+
+  vfd_anchorright : Array[0..121] of byte = (
+      66, 77,122,  0,  0,  0,  0,  0,  0,  0, 62,  0,  0,  0, 40,  0,  0,
+       0, 15,  0,  0,  0, 15,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,
+      60,  0,  0,  0,235, 10,  0,  0,235, 10,  0,  0,  2,  0,  0,  0,  2,
+       0,  0,  0,255,255,255,  0,  0,  0,  0,  0,255,254,  0,  0,255,250,
+       0,  0,255,250,  0,  0,255,250,  0,  0,255,186,  0,  0,255,154,  0,
+       0,255,138,  0,  0,255,130,  0,  0,255,138,  0,  0,255,154,  0,  0,
+     255,186,  0,  0,255,250,  0,  0,255,250,  0,  0,255,250,  0,  0,255,
+     254,  0,  0);
+
+  vfd_anchortop : Array[0..121] of byte = (
+      66, 77,122,  0,  0,  0,  0,  0,  0,  0, 62,  0,  0,  0, 40,  0,  0,
+       0, 15,  0,  0,  0, 15,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,
+      60,  0,  0,  0,235, 10,  0,  0,235, 10,  0,  0,  2,  0,  0,  0,  2,
+       0,  0,  0,255,255,255,  0,  0,  0,  0,  0,255,254,  0,  0,255,254,
+       0,  0,255,254,  0,  0,255,254,  0,  0,255,254,  0,  0,255,254,  0,
+       0,255,254,  0,  0,255,254,  0,  0,255,254,  0,  0,240, 30,  0,  0,
+     248, 62,  0,  0,252,126,  0,  0,254,254,  0,  0,128,  2,  0,  0,255,
+     254,  0,  0);
+
 {@VFD_NEWFORM_IMPL}
 
 procedure TfrmMain.AfterCreate;
@@ -139,11 +185,18 @@ var
   x : integer;
   wgc : TVFDWidgetClass;
   btn : TwgPaletteButton;
+  mi : TMenuItem;
 begin
   {@VFD_BODY_BEGIN: frmMain}
   SetDimensions(0,0,506,87);
   WindowTitle8 := 'frmMain';
   WindowPosition := wpUser;
+
+  MainMenu := TMenuBar.Create(self);
+  with MainMenu do
+  begin
+    SetDimensions(0,0,500,24);
+  end;
 
   btnOpen := TwgButton.Create(self);
   with btnOpen do
@@ -152,12 +205,7 @@ begin
     Text := u8('');
     ImageName := 'stdimg.open';
     Focusable := false;
-  end;
-
-  MainMenu := TMenuBar.Create(self);
-  with MainMenu do
-  begin
-    SetDimensions(0,0,500,24);
+    OnClick := maindsgn.OnLoadFile;
   end;
 
   btnSave := TwgButton.Create(self);
@@ -167,6 +215,7 @@ begin
     Text := u8('');
     ImageName := 'stdimg.save';
     Focusable := false;
+    OnClick := maindsgn.OnSaveFile;
   end;
 
   wgpalette := TwgPalette.Create(self);
@@ -209,24 +258,36 @@ begin
   filemenu := TPopupMenu.Create(self);
   with filemenu do
   begin
-    AddMenuItem8('Open','',nil);
-    AddMenuItem8('Save','',nil);
+    mi := AddMenuItem8('Open','',nil);
+    mi.OnClick := maindsgn.OnLoadFile;
+    mi := AddMenuItem8('Save','',nil);
+    mi.OnClick := maindsgn.OnSaveFile;
     AddMenuItem8('-','',nil);
-    AddMenuItem8('New Form...','',nil);
+    mi := AddMenuItem8('New Form...','',nil);
+    mi.OnClick := maindsgn.OnNewForm;
     AddMenuItem8('-','',nil);
-    AddMenuItem8('Exit','',nil);
+    mi := AddMenuItem8('Exit','',nil);
+    mi.OnClick := maindsgn.OnExit;
   end;
 
   formmenu := TPopupMenu.Create(self);
   with formmenu do
   begin
-    AddMenuItem8('Widget Order...','',nil);
+    mi := AddMenuItem8('Widget Order...','',nil);
+    mi.OnClick := maindsgn.OnEditWidgetOrder;
     AddMenuItem8('-','',nil);
     AddMenuItem8('Edit special...','',nil);
   end;
 
+  setmenu := TPopupMenu.Create(self);
+  with setmenu do
+  begin
+    mi := AddMenuItem8('General options ...','',nil);
+    mi.OnClick := maindsgn.OnOptionsClick;
+  end;
+
   MainMenu.AddMenuItem8('&File',nil).SubMenu := filemenu;
-  MainMenu.AddMenuItem8('&Settings',nil).SubMenu := nil;
+  MainMenu.AddMenuItem8('&Settings',nil).SubMenu := setmenu;
   MainMenu.AddMenuItem8('Fo&rm',nil).SubMenu := formmenu;
 
 end;
@@ -253,6 +314,32 @@ var
   x, x2, w, y, gap : integer;
 begin
   inherited;
+
+  GfxLibAddBMP(
+            'vfd.anchorleft',
+            @vfd_anchorleft,
+      sizeof(vfd_anchorleft)
+              );
+
+  GfxLibAddBMP(
+            'vfd.anchorright',
+            @vfd_anchorright,
+      sizeof(vfd_anchorright)
+              );
+
+  GfxLibAddBMP(
+            'vfd.anchortop',
+            @vfd_anchortop,
+      sizeof(vfd_anchortop)
+              );
+
+  GfxLibAddBMP(
+            'vfd.anchorbottom',
+            @vfd_anchorbottom,
+      sizeof(vfd_anchorbottom)
+              );
+
+
   WindowPosition := wpUser;
 
   WindowTitle8 := 'Properties';
@@ -278,15 +365,112 @@ begin
   edName := CreateEdit(self, x2,y,w,0);
   edName.Text8 := 'NAME';
   edName.Anchors := [anLeft,anRight,anTop];
-  inc(y, gap+3);
+  edName.OnChange := maindsgn.OnPropNameChange;
+
+  inc(y, gap+5);
 
   lstProps := TwgPropertyList.Create(self);
-  lstProps.SetDimensions(0,y,Width,self.height-y-90);
+  lstProps.SetDimensions(0,y,Width,self.height-y-220);
   lstProps.Anchors := AllAnchors;
   lstProps.Props := PropList;
   lstProps.Props.Widget := edName;
 
-  y := height - 90 + 1;
+  y := lstProps.Bottom+5;
+
+  //inc(y, gap+5);
+
+  l3 := CreateLabel(self, 3,y+1, 'Left:');
+  l3.Anchors := [anLeft,anBottom];
+  btnLeft := CreateButton(self, 50, y-2, 48, '1234', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
+  with btnLeft do
+  begin
+    Height := 22;
+    btnLeft.Anchors := [anLeft,anBottom];
+    Focusable := false;
+  end;
+  l4 := CreateLabel(self, 110, y, 'Top:');
+  l4.Anchors := [anLeft,anBottom];
+  btnTop := CreateButton(self, 160, y-2, 48, '45', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
+  with btnTop do
+  begin
+    Height := 22;
+    btnLeft.Anchors := [anLeft,anBottom];
+    Focusable := false;
+  end;
+  inc(y, gap+5);
+  l5 := CreateLabel(self, 3,y+1, 'Width:');
+  l5.Anchors := [anLeft,anBottom];
+  btnWidth := CreateButton(self, 50, y-2, 48, '1234', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
+  with btnWidth do
+  begin
+    Height := 22;
+    btnLeft.Anchors := [anLeft,anBottom];
+    Focusable := false;
+  end;
+  l6 := CreateLabel(self, 110, y, 'Height:');
+  l6.Anchors := [anLeft,anBottom];
+  btnHeight := CreateButton(self, 160, y-2, 48, '45', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
+  with btnHeight do
+  begin
+    Height := 22;
+    btnLeft.Anchors := [anLeft,anBottom];
+    Focusable := false;
+  end;
+  inc(y, gap+5);
+
+  l8 := CreateLabel(self, 3,y+1, 'Anchors:');
+  l8.Anchors := [anLeft,anBottom];
+
+  x := 64;
+
+  btnAnLeft := CreateButton(self,x,y-2,28,'',nil);
+  with btnAnLeft do
+  begin
+    ImageName := 'vfd.anchorleft';
+    AllowAllUp := true;
+    GroupIndex := 1;
+    Focusable := false;
+    Anchors := [anLeft,anBottom];
+    OnClick := maindsgn.OnAnchorChange;
+  end;
+
+  inc(x,30);
+  btnAnTop := CreateButton(self,x,y-2,26,'',nil);
+  with btnAnTop do
+  begin
+    ImageName := 'vfd.anchortop';
+    AllowAllUp := true;
+    GroupIndex := 2;
+    Focusable := false;
+    Anchors := [anLeft,anBottom];
+    OnClick := maindsgn.OnAnchorChange;
+  end;
+
+  inc(x,30);
+  btnAnBottom := CreateButton(self,x,y-2,26,'',nil);
+  with btnAnBottom do
+  begin
+    ImageName := 'vfd.anchorbottom';
+    AllowAllUp := true;
+    GroupIndex := 3;
+    Focusable := false;
+    Anchors := [anLeft,anBottom];
+    OnClick := maindsgn.OnAnchorChange;
+  end;
+
+  inc(x,30);
+  btnAnRight := CreateButton(self,x,y-2,26,'',nil);
+  with btnAnRight do
+  begin
+    ImageName := 'vfd.anchorright';
+    AllowAllUp := true;
+    GroupIndex := 4;
+    Focusable := false;
+    Anchors := [anLeft,anBottom];
+    OnClick := maindsgn.OnAnchorChange;
+  end;
+
+  y := btnAnRight.Bottom + 5;
 
   l7 := CreateLabel(self, 0,y, 'Unknown lines:');
   l7.Anchors := [anLeft,anBottom];
@@ -296,6 +480,7 @@ begin
   edOther.SetDimensions(0,y,self.Width,self.Height-y);
   edOther.Anchors := [anLeft,anRight,anBottom];
   edOther.FontName := '#Edit2';
+  edOther.OnChange := maindsgn.OnOtherChange;
 
 end;
 
@@ -499,13 +684,13 @@ end;
 procedure TwgPropertyList.DoKillFocus;
 begin
   inherited;
-  ReleaseEditor;
+  Editor.Visible := true;
 end;
 
 procedure TwgPropertyList.DoSetFocus;
 begin
   inherited;
-  AllocateEditor;
+  if Editor <> nil then Editor.Visible := true else AllocateEditor;
 end;
 
 procedure TwgPropertyList.AllocateEditor;

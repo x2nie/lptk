@@ -14,7 +14,8 @@ interface
 uses
   Classes, SysUtils, gfxbase, messagequeue, schar16, gfxwidget, gfxform, gfxdialogs, sqldb, gfxstyle,
   wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox,
-  vfdresizer, vfdforms, vfdeditors;
+  vfdresizer, vfdforms, vfdeditors,
+  vfdwidgetclass, vfdwidgets, vfdprops, newformdesigner;
 
 type
 
@@ -45,6 +46,7 @@ type
   public
     FFormDesigner : TFormDesigner;
     FWidget : TWidget;
+    FVFDClass : TVFDWidgetClass;
 
     FSelected  : boolean;
 
@@ -52,7 +54,7 @@ type
 
     other : TStringList;  // 8 bit
 
-    constructor Create(AFormDesigner : TFormDesigner; wg : TWidget);
+    constructor Create(AFormDesigner : TFormDesigner; wg : TWidget; wgc : TVFDWidgetClass);
     destructor Destroy; override;
 
     property Selected : boolean read FSelected write SetSelected;
@@ -103,9 +105,10 @@ type
 
     procedure InitTest;
 
-    function AddWidget(wg : TWidget) : TWidgetDesigner;
+    function AddWidget(wg : TWidget; wgc : TVFDWidgetClass) : TWidgetDesigner;
 
     function WidgetDesigner(wg : TWidget) : TWidgetDesigner;
+    function FindWidgetByName(const wgname : string) : TWidget;
 
     procedure DeSelectAll;
     procedure SelectAll;
@@ -119,6 +122,7 @@ type
     procedure DesignerKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean);
 
     procedure PutControlByName(x,y : integer; cname : string);
+    procedure InsertWidget(pwg : TWidget; x,y : integer; wgc : TVFDWidgetClass);
 
     procedure OnPaletteChange(Sender : TObject);
 
@@ -193,12 +197,14 @@ begin
   end;
 end;
 
-constructor TWidgetDesigner.Create(AFormDesigner : TFormDesigner; wg : TWidget);
+constructor TWidgetDesigner.Create(AFormDesigner : TFormDesigner; wg : TWidget;
+  wgc : TVFDWidgetClass );
 var
   n : integer;
 begin
   FFormDesigner := AFormDesigner;
   FWidget := wg;
+  FVFDClass := wgc;
   for n:=1 to 8 do resizer[n] := nil;
   FSelected := false;
   wg.MouseCursor := CUR_DEFAULT;
@@ -302,6 +308,8 @@ end;
 procedure TFormDesigner.MsgMouseUp(var msg: TMessageRec);
 var
   wgd : TWidgetDesigner;
+  wgc : TVFDWidgetClass;
+  pwg : TWidget;
   shift : boolean;
   x,y : integer;
 begin
@@ -309,31 +317,45 @@ begin
 
   shift := ((msg.Param3 and $FF) and ss_shift) <> 0;
 
-  if msg.dest = FForm then
+  wgc := frmMain.SelectedWidget;
+  pwg := TWidget(msg.dest);
+  wgd := WidgetDesigner(TWidget(msg.dest));
+  if wgd = nil then pwg := FForm
+  else if not wgd.FVFDClass.Container then wgc := nil;
+
+  if wgc <> nil then
   begin
     DeSelectAll;
-    if PaletteForm.clist.FocusItem > 1 then
+
+    if wgc <> nil then
     begin
       x := msg.Param1;
       y := msg.Param2;
+
       if GridResolution > 1 then
       begin
         x := x - x mod GridResolution;
         y := y - y mod GridResolution;
       end;
-      PutControlByName(x,y,PaletteForm.clist.Text8);
+
+      InsertWidget(pwg, x,y, wgc);
 
       if not shift then
       begin
         FForm.MouseCursor := CUR_DEFAULT;
-        PaletteForm.clist.FocusItem := 1;
+        frmMain.SelectedWidget := nil;
       end;
     end;
   end
   else
   begin
     wgd := WidgetDesigner(TWidget(msg.dest));
-    if wgd = nil then Exit;
+    if wgd = nil then
+    begin
+      DeSelectAll;
+      UpdatePropWin;
+      Exit;
+    end;
 
     if not shift then
     begin
@@ -457,15 +479,15 @@ begin
   l1 := CreateLabel(FForm, 10,10, 'Test Label' );
   ed1 := CreateEdit(FForm, 10, 50, 150, 0);
 
-  AddWidget(l1);
-  AddWidget(ed1);
+  AddWidget(l1, nil);
+  AddWidget(ed1, nil);
 end;
 
-function TFormDesigner.AddWidget(wg : TWidget) : TWidgetDesigner;
+function TFormDesigner.AddWidget(wg : TWidget; wgc : TVFDWidgetClass) : TWidgetDesigner;
 var
   cd : TWidgetDesigner;
 begin
-  cd := TWidgetDesigner.Create(self, wg);
+  cd := TWidgetDesigner.Create(self, wg, wgc);
   FWidgets.Add(cd);
   //cd.Selected := true;
   wg.FormDesigner := self;
@@ -595,21 +617,46 @@ begin
   end;
 end;
 
+
 procedure TFormDesigner.EditWidgetOrder;
 var
   frm : TWidgetOrderForm;
   n,fi : integer;
   cd : TWidgetDesigner;
+  identlevel : integer;
+
+  procedure AddChildWidgets(pwg : TWidget; slist : TStringList);
+  var
+    f : integer;
+    fcd : TWidgetDesigner;
+  begin
+    for f:=0 to FWidgets.Count-1 do
+    begin
+      fcd := TWidgetDesigner(FWidgets.Items[f]);
+
+      if fcd.Widget.Parent = pwg then
+      begin
+        frm.list.Items.AddObject(u8(StringOfChar(' ',identlevel)+fcd.Widget.Name + ' : ' + fcd.Widget.ClassName),fcd);
+        inc(identlevel);
+        AddChildWidgets(fcd.Widget,slist);
+        dec(identlevel);
+      end;
+
+      if fcd.Selected then fi := f+1;
+    end;
+  end;
+
+
 begin
   frm := TWidgetOrderForm.Create(nil);
   fi := 1;
-  for n:=0 to FWidgets.Count-1 do
-  begin
-    cd := TWidgetDesigner(FWidgets.Items[n]);
-    if cd.Selected then fi := n+1;
-    frm.list.Items.AddObject(u8(cd.Widget.Name + ' : ' + cd.Widget.ClassName),cd);
-  end;
+
+  identlevel := 0;
+
+  AddChildWidgets(FForm, frm.list.Items);
+
   if fi <= frm.list.ItemCount then frm.list.FocusItem := fi;
+
   if frm.ShowModal = 1 then
   begin
     for n:=0 to FWidgets.Count-1 do TWidgetDesigner(FWidgets.Items[n]).Widget.Visible := false;
@@ -667,12 +714,12 @@ begin
 
     KEY_F2: EditWidgetOrder;
 
-    KEY_F4: if PropertyForm.btnEdit.Visible then PropertyForm.btnEdit.Click;
+    //KEY_F4: if PropertyForm.btnEdit.Visible then PropertyForm.btnEdit.Click;
 
     KEY_F11,
     KEY_ENTER:
       begin
-        GfxActivateWindow(PropertyForm.WinHandle);
+        GfxActivateWindow(frmProperties.WinHandle);
       end;
   else
     consumed := false;
@@ -769,7 +816,7 @@ begin
   if wg <> nil then
   begin
     wg.name := newname;
-    wgd := AddWidget(wg);
+    wgd := AddWidget(wg, nil);
     wg.ShowWidget;
     DeSelectAll;
     wgd.Selected := true;
@@ -785,16 +832,21 @@ end;
 
 procedure TFormDesigner.UpdatePropWin;
 var
-  n : integer;
+  n,i : integer;
   cd, scd : TWidgetDesigner;
   wg : TWidget;
 
   wgcnt : integer;
-  btxt  : boolean;
-  bedit : boolean;
+  //btxt  : boolean;
+  //bedit : boolean;
+
+  lastpropname : string;
+
+  wgc : TVFDWidgetClass;
 begin
   wgcnt := 0;
   wg := FForm;
+  wgc := VFDFormWidget;
   scd := nil;
   for n:=0 to FWidgets.Count-1 do
   begin
@@ -810,6 +862,67 @@ begin
     end;
   end;
 
+  if scd <> nil then wgc := scd.FVFDClass;
+
+  //Writeln('wg: ',wg.ClassName);
+
+  n := frmProperties.lstProps.FocusItem;
+  if (n > 0) and (PropList.GetItem(n) <> nil)
+    then lastpropname := PropList.GetItem(n).Name
+    else lastpropname := '';
+
+  i := 0;
+
+  if PropList.Widget <> wg then
+  begin
+    frmProperties.lstProps.ReleaseEditor;
+    PropList.Clear;
+    for n:=1 to wgc.PropertyCount do
+    begin
+      PropList.AddItem(wgc.GetProperty(n));
+      if UpperCase(wgc.GetProperty(n).Name) = UpperCase(lastPropName) then i := n;
+    end;
+    PropList.Widget := wg;
+    frmProperties.lstProps.Update;
+    if i > 0 then frmProperties.lstProps.FocusItem := i;
+  end;
+
+  with frmProperties do
+  begin
+    if wg is TOtherWidget then lbClass.Text8 := TOtherWidget(wg).wgClassName
+                          else lbClass.Text8 := wg.ClassName;
+    edName.Text8 := wg.Name;
+
+    if scd <> nil then
+    begin
+      edOther.Text := str8to16(scd.other.Text);
+    end
+    else
+    begin
+      edOther.Text := str8to16(FFormOther);
+    end;
+    
+    edName.Visible := (wgcnt < 2);
+    edOther.Visible := (wgcnt < 2);
+
+    lstProps.RePaint;
+  end;
+
+  with frmProperties do
+  begin
+    btnLeft.Text8 := IntToStr(wg.Left);
+    btnTop.Text8 := IntToStr(wg.Top);
+    btnWidth.Text8 := IntToStr(wg.Width);
+    btnHeight.Text8 := IntToStr(wg.Height);
+
+    btnAnLeft.Down := anLeft in wg.Anchors;
+    btnAnTop.Down := anTop in wg.Anchors;
+    btnAnRight.Down := anRight in wg.Anchors;
+    btnAnBottom.Down := anBottom in wg.Anchors;
+  end;
+
+  exit;
+{
   with PropertyForm do
   begin
     if wg is TOtherWidget then lbClass.Text8 := TOtherWidget(wg).wgClassName
@@ -868,16 +981,19 @@ begin
     edOther.Visible := (wgcnt < 2);
 
   end; // with PropertyForm
-
+}
 end;
 
 procedure TFormDesigner.OnPropTextChange(sender: TObject);
+{
 var
   n : integer;
   cd : TWidgetDesigner;
   wg : TWidget;
   s : string16;
+}
 begin
+{
   s := PropertyForm.edText.Text;
   wg := nil;
   for n:=0 to FWidgets.Count-1 do
@@ -904,7 +1020,7 @@ begin
   begin
     FForm.WindowTitle := s;
   end;
-
+}
 end;
 
 procedure TFormDesigner.OnPropNameChange(sender: TObject);
@@ -912,10 +1028,10 @@ var
   n : integer;
   cd : TWidgetDesigner;
   wg : TWidget;
-  s8, s : string;
+  s8 : string;
 begin
-  writeln('namechange');
-  s8 := str16to8(PropertyForm.edName.Text);
+//  writeln('namechange');
+  s8 := str16to8(frmProperties.edName.Text);
   wg := nil;
   for n:=0 to FWidgets.Count-1 do
   begin
@@ -923,33 +1039,32 @@ begin
     if cd.Selected then
     begin
       wg := cd.Widget;
-
+{
       if GetWidgetText(wg,s) and (wg.Name = str16to8(s)) then
       begin
         PropertyForm.edText.Text8 := s8;
         OnPropTextChange(sender);
       end;
-
-      try
-        wg.Name := s8;
-      except
-        // invalid name...
-      end;
+}
     end;
   end;
 
   if wg = nil then
   begin
+    wg := FForm;
+{
     if FForm.Name = FForm.WindowTitle8 then
     begin
       FForm.WindowTitle8 := s8;
       PropertyForm.edText.Text8 := s8;
     end;
-    try
-      FForm.Name := s8;
-    except
-      // invalid name...
-    end;
+}    
+  end;
+
+  try
+    wg.Name := s8;
+  except
+    // invalid name...
   end;
 end;
 
@@ -967,10 +1082,10 @@ var
 
   procedure SetNewPos(awg : TWidget; pval : integer);
   begin
-    if sender = PropertyForm.btnLeft then awg.Left := pval
-    else if sender = PropertyForm.btnTop then awg.Top := pval
-    else if sender = PropertyForm.btnWidth then awg.Width := pval
-    else if sender = PropertyForm.btnHeight then awg.Height := pval
+    if sender = frmProperties.btnLeft then awg.Left := pval
+    else if sender = frmProperties.btnTop then awg.Top := pval
+    else if sender = frmProperties.btnWidth then awg.Width := pval
+    else if sender = frmProperties.btnHeight then awg.Height := pval
     ;
   end;
 
@@ -993,22 +1108,22 @@ begin
   GfxGetAbsolutePosition(btn.WinHandle, btn.width, 0, ax,ay);
   frm.Left := ax;
   frm.Top := ay;
-  if sender = PropertyForm.btnLeft then
+  if sender = frmProperties.btnLeft then
   begin
     frm.lbPos.Text8 := 'Left:';
     frm.edPos.Text8 := IntToStr(wg.Left);
   end
-  else if sender = PropertyForm.btnTop then
+  else if sender = frmProperties.btnTop then
   begin
     frm.lbPos.Text8 := 'Top:';
     frm.edPos.Text8 := IntToStr(wg.Top);
   end
-  else if sender = PropertyForm.btnWidth then
+  else if sender = frmProperties.btnWidth then
   begin
     frm.lbPos.Text8 := 'Width:';
     frm.edPos.Text8 := IntToStr(wg.Width);
   end
-  else if sender = PropertyForm.btnHeight then
+  else if sender = frmProperties.btnHeight then
   begin
     frm.lbPos.Text8 := 'Height:';
     frm.edPos.Text8 := IntToStr(wg.Height);
@@ -1057,7 +1172,7 @@ var
   sc : integer;
 begin
   sc := 0;
-  s := PropertyForm.edOther.Text8;
+  s := frmProperties.edOther.Text8;
   for n:=0 to FWidgets.Count-1 do
   begin
     cd := TWidgetDesigner(FWidgets.Items[n]);
@@ -1088,10 +1203,10 @@ begin
       wg := cd.Widget;
 
       wg.Anchors := [];
-      if PropertyForm.cbAL.Checked then wg.Anchors := wg.Anchors + [anLeft];
-      if PropertyForm.cbAT.Checked then wg.Anchors := wg.Anchors + [anTop];
-      if PropertyForm.cbAR.Checked then wg.Anchors := wg.Anchors + [anRight];
-      if PropertyForm.cbAB.Checked then wg.Anchors := wg.Anchors + [anBottom];
+      if frmProperties.btnAnLeft.Down then wg.Anchors := wg.Anchors + [anLeft];
+      if frmProperties.btnAnTop.Down then wg.Anchors := wg.Anchors + [anTop];
+      if frmProperties.btnAnRight.Down then wg.Anchors := wg.Anchors + [anRight];
+      if frmProperties.btnAnBottom.Down then wg.Anchors := wg.Anchors + [anBottom];
     end;
   end;
 end;
@@ -1158,7 +1273,7 @@ begin
 
   s := s + '  SetDimensions('+IntToStr(FForm.Left)+','+IntToStr(FForm.Top)
     +','+IntToStr(FForm.Width)+','+IntToStr(FForm.Height)+');'#10;
-  s := s + '  WindowTitle8 := '+QuotedStr(u8encode(FForm.WindowTitle))+';'#10;
+  s := s + '  WindowTitle8 := '+QuotedStr(u16u8safe(FForm.WindowTitle))+';'#10;
 
   //adding other form properties, idented
   sl := TStringList.Create;
@@ -1193,6 +1308,7 @@ var
   ts,cs : string;
   s : string;
   wg : TWidget;
+  wgc : TVFDWidgetClass;
   n : integer;
 
   procedure SaveItems(name : string; sl : TStringList);
@@ -1201,7 +1317,7 @@ var
   begin
     for f := 0 to sl.Count - 1 do
     begin
-      s := s + ident + name + '.Add(u8('+QuotedStr(u8encode(sl.Strings[f]))+'));'#10;
+      s := s + ident + name + '.Add(u8('+QuotedStr(u16u8safe(sl.Strings[f]))+'));'#10;
     end;
   end;
 
@@ -1220,13 +1336,14 @@ var
       else
         alstr := 'alLeft';
       end;
-      s := s + ident + 'AddColumn8('+QuotedStr(u8encode(c.Title))+','+QuotedStr(c.FieldName8)
+      s := s + ident + 'AddColumn8('+QuotedStr(u16u8safe(c.Title))+','+QuotedStr(c.FieldName8)
                 +','+IntToStr(c.Width)+','+alstr+');'#10;
     end;
   end;
 
 begin
   wg := wd.Widget;
+  wgc := wd.FVFDClass;
   s := '';
 
   if maindsgn.SaveComponentNames then
@@ -1247,6 +1364,12 @@ begin
     s := s + ident + 'Anchors := ' + ts + #10;
   end;
 
+  for n:=1 to wgc.PropertyCount do
+  begin
+    s := s + wgc.GetProperty(n).GetPropertySource(wg, ident);
+  end;
+  
+{
   if wg is TwgMemo then
   begin
     SaveItems('Lines',TwgMemo(wg).Lines);
@@ -1268,6 +1391,7 @@ begin
     begin
       s := s + ident + 'Text := u8('+QuotedStr(u8encode(ts))+');'#10;  // encoding with all printable characters
     end;
+}    
 
   for n:=0 to wd.other.Count-1 do
     if trim(wd.other.Strings[n]) <> '' then
@@ -1300,12 +1424,12 @@ end;
 procedure EditItems(sl : TStringList);
 var
   frmie : TItemEditorForm;
-  ax,ay : integer;
+  //ax,ay : integer;
 begin
   frmie := TItemEditorForm.Create(nil);
-  GfxGetAbsolutePosition(PropertyForm.btnEdit.WinHandle, PropertyForm.btnEdit.width, 0, ax,ay);
-  frmie.Left := ax;
-  frmie.Top := ay;
+  //GfxGetAbsolutePosition(PropertyForm.btnEdit.WinHandle, PropertyForm.btnEdit.width, 0, ax,ay);
+  //frmie.Left := ax;
+  //frmie.Top := ay;
 
   frmie.edItems.Lines.Assign(sl);
   if frmie.ShowModal = 1 then
@@ -1335,7 +1459,68 @@ begin
   end
   else if wg is TwgDBGrid then
   begin
-    EditDBGridColumns(TwgDBGrid(wg));
+    //EditDBGridColumns(TwgDBGrid(wg));
+  end;
+end;
+
+procedure TFormDesigner.InsertWidget(pwg : TWidget; x,y : integer; wgc : TVFDWidgetClass);
+var
+  cfrm : TInsertCustomForm;
+  newname, newclassname : string;
+  wg : TWidget;
+  wgd : TWidgetDesigner;
+begin
+  if wgc = nil then Exit;
+
+  newname := '';
+
+  if wgc.WidgetClass = TOtherWidget then
+  begin
+    newclassname := '';
+    cfrm := TInsertCustomForm.Create(nil);
+    cfrm.edName.Text8 := GenerateNewName(wgc.NameBase);
+    cfrm.edClass.Text8 := 'Twg';
+    if cfrm.ShowModal = 1 then
+    begin
+      newname := cfrm.edName.Text8;
+      newClassName := cfrm.edClass.Text8;
+    end;
+    cfrm.Free;
+    if (newname = '') or (newclassname = '') then Exit;
+  end;
+
+  wg := wgc.CreateWidget(pwg);
+  if wg <> nil then
+  begin
+    wg.Left := x;
+    wg.Top  := y;
+    if newname = '' then newname := GenerateNewName(wgc.NameBase);
+    wg.name := newname;
+    if wgc.WidgetClass = TOtherWidget then TOtherWidget(wg).wgClassName := newclassname;
+    wgd := AddWidget(wg, wgc);
+    wg.ShowWidget;
+    DeSelectAll;
+    wgd.Selected := true;
+    UpdatePropWin;
+  end;
+end;
+
+function TFormDesigner.FindWidgetByName(const wgname: string): TWidget;
+var
+  n : integer;
+  wgnameuc : string;
+  cd : TWidgetDesigner;
+begin
+  wgnameuc := UpperCase(wgname);
+  result := nil;
+  for n:=0 to FWidgets.Count-1 do
+  begin
+    cd := TWidgetDesigner(FWidgets.Items[n]);
+    if UpperCase(cd.Widget.Name) = wgnameuc then
+    begin
+      result := cd.Widget;
+      Exit;
+    end;
   end;
 end;
 
@@ -1367,6 +1552,8 @@ begin
   wgClassName := 'TWidget';
   FBackgroundColor := $C0E0C0;
   FFont := guistyle.DefaultFont;
+  FWidth := 120;
+  FHeight := 32;
 end;
 
 procedure TOtherWidget.RePaint;

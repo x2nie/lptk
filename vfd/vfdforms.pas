@@ -85,6 +85,30 @@ type
     procedure HandleClose; override;
   end;
 
+  TfrmLoadSave = class(TGfxForm)
+  public
+    {@VFD_HEAD_BEGIN: frmLoadSave}
+    lb1 : TwgLabel;
+    edFileName : TwgEdit;
+    btnOK : TwgButton;
+    btnCancel : TwgButton;
+    {@VFD_HEAD_END: frmLoadSave}
+
+    procedure AfterCreate; override;
+  end;
+
+  TfrmVFDSetup = class(TGfxForm)
+  public
+    {@VFD_HEAD_BEGIN: frmVFDSetup}
+    lb1 : TwgLabel;
+    chlGrid : TwgChoiceList;
+    btnOK : TwgButton;
+    btnCancel : TwgButton;
+    {@VFD_HEAD_END: frmVFDSetup}
+
+    procedure AfterCreate; override;
+  end;
+
   TMainForm = class(TGfxForm)
   public
     l1,l2 : TwgLabel;
@@ -98,6 +122,7 @@ type
 
     procedure AfterCreate; override;
   end;
+
 
   TPropertyForm = class(TGfxForm)
   public
@@ -128,8 +153,8 @@ type
 
 var
   PaletteForm : TPaletteForm;
-  MainForm : TMainForm;
-  PropertyForm : TPropertyForm;
+  //MainForm : TMainForm;
+  //PropertyForm : TPropertyForm;
 
 function GridResolution : integer;
 
@@ -139,12 +164,7 @@ uses vfdmain;
 
 function GridResolution : integer;
 begin
-  case MainForm.chlGrid.FocusItem of
-    2 : result := 4;
-    3 : result := 8;
-  else
-    result := 1;
-  end;
+  result := maindsgn.GridResolution;
 end;
 
 { TPaletteForm }
@@ -399,6 +419,8 @@ begin
   edPos := CreateEdit(self, 8,28, 80, 0);
   btnOK := CreateButton(self,96,8,80, 'OK', {$ifdef FPC}@{$endif}OnButtonClick);
   btnCancel := CreateButton(self,96,36,80, 'Cancel', {$ifdef FPC}@{$endif}OnButtonClick);
+  btnOK.ImageName := 'stdimg.ok';
+  btnCancel.ImageName := 'stdimg.cancel';
 end;
 
 procedure TEditPositionForm.OnButtonClick(sender: TObject);
@@ -423,7 +445,9 @@ begin
   list.SetDimensions(4,24,220,228);
 
   btnOK := CreateButton(self,232,24,80, 'OK', {$ifdef FPC}@{$endif}OnButtonClick);
+  btnOK.ImageName := 'stdimg.ok';
   btnCancel := CreateButton(self,232,52,80, 'Cancel', {$ifdef FPC}@{$endif}OnButtonClick);
+  btnCancel.ImageName := 'stdimg.cancel';
 
   btnUP := CreateButton(self,232,108,80, 'UP', {$ifdef FPC}@{$endif}OnButtonClick);
   btnDOWN := CreateButton(self,232,136,80, 'DOWN', {$ifdef FPC}@{$endif}OnButtonClick);
@@ -432,7 +456,23 @@ end;
 
 procedure TWidgetOrderForm.OnButtonClick(sender: TObject);
 var
-  i : integer;
+  i, n, myilev : integer;
+
+  function IdentLevel(astr : string16) : integer;
+  var
+    s : string;
+    f : integer;
+  begin
+    result := 0;
+    s := str16to8(astr);
+    f := 1;
+    while (f <= length(s)) and (s[f] = ' ') do
+    begin
+      inc(result);
+      inc(f);
+    end;
+  end;
+
 begin
   if Sender = btnOK then ModalResult := 1
   else if Sender = btnCancel then ModalResult := 2
@@ -442,19 +482,47 @@ begin
     i := list.FocusItem;
     if i < 1 then exit;
 
+    myilev := IdentLevel(list.Items[i-1]);
+
     if Sender = btnUP then
     begin
-      if i > 1 then
+      if (i > 1) and (IdentLevel(list.Items[i-2]) = myilev) then
       begin
         list.Items.Move(i-1,i-2);
+
+        n := i;
+        while (n < list.Items.Count) and (IdentLevel(list.Items[n]) > myilev) do
+        begin
+          list.Items.Move(n,n-1);
+          inc(n);
+        end;
+
         list.FocusItem := i-1;
       end;
     end
     else if Sender = btnDOWN then
     begin
-      if i < list.Items.Count then
+      if (i < list.Items.Count) then
       begin
-        list.Items.Move(i-1,i);
+        //list.Items.Move(i-1,i);
+
+        n := i;
+        while (n < list.Items.Count) and (IdentLevel(list.Items[n]) > myilev) do
+        begin
+          //list.Items.Move(n,n-1);
+          inc(n);
+        end;
+
+        if (i = n) and (i < list.Items.Count-1) and (IdentLevel(list.Items[i+1]) > myilev) then Exit;
+
+        if (n > list.Items.Count-1) then Exit;
+
+        while (n >= i) do
+        begin
+          list.Items.Move(n,n-1);
+          dec(n);
+        end;
+
         list.FocusItem := i+1;
       end;
     end;
@@ -472,5 +540,100 @@ begin
   end
   else inherited HandleKeyPress(keycode, shiftstate, consumed);
 end;
+
+{ TfrmLoadSave }
+
+procedure TfrmLoadSave.AfterCreate;
+begin
+  {@VFD_BODY_BEGIN: frmLoadSave}
+  SetDimensions(276,141,300,95);
+  WindowTitle8 := 'Form file';
+
+  lb1 := TwgLabel.Create(self);
+  with lb1 do
+  begin
+    SetDimensions(8,8,80,16);
+    Text := u8('File name:');
+    FontName := '#Label1';
+  end;
+
+  edFileName := TwgEdit.Create(self);
+  with edFileName do
+  begin
+    SetDimensions(8,28,280,22);
+    Anchors := [anLeft,anRight,anTop];
+    Text := u8('');
+    FontName := '#Edit1';
+  end;
+
+  btnOK := TwgButton.Create(self);
+  with btnOK do
+  begin
+    SetDimensions(8,60,96,24);
+    Anchors := [anLeft,anBottom];
+    Text := u8('OK');
+    FontName := '#Label1';
+    ImageName := 'stdimg.ok';
+    ModalResult := 1;
+  end;
+
+  btnCancel := TwgButton.Create(self);
+  with btnCancel do
+  begin
+    SetDimensions(192,60,96,24);
+    Anchors := [anRight,anBottom];
+    Text := u8('Cancel');
+    FontName := '#Label1';
+    ImageName := 'stdimg.cancel';
+    ModalResult := -1;
+  end;
+
+  {@VFD_BODY_END: frmLoadSave}
+end;
+
+procedure TfrmVFDSetup.AfterCreate;
+begin
+  {@VFD_BODY_BEGIN: frmVFDSetup}
+  SetDimensions(322,337,237,70);
+  WindowTitle8 := 'General settings';
+
+  lb1 := TwgLabel.Create(self);
+  with lb1 do
+  begin
+    SetDimensions(8,8,92,16);
+    Text := u8('Grid resolution:');
+  end;
+
+  chlGrid := TwgChoiceList.Create(self);
+  with chlGrid do
+  begin
+    SetDimensions(104,4,56,22);
+    items.Add(u8('1'));
+    items.Add(u8('4'));
+    items.Add(u8('8'));
+    FocusItem := 2;
+  end;
+
+  btnOK := TwgButton.Create(self);
+  with btnOK do
+  begin
+    SetDimensions(8,40,96,24);
+    Text := u8('OK');
+    ImageName := 'stdimg.ok';
+    ModalResult := 1;
+  end;
+
+  btnCancel := TwgButton.Create(self);
+  with btnCancel do
+  begin
+    SetDimensions(132,40,96,24);
+    Text := u8('Cancel');
+    ImageName := 'stdimg.cancel';
+    ModalResult := -1;
+  end;
+
+  {@VFD_BODY_END: frmVFDSetup}
+end;
+
 
 end.

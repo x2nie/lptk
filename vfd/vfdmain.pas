@@ -14,12 +14,15 @@ interface
 uses
   Classes, SysUtils, gfxbase, messagequeue, schar16, gfxwidget, gfxform, gfxdialogs, sqldb, gfxstyle,
   wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox,
-  vfdresizer, vfdforms, vfddesigner, vfdfile;
+  vfdresizer, vfdforms, vfddesigner, vfdfile, newformdesigner, wgfiledialog;
 
 const
-  program_version = '0.58';
+  program_version = '0.80b';
 
 {version description:
+0.80b
+  - redesigned interface
+  
 0.58
   - wgGrid interface change
   
@@ -52,6 +55,9 @@ type
     FFile : TVFDFile;
 
   public
+    EditedFileName : string;
+    GridResolution : integer;
+
     SaveComponentNames : boolean;
 
     constructor Create;
@@ -91,6 +97,12 @@ type
 
     procedure OnEditWidget(sender : TObject);
 
+    procedure OnEditWidgetOrder(sender : TObject);
+
+    procedure OnExit(sender : TObject);
+
+    procedure OnOptionsClick(sender : TObject);
+
   end;
 
 var
@@ -106,7 +118,27 @@ procedure TMainDesigner.OnLoadFile(sender: TObject);
 var
   n, m : integer;
   bl, bl2 : TVFDFileBlock;
+  fname : string;
+  afiledialog : TwgFileDialog;
 begin
+  fname := EditedFileName;
+
+  if sender <> maindsgn then
+  begin
+    afiledialog := TwgFileDialog.Create(nil);
+    afiledialog.FullFilename := EditedFilename;
+    afiledialog.WindowTitle8 := 'Open file';
+    if afiledialog.execute then
+    begin
+      EditedFileName := aFileDialog.FullFilename;
+      fname := EditedFilename;
+    end
+    else fname := '';
+    FreeAndNil(aFileDialog);
+  end;
+
+  if fname = '' then Exit;
+
   for n := 0 to FDesigners.Count-1 do
   begin
     selectedform := nil;
@@ -114,11 +146,15 @@ begin
   end;
   FDesigners.Clear;
 
-  if not FileExists(MainForm.edFormFile.Text8) then Exit;
+  if not FileExists(fname) then
+  begin
+    ShowMessage8('File does not exists.','Error loading form');
+    Exit;
+  end;
 
   Writeln('loading file...');
 
-  FFile.LoadFile(MainForm.edFormFile.Text8);
+  FFile.LoadFile(fname);
   FFile.GetBlocks;
 
   for n := 1 to FFile.BlockCount do
@@ -152,8 +188,21 @@ var
   ff : file;
 
   fname, uname : string;
+  aFileDialog : TwgFileDialog;
+  frm : TfrmLoadSave;
 begin
-  fname := MainForm.edFormFile.Text8;
+  aFileDialog := TwgFileDialog.create(nil);
+  aFileDialog.FullFilename := EditedFilename;
+  aFileDialog.WindowTitle8 := 'Save form source';  
+  if aFileDialog.Execute then
+  begin
+    EditedFileName := aFileDialog.FullFilename;
+    fname := EditedFileName;
+  end
+  else fname := '';
+  FreeAndNil(aFileDialog);
+
+  if fname = '' then Exit;
 
   if FileExists(fname) then
   begin
@@ -247,17 +296,21 @@ begin
 end;
 
 procedure TMainDesigner.CreateWindows;
+//var
+//  fd : TFormDesigner;
 begin
-  MainForm := TMainForm.Create(nil);
-  MainForm.WindowTitle8 := 'LPTK Visual Form Designer - v'+program_version;
-  MainForm.Show;
+  frmMain := TfrmMain.Create(nil);
+  frmMain.WindowTitle8 := 'LPTK VFD - v'+program_version;
+  frmMain.Show;
 
+  frmProperties := TfrmProperties.Create(nil);
+  frmProperties.Show;
 
-  PropertyForm := TPropertyForm.Create(nil);
-  PropertyForm.Show;
-
-  PaletteForm := TPaletteForm.Create(nil);
-  PaletteForm.Show;
+//  fd := TFormDesigner.Create;
+//  fd.Form.Name := 'frmNewForm';
+//  fd.Form.WindowTitle := u8('frmNewForm');
+//  FDesigners.Add(fd);
+//  fd.Show;
 end;
 
 constructor TMainDesigner.Create;
@@ -265,7 +318,12 @@ begin
   FDesigners := TList.Create;
   SelectedForm := nil;
   FFile := TVFDFile.Create;
+
+  // options
   SaveComponentNames := false;
+  GridResolution := 4;
+
+  EditedFileName := 'aanewform.pas';
 end;
 
 destructor TMainDesigner.Destroy;
@@ -335,6 +393,41 @@ procedure TMainDesigner.OnEditWidget(sender: TObject);
 begin
   if SelectedForm <> nil then
     SelectedForm.OnEditWidget(sender);
+end;
+
+procedure TMainDesigner.OnEditWidgetOrder(sender: TObject);
+begin
+  if SelectedForm <> nil then
+    SelectedForm.EditWidgetOrder;
+end;
+
+procedure TMainDesigner.OnExit(sender: TObject);
+begin
+  halt(0);
+end;
+
+procedure TMainDesigner.OnOptionsClick(sender: TObject);
+var
+  frm : TfrmVFDSetup;
+begin
+  frm := TfrmVFDSetup.Create(nil);
+
+  case GridResolution of
+  1 : frm.chlGrid.FocusItem := 1;
+  4 : frm.chlGrid.FocusItem := 2;
+  8 : frm.chlGrid.FocusItem := 3;
+  end;
+
+  if frm.ShowModal > 0 then
+  begin
+    case frm.chlGrid.FocusItem of
+    1 : GridResolution := 1;
+    2 : GridResolution := 4;
+    3 : GridResolution := 8;
+    end;
+  end;
+
+  frm.Free;
 end;
 
 end.

@@ -1,4 +1,4 @@
-{ Copyright (c) 2003, Nagy Viktor 
+{ Copyright (c) 2003, Nagy Viktor
 
  Some pascal source code parsing functionality
 }
@@ -14,7 +14,8 @@ interface
 uses
   Classes, SysUtils, gfxbase, messagequeue, schar16, gfxwidget, gfxform, gfxdialogs, sqldb, gfxstyle,
   wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox,
-  vfdresizer, vfdforms, vfddesigner, vfdfile, vfdutils;
+  vfdresizer, vfdforms, vfddesigner, vfdfile, vfdutils,
+  vfdwidgetclass, vfdwidgets;
 
 type
   TVFDFormParser = class
@@ -42,7 +43,7 @@ type
 
     procedure ParseFormWidgets;
 
-    function ReadWGProperty(propline : string; wg : TWidget) : boolean;
+    function ReadWGProperty(propline : string; wg : TWidget; wgc : TVFDWidgetClass) : boolean;
   end;
 
 
@@ -121,7 +122,7 @@ begin
   SkipSpaces(s);
   ns := '';
   n := 1;
-  while (n <= length(s)) and (s[n] in ['0'..'9']) do
+  while (n <= length(s)) and (s[n] in ['0'..'9','-']) do
   begin
     ns := ns + s[n];
     inc(n);
@@ -219,7 +220,7 @@ var
 begin
   while not eob and (pos('.CREATE(',UpperCase(line)) = 0) do
   begin
-    lok := ReadWGProperty(line, ffd.Form);
+    lok := ReadWGProperty(line, ffd.Form, VFDFormWidget);
 
     if not lok then ffd.FormOther := ffd.FormOther + line + #10;
 
@@ -229,6 +230,7 @@ end;
 
 procedure TVFDFormParser.ParseFormWidgets;
 var
+  n : integer;
   lok : boolean;
   s : string;
   ident : string;
@@ -236,6 +238,7 @@ var
   pwg, wg : TWidget;
   wgother : string;
   wd : TWidgetDesigner;
+  wgc : TVFDWidgetClass;
 begin
   while not eob do
   begin
@@ -257,10 +260,33 @@ begin
     begin
       //writeln('wg create: ',wgname,' (',wgclass,') - ',wgparent);
 
-      pwg := ffd.Form;
+      // searching for the parent ...
+      pwg := nil;
+      if UpperCase(wgparent) <> 'SELF' then
+      begin
+        pwg := ffd.FindWidgetByName(wgparent);
+        if pwg = nil then
+        begin
+          Writeln('Warning! parent object "'+wgparent+'" not found for "'+wgname+'"');
+        end;
+      end;
+      if pwg = nil then pwg := ffd.Form;
 
       wgclassuc := UpperCase(wgclass);
 
+      wg := nil;
+      wgc := nil;
+      for n := 1 to VFDWidgetCount do
+      begin
+        wgc := VFDWidget(n);
+        if wgclassuc = UpperCase(wgc.WidgetClass.ClassName) then
+        begin
+          wg := wgc.CreateWidget(pwg);
+          break;
+        end;
+      end;
+
+{
       if      wgclassuc = 'TWGLABEL'     then wg := TwgLabel.Create(pwg)
       else if wgclassuc = 'TWGEDIT'      then wg := TwgEdit.Create(pwg)
       else if wgclassuc = 'TWGCHECKBOX'  then wg := TwgCheckBox.Create(pwg)
@@ -270,7 +296,10 @@ begin
       else if wgclassuc = 'TWGDBGRID'     then wg := TwgDBGrid.Create(pwg)
       else if wgclassuc = 'TWGTEXTLISTBOX'     then wg := TwgTextListBox.Create(pwg)
       else
+}
+      if wg = nil then
       begin
+        wgc := VFDOtherWidget;
         wg := TOtherWidget.Create(pwg);
         TOtherWidget(wg).wgClassName := wgclass;
       end;
@@ -297,7 +326,7 @@ begin
 
         while (not eob) and (pos('END;',UpperCase(line)) <> 1) do
         begin
-          lok := ReadWGProperty(line,wg);
+          lok := ReadWGProperty(line,wg,wgc);
           if not lok then wgother := wgother + line + #10;
           nextline;
         end;
@@ -306,7 +335,8 @@ begin
 
       end;
 
-      wd := ffd.AddWidget(wg);
+      wd := ffd.AddWidget(wg, nil);
+      wd.FVFDClass := wgc;
       wd.other.Text := wgother;
 
     end
@@ -319,14 +349,14 @@ begin
   end;
 end;
 
-function TVFDFormParser.ReadWGProperty(propline: string; wg: TWidget): boolean;
+function TVFDFormParser.ReadWGProperty(propline: string; wg: TWidget; wgc : TVFDWidgetClass): boolean;
 var
   s : string;
+  n : integer;
   ident : string;
   lok : boolean;
   sval : string;
   wga  : TAnchors;
-  c : TDBColumn;
 begin
   s := propline;
 
@@ -346,6 +376,7 @@ begin
     end;
     if lok then wg.Name := sval;
   end
+{
   else if ident = 'TEXT' then
   begin
     lok := CheckSymbol(s, ':=');
@@ -385,6 +416,7 @@ begin
           lok := false;
     end;
   end
+}
   else if ident = 'ANCHORS' then
   begin
     lok := CheckSymbol(s, ':=');
@@ -435,6 +467,7 @@ begin
     //if lok then Writeln('sd ok.');
     //writeln('WT: ',sval);
   end
+{
   else if (wg is TwgDBGrid) and (ident = 'ADDCOLUMN8') then
   begin
     c := TDBColumn.Create;
@@ -464,8 +497,20 @@ begin
 
     c.Free;
   end;
-
+}
   ;
+
+  if not lok then
+  begin
+    if wgc <> nil then
+    begin
+      for n:=1 to wgc.PropertyCount do
+      begin
+        lok := wgc.GetProperty(n).ParseSourceLine(wg,line);
+        if lok then Break;
+      end;
+    end;
+  end;
 
   if not lok then
   begin

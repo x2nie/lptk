@@ -30,18 +30,21 @@ uses
   wgdbgrid,
   gfxdialogs,
   wgcheckbox,
-  vfddesigner,
   vfdfile,
   vfdresizer,
-  vfdforms,
   vfdutils,
   vfdmain,
   vfdformparser,
-  vfdeditors;
+  vfdeditors,
+  vfdwidgetclass,
+  vfdwidgets,
+  vfdprops,
+  vfddesigner,
+  newformdesigner,
+  vfdwgdbgrid;
 
 //var
-//  vf : TVFDFile;
-
+  //vf : TVFDFile;
 begin
   writeln('LPTK Visual Form Designer');
 
@@ -53,12 +56,35 @@ begin
 
   GfxOpenDisplay('');
 
+  RegisterWidgets;
+
+{
+  frmMain := TfrmMain.Create(nil);
+  frmMain.Show;
+
+  PropList := TPropertyList.Create;
+  PropList.AddItem(TPropertyInteger.Create('Left'));
+  PropList.AddItem(TPropertyInteger.Create('Top'));
+  PropList.AddItem(TPropertyInteger.Create('Width'));
+  PropList.AddItem(TPropertyInteger.Create('Height'));
+  PropList.AddItem(TPropertyString16.Create('Text'));
+  PropList.AddItem(TPropertyString8.Create('FontName'));
+  //PropList.AddItem('Anchors',nil);
+  //PropList.AddItem('Text',nil);
+
+  frmProperties := TfrmProperties.Create(nil);
+  frmProperties.Show;
+}
+
+  PropList := TPropertyList.Create;
+  
   maindsgn := TMainDesigner.Create;
   maindsgn.CreateWindows;
 
-  if ParamStr(1) <> '' then MainForm.edFormFile.Text8 := ParamStr(1);
+  if ParamStr(1) <> '' then maindsgn.EditedFileName := ParamStr(1);
 
   maindsgn.OnLoadFile(maindsgn);
+
 
   //maindsgn.Show;
 
@@ -70,7 +96,7 @@ begin
       on e : Exception do ShowMessage8(e.message,'Exception');
     end;
   until false;
-  
+
   //GfxDoMessageLoop;
   GfxCloseDisplay;
 
