@@ -3,11 +3,13 @@
 
 History:
 }
+{$DEFINE BUFFERING}
 unit gfxbase;
 
 {$ifdef FPC}
 {$mode objfpc}{$H+}
 {$endif}
+{$linklib Xext}
 
 interface
 
@@ -393,16 +395,18 @@ type
   TGfxCanvas = class
   private
      FWin : TWinHandle;
+     FBufferWin : TWinHandle;
+     FMainWin : TWinHandle;
      Fgc  : TGContext;
-
      FColorText : TGfxColor;
      FColor     : TGfxColor;
+     FBackgroundColor : TgfxColor;
      FCurFont   : TGfxFont;
      FClipRect  : TGfxRect;
      FClipRectSet : Boolean;
      FLineStyle : integer;
      FLineWidth : integer;
-
+     FDrawOnBuffer : Boolean;
 {$ifdef Win32}
      FWindowsColor : longword;
 
@@ -411,14 +415,18 @@ type
      FClipRegion   : HRGN;
 {$else}
      FXftDraw : PXftDraw;
+     FXftDrawBuffer : PXftDraw;
      FColorTextXft : TXftColor;
      FClipRegion   : TRegion;
 {$endif}
-
+  protected
+           procedure SetDrawOnBuffer(AValue : Boolean);
   public
     constructor Create(winhandle : TWinHandle);
     destructor Destroy; override;
 
+    procedure MoveResizeWindow(x,y,w,h : TGfxCoord);
+    procedure SwapBuffer;
     procedure SetFont(fnt : TGfxFont);
     procedure SetTextColor(cl : TGfxColor);
 
@@ -450,12 +458,12 @@ type
 
     procedure DrawImage(x,y : TGfxCoord; img : TGfxImage);
     procedure DrawImagePart(x,y : TGfxCoord; img : TGfxImage; xi,yi,w,h : integer);
-    
   public
   
     property Font : TGfxFont read FCurFont write SetFont;
     property TextColor : TGfxColor read FColorText;
     property Color : TGfxColor read FColor;
+    property DrawOnBuffer : Boolean read FDrawOnBuffer write SetDrawOnBuffer;
   end;
 
 var
@@ -521,7 +529,6 @@ procedure GfxDoMessageLoop;
 
 procedure GfxFlush;
 
-procedure GfxMoveResizeWindow(wh : TWinHandle; x,y,w,h : TGfxCoord);
 procedure GfxMoveWindow(wh : TWinHandle; x,y : TGfxCoord);
 
 procedure GfxActivateWindow(wh : TWinHandle);
@@ -558,6 +565,7 @@ uses unitkeys, gfxstyle, gfxwidget, gfxform, gfxclipboard, popupwindow, gfxstdim
 
 {$ifdef Win32}{$else}
 type
+  PInt = ^Integer;
   TXIC = record
            dummy : pointer;
          end;
@@ -566,6 +574,11 @@ type
            dummy : pointer;
          end;
   PXIM = ^TXIM;
+  PXdbeSwapInfo = ^TXdbeSwapInfo;
+  TXdbeSwapInfo = record
+                Window : TWinHandle;
+                SwapAction : PChar;
+  end;
 
 var
   InputMethod  : PXIM;
@@ -580,6 +593,14 @@ procedure XRenderSetPictureClipRectangles(disp : PXDisplay; pic : TPicture; xori
 
 // redefines:
 function XmbLookupString(p1 : PXIC; ev : PXKeyPressedEvent; str : PChar; len : longword; ks:PKeySym; stat:PStatus):longint;cdecl; external;
+
+{$IFDEF BUFFERING}
+function XdbeQueryExtension(ADisplay : PXDisplay; AMajor, AMinor : PInt) : PStatus; cdecl; external;
+function XdbeAllocateBackBufferName(ADisplay : PXDisplay; AWindow : TWinHandle; ASwapAction : PChar) : TWinHandle; cdecl; external;
+function XdbeSwapBuffers(ADisplay : PXDisplay;ASwapInfo : PXdbeSwapInfo; AScreenNums : Integer) : PStatus; cdecl; external;
+function XdbeDeallocateBackBufferName(ADisplay : PXDisplay; ABuffer : TWinHandle) : PStatus; cdecl; external;
+{$ENDIF}
+
 function XOpenIM(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar):PXIM;cdecl;external;
 function XCreateIC(para1 : PXIM; para2 : array of const):PXIC;cdecl;external;
 
@@ -620,6 +641,7 @@ begin
 {$ifdef Win32} GdiFlush; {$else} XFlush(display); {$endif}
 end;
 
+(*
 procedure GfxMoveResizeWindow(wh : TWinHandle; x,y,w,h : TGfxCoord);
 {$ifdef Win32}
 var
@@ -654,7 +676,7 @@ begin
   XMoveResizeWindow(display, wh, x,y,w,h);
 {$endif}
 end;
-
+*)
 procedure GfxMoveWindow(wh : TWinHandle; x,y : TGfxCoord);
 begin
   if wh > 0 then
@@ -1911,6 +1933,7 @@ constructor TGfxCanvas.Create(winhandle : TWinHandle);
 {$ifdef Win32}
 begin
   FWin := winhandle;
+  FDrawOnCanvas := False;
   Fgc := windows.GetDC(FWin);
   SetTextAlign(Fgc, TA_BASELINE);
   SetBkMode(Fgc, TRANSPARENT);
@@ -1918,6 +1941,7 @@ begin
   FColor := clText1;
   FLineStyle := PS_SOLID;
   FLineWidth := 0;
+  FBackgroundColor := clBoxColor;
   FBrush := CreateSolidBrush(0);
   FPen := CreatePen(PS_SOLID, 0, 0);
   SetColor(clText1);
@@ -1932,10 +1956,12 @@ var
   rw : TWinHandle;
   x,y : integer;
   bw,d : longword;
+  event_base, error_base : Integer;
 begin
   FWin := winhandle;
+  FDrawOnBuffer := False;
+  FBackgroundColor := clBoxColor;
   Fgc := XCreateGc(display, FWin, 0, @GcValues);
-  FXftDraw := XftDrawCreate(display, FWin, XDefaultVisual(display, GfxDefaultScreen), XDefaultColormap(display, GfxDefaultScreen));
   FCurFont := guistyle.DefaultFont;
   SetTextColor(clText1);
 
@@ -1945,9 +1971,100 @@ begin
 //  FWinRect.Top := 0;
 //  FWinRect.Left := 0;
 //  XGetGeometry(display, FWin, @rw, @x,@y, @(FWinRect.width), @(FWinRect.height), @bw, @d);
+  {$IFDEF BUFFERING}
+  FBufferWin := XdbeAllocateBackBufferName(Display, FWin,nil);
+  if FBufferWin > 0 then
+     FXftDrawBuffer := XftDrawCreate(display, FBufferWin, XDefaultVisual(display, GfxDefaultScreen), XDefaultColormap(display, GfxDefaultScreen));
+  {$ELSE}
+         FBufferWin := -1;
+         FXftDrawBuffer := nil;
+  {$ENDIF}
+  FXftDraw := XftDrawCreate(display, FWin, XDefaultVisual(display, GfxDefaultScreen), XDefaultColormap(display, GfxDefaultScreen));
   FClipRegion := XCreateRegion;
 end;
 {$endif}
+
+procedure TgfxCanvas.SetDrawOnBuffer(AValue : Boolean);
+begin
+     {$IFDEF BUFFERING}
+     if AValue <> FDrawOnBuffer then
+     begin
+          FDrawOnBuffer := AValue and (FBufferWin > 0);
+     end;
+     {$ELSE}
+            FDrawOnBuffer := False;
+     {$ENDIF}
+end;
+
+procedure TgfxCanvas.MoveResizeWindow(x,y,w,h : TGfxCoord);
+{$ifdef Win32}
+var
+  rwidth, rheight : integer;
+  ws,es : integer;
+  r : TRect;
+{$endif}
+begin
+  if FWin <= 0 then Exit;
+
+{$ifdef Win32}
+  // windows decoration correction on stupid windows...
+  ws := GetWindowLong(FWin, GWL_STYLE);
+  es := GetWindowLong(FWin, GWL_EXSTYLE);
+
+  rwidth := w;
+  rheight := h;
+
+  if (ws and WS_CHILD) = 0 then
+  begin
+    r.Left := x;
+    r.Top  := y;
+    r.Right := x + w;
+    r.Bottom := y + h;
+    AdjustWindowRectEx(r, ws, false, es);
+    rwidth := r.Right - r.Left;
+    rheight := r.Bottom - r.Top;
+  end;
+
+  windows.MoveWindow(FWin, x,y, rwidth, rheight, true);
+{$else}
+  if FXftDrawBuffer <> nil then
+  begin
+     XftDrawDestroy(FXftDrawBuffer);
+     FXftDrawBuffer := nil;
+  end;
+  {$IFDEF BUFFERING}
+  if FBufferWin > 0 then
+     XdbeDeallocateBackBufferName(Display, FBufferWin);
+  {$ENDIF}
+  XMoveResizeWindow(display, FWin, x,y,w,h);
+  {$IFDEF BUFFERING}
+  FBufferWin := XdbeAllocateBackBufferName(Display, FWin,nil);
+  {$ENDIF}
+  if FBufferWin > 0 then
+     FXftDrawBuffer := XftDrawCreate(display, FBufferWin, XDefaultVisual(display, GfxDefaultScreen), XDefaultColormap(display, GfxDefaultScreen));
+{$endif}
+end;
+
+procedure TGfxCanvas.SwapBuffer;
+{$IFDEF win32}
+begin
+end;
+{$ELSE}
+{$IFDEF BUFFERING}
+var
+   SwapInfo : TXdbeSwapInfo;
+   TmpWinHandle : TWinHandle;
+begin
+     SwapInfo.Window := FWin;
+     SwapInfo.SwapAction := nil;
+     XdbeSwapBuffers(Display, @SwapInfo,1);
+end;
+{$ELSE}
+begin
+     // Do Nothing if buffering is deactivated
+end;
+{$ENDIF}
+{$ENDIF}
 
 destructor TGfxCanvas.Destroy;
 begin
@@ -1960,6 +2077,10 @@ begin
   XDestroyRegion(FClipRegion);
   XFreeGc(display, Fgc);
   if FXftDraw <> nil then XftDrawDestroy(FXftDraw);
+  {$IFDEF BUFFERING}
+  if FXftDrawBuffer <> nil then XftDrawDestroy(FXftDrawBuffer);
+  if FBufferWin > 0 then XdbeDeallocateBackBufferName(Display,FBufferWin);
+  {$ENDIF}
 {$endif}
   inherited Destroy;
 end;
@@ -2022,8 +2143,10 @@ begin
 {$ifdef Win32}
   windows.TextOutW(Fgc, x,y+FCurFont.Ascent, @txt[1], length16(txt));
 {$else}
-  //XDrawString16(display, FWin, Fgc, x, y, PXChar2b(txt), Length16(txt) );
-  XftDrawString16(FXftDraw, FColorTextXft, FCurFont.Handle, x,y+FCurFont.Ascent, @txt[1], Length16(txt) );
+  if DrawOnBuffer then
+     XftDrawString16(FXftDrawBuffer, FColorTextXft, FCurFont.Handle, x,y+FCurFont.Ascent, @txt[1], Length16(txt) )
+  else
+     XftDrawString16(FXftDraw, FColorTextXft, FCurFont.Handle, x,y+FCurFont.Ascent, @txt[1], Length16(txt) )
 {$endif}
 end;
 
@@ -2040,7 +2163,10 @@ begin
 {$else}
 begin
   //XSetFunction(display, Fgc, GXinvert);
-  XFillRectangle(display, Fwin, Fgc, x,y, w, h);
+  if DrawOnBuffer then
+    XFillRectangle(display, FBufferWin, Fgc, x,y, w, h)
+  else
+    XFillRectangle(display, Fwin, Fgc, x,y, w, h);
 {$endif}
 end;
 
@@ -2056,7 +2182,10 @@ begin
   Windows.FillRect(Fgc, wr, FBrush);
 {$else}
 begin
-  XFillRectangle(display, Fwin, Fgc, r.Left, r.Top, r.Width, r.Height);
+     if DrawOnBuffer then
+        XFillRectangle(display, FBufferWin, Fgc, r.Left, r.Top, r.Width, r.Height)
+     else
+        XFillRectangle(display, Fwin, Fgc, r.Left, r.Top, r.Width, r.Height);
 {$endif}
 end;
 
@@ -2078,7 +2207,10 @@ begin
   pts[3].x := x3; pts[3].y := y3;
 
   //XSetFillRule(display, Fgc, 0);
-  XFillPolygon(display, FWin, Fgc, @pts, 3, 0,0);
+  if DrawOnBuffer then
+     XFillPolygon(display, FBufferWin, Fgc, @pts, 3, 0,0)
+  else
+      XFillPolygon(display, FWin, Fgc, @pts, 3, 0,0);
 {$endif}
 end;
 
@@ -2094,7 +2226,10 @@ begin
   Windows.FrameRect(Fgc, wr, FBrush);
 {$else}
 begin
-  XDrawRectangle(display, Fwin, Fgc, x,y,w-1,h-1);   // transformed into polyline requests!
+  if DrawOnBuffer then
+     XDrawRectangle(display, FBufferWin, Fgc, x,y,w-1,h-1)
+  else
+     XDrawRectangle(display, Fwin, Fgc, x,y,w-1,h-1);   // transformed into polyline requests!
 {$endif}
 end;
 
@@ -2110,7 +2245,10 @@ begin
   Windows.FrameRect(Fgc, wr, FBrush);
 {$else}
 begin
-  XDrawRectangle(display, Fwin, Fgc, r.left,r.top,r.width-1,r.height-1);   // transformed into polyline requests!
+  if DrawOnBuffer then
+     XDrawRectangle(display, FBufferWin, Fgc, r.left,r.top,r.width-1,r.height-1)
+  else
+      XDrawRectangle(display, FWin, Fgc, r.left,r.top,r.width-1,r.height-1);   // transformed into polyline requests!
 {$endif}
 end;
 
@@ -2125,7 +2263,10 @@ begin
   SetPixel(Fgc, x2,y2, FWindowsColor);
 {$else}
 begin
-  XDrawLine(display, Fwin, Fgc, x1,y1,x2,y2 );
+     if DrawOnBuffer then
+             XDrawLine(display, FBufferwin, Fgc, x1,y1,x2,y2 )
+     else
+            XDrawLine(display, Fwin, Fgc, x1,y1,x2,y2 );
 {$endif}
 end;
 
@@ -2152,7 +2293,10 @@ begin
 begin
   XSetForeGround(display, Fgc, GfxColorToX(GfxColorToRGB(clSelection) xor $00FFFFFF));
   XSetFunction(display, Fgc, GXxor);
-  XFillRectangle(display, Fwin, Fgc, x,y, w, h);
+  if DrawOnBuffer then
+     XFillRectangle(display, FBufferWin, Fgc, x,y, w, h)
+  else
+      XFillRectangle(display, Fwin, Fgc, x,y, w, h);
   XSetForeGround(display, Fgc, 0);
   XSetFunction(display, Fgc, GXcopy);
 {$endif}
@@ -2182,7 +2326,10 @@ begin
   rg := XCreateRegion;
   XUnionRectWithRegion(@r,rg,FClipRegion);
   XSetRegion(display, Fgc, FClipRegion);
-  XftDrawSetClip(FXftDraw, FClipRegion);
+  if DrawOnBuffer then
+     XftDrawSetClip(FXftDrawBuffer, FClipRegion)
+  else
+      XftDrawSetClip(FXftDraw, FClipRegion);
   XDestroyRegion(rg);
 end;
 {$endif}
@@ -2219,7 +2366,10 @@ begin
   XUnionRectWithRegion(@r,rg,rg);
   XIntersectRegion(FClipRegion,rg,FClipRegion);
   XSetRegion(display, Fgc, FClipRegion);
-  XftDrawSetClip(FXftDraw, FClipRegion);
+  if DrawOnBuffer then
+     XftDrawSetClip(FXftDrawBuffer, FClipRegion)
+  else
+      XftDrawSetClip(FXftDraw, FClipRegion);
   XDestroyRegion(rg);
 end;
 {$endif}
@@ -2258,7 +2408,10 @@ var
 begin
   r.left := 0;
   r.Top := 0;
-  XGetGeometry(display, FWin, @rw, @x, @y, @(r.width), @(r.height), @bw, @d);
+  if DrawOnBuffer then
+     XGetGeometry(display, FBufferWin, @rw, @x, @y, @(r.width), @(r.height), @bw, @d)
+  else
+      XGetGeometry(display, FWin, @rw, @x, @y, @(r.width), @(r.height), @bw, @d);
 end;
 {$endif}
 
@@ -2275,8 +2428,20 @@ begin
   DeleteObject(br);
 end;
 {$else}
+var
+   ACol : TgfxColor;
+   AWinRect : TgfxRect;
 begin
-  XClearWindow(display, FWin);
+  if DrawOnBuffer then
+  begin
+       ACol := FColor;
+       SetColor(FBackgroundColor);
+       GetWinRect(AWinRect);
+       FillRectangle(0,0,AWinRect.Width,AWinRect.Height);
+       SetColor(ACol);
+  end
+  else
+      XClearWindow(display, FWin);
 end;
 {$endif}
 
@@ -2367,9 +2532,10 @@ begin
 
     XSetClipMask(display, Fgc, msk);
     XSetClipOrigin(display, Fgc, x,y);
-
-    XPutImage(display, Fwin, Fgc, img.XImage, xi,yi, x,y, w, h);
-
+    if DrawOnBuffer then
+       XPutImage(display, FBufferwin, Fgc, img.XImage, xi,yi, x,y, w, h)
+    else
+        XPutImage(display, Fwin, Fgc, img.XImage, xi,yi, x,y, w, h);
     XSetClipMask(display, Fgc, 0);
     XFreePixmap(display, msk);
     XFreeGc(display,gc2);
@@ -2377,7 +2543,10 @@ begin
   end
   else
   begin
-    XPutImage(display, FWin, Fgc, img.XImage, xi,yi, x,y, w, h);
+       if DrawOnBuffer then
+          XPutImage(display, FWin, Fgc, img.XImage, xi,yi, x,y, w, h)
+       else
+           XPutImage(display, FWin, Fgc, img.XImage, xi,yi, x,y, w, h);
   end;
 
 {$endif}

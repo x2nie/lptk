@@ -397,7 +397,7 @@ begin
   FWidth := FWidth + dw;
   FHeight := FHeight + dh;
 
-  GfxMoveResizeWindow(FWinHandle, FLeft,FTop,FWidth,FHeight);
+  Canvas.MoveResizeWindow(FLeft,FTop,FWidth,FHeight);
 
   if (dw <> 0) or (dh <> 0) then HandleResize(dw,dh);
 end;
@@ -405,7 +405,7 @@ end;
 procedure TWidget.UpdateWindowPosition;
 begin
   if FWinHandle > 0 then
-    GfxMoveResizeWindow(FWinHandle, Left, Top, Width, Height);
+    Canvas.MoveResizeWindow(Left, Top, Width, Height);
 end;
 
 procedure TWidget.AfterCreate;
