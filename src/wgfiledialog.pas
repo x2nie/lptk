@@ -15,7 +15,8 @@ uses
     gfximagelist, schar16;
 
 type
-    TwgFileDialog = class(TgfxForm)
+
+  TwgFileDialog = class(TgfxForm)
 	private
 	    FFileGrid : TwgFileGrid;
             FOKBtn : TwgButton;
@@ -27,9 +28,9 @@ type
             FImageList : TgfxImageList;
 	protected
 	    procedure AfterCreate; override;
-            procedure TreeDirectoryChange(Sender : TObject);
-            procedure GridDirectoryChange(ASender : TObject; AFileName : String);
-            procedure GridFocusChange(ASender : TObject; ARow, ACol : Integer);
+      procedure TreeDirectoryChange(Sender : TObject);
+      procedure GridDirectoryChange(ASender : TObject; AFileName : String);
+      procedure GridFocusChange(ASender : TObject; ARow, ACol : Integer);
             procedure CancelClick(ASender : TObject);
             procedure DetailClick(ASender : TObject);
             procedure FilenameChange(ASender : TObject);
@@ -43,18 +44,35 @@ type
             constructor Create(AOwner : TComponent); override;
             property FileExists : Boolean read FFileExists write FFileExists;
             property FileName : String read GetFileName write SetFileName;
-    end;
+  end;
 
 implementation
 
 uses
     sysutils, gfxbmpimage;
 
+var
+  initialized : boolean;
+
 {$I stdimg_file16x16.inc}
 {$I stdimg_folder16x16.inc}
 {$I stdimg_ok16x16.inc}
 {$I stdimg_cancel16x16.inc}
 {$I stdimg_lens16x16.inc}
+
+procedure InitImages;
+begin
+  if initialized then Exit;
+  
+  GfxLibAddMaskedBMP('btn.ok',@stdimg_ok16x16,sizeof(stdimg_ok16x16),0,0);
+  GfxLibAddMaskedBMP('btn.cancel',@stdimg_cancel16x16,sizeof(stdimg_cancel16x16),0,0);
+  GfxLibAddMaskedBMP('btn.lens',@stdimg_lens16x16,sizeof(stdimg_lens16x16),0,0);
+
+  GfxLibAddMaskedBMP('file.file',@stdimg_file16x16,sizeof(stdimg_file16x16),0,0);
+  GfxLibAddMaskedBMP('file.folder',@stdimg_folder16x16,sizeof(stdimg_folder16x16),0,0);
+  
+  initialized := true;
+end;
 
 procedure TwgFileDialog.GridDoubleClick(ASender : TObject; AX, AY : TgfxCoord; var AButton : Word; var ShiftState : Word);
 begin
@@ -140,50 +158,33 @@ var
    Image : TgfxImageItem;
 begin
     inherited AfterCreate;
+    
+    InitImages;
+    
     Resizeable := False;
     SetDimensions(0,0,400,310);
     FFileExists := False;
     FOKBtn := CreateButton(Self,10,280,115,'OK',{$IFDEF FPC}@{$ENDIF}OkClick);
+    FOkBtn.ImageName := 'btn.ok';
+
     FCancelBtn := CreateButton(Self,125,280,115,'Cancel',{$IFDEF FPC}@{$ENDIF}CancelClick);
+    FCancelBtn.ImageName := 'btn.cancel';
+    
     FDetailBtn := CreateButton(Self,245,10,32,'',{$IFDEF FPC}@{$ENDIF}DetailClick);
     FDetailBtn.Width := FDetailBtn.Height;
-    
+    FDetailBtn.ImageName := 'btn.lens';
+
     FDetailBtn.AllowDown := True;
     FFileName := TwgEdit.Create(Self);
     FFileName.SetDimensions(10,250,380,FFileName.Font.Height + 4);
+    
     FImageList := TgfxImageList.Create;
-    Image := TgfxImageItem.Create;
-    Image.Image := CreateBMPImage(@stdimg_file16x16, sizeof(stdimg_file16x16));
-    FImageList.Item[0] := Image;
+    FImageList.AddImage(GfxLibGetImage('file.file'),0);
+    FImageList.AddImage(GfxLibGetImage('file.folder'),1);
+    FImageList.AddImage(GfxLibGetImage('btn.ok'),2);
+    FImageList.AddImage(GfxLibGetImage('btn.cancel'),3);
+    FImageList.AddImage(GfxLibGetImage('btn.lens'),4);
 
-    Image := TgfxImageItem.Create;
-    Image.Image := CreateBMPImage(@stdimg_folder16x16,sizeof(stdimg_folder16x16));
-    FImageList.Item[1] := Image;
-
-    Image := TgfxImageItem.Create;
-    Image.Image := CreateBMPImage(@stdimg_ok16x16,sizeof(stdimg_ok16x16));
-    FImageList.Item[2] := Image;
-
-    Image := TgfxImageItem.Create;
-    Image.Image := CreateBMPImage(@stdimg_cancel16x16,sizeof(stdimg_cancel16x16));
-    FImageList.Item[3] := Image;
-
-    Image := TgfxImageItem.Create;
-    Image.Image := CreateBMPImage(@stdimg_lens16x16,sizeof(stdimg_lens16x16));
-    FImageList.Item[4] := Image;
-    
-    FOkBtn.ImageList := FImageList;
-    FOkBtn.ImageIndex := 2;
-    FOkBtn.ShowImage := True;
-
-    FCancelBtn.ImageList := FImageList;
-    FCancelBtn.ImageIndex := 3;
-    FCancelBtn.ShowImage := True;
-
-    FDetailBtn.ImageList := FImageList;
-    FDetailBtn.ImageIndex := 4;
-    FDetailBtn.ShowImage := True;
-    
     FDirTree := TwgDirTreePopup.Create(Self);
     FDirTree.SetDimensions(10,10,230,FDetailBtn.Height);
     FDirTree.ImageList := FImageList;
@@ -202,6 +203,11 @@ begin
     FFileGrid.OnDoubleClick := {$IFDEF FPC}@{$ENDIF}GridDoubleClick;
     FDirTree.onChange := {$IFDEF fpc}@{$ENDIF}TreeDirectoryChange;
     FFileName.onChange := {$IFDEF fpc}@{$ENDIF}FileNameChange;
+end;
+
+initialization
+begin
+  initialized := false;
 end;
 
 end.

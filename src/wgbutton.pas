@@ -18,14 +18,15 @@ uses
 type
   TwgButton = class(TWidget)
   private
+    FImageName: string;
     FPushed  : Boolean;
     FClicked : Boolean;
-    FImageList : TgfxImageList;
-    FImageIndex : Longword;
+    FImage : TgfxImage;
     FShowImage : Boolean;
     FAllowDown : Boolean;
     FConsumed : Boolean;
     FDown : Boolean;
+    procedure SetImageName(const AValue: string);
     procedure SetText(const AValue : String16);
     procedure SetDown(AValue : Boolean);
   protected
@@ -33,8 +34,6 @@ type
     FFont : TGfxFont;
     function GetText8 : String;
     procedure SetText8(const AValue : String);
-    procedure SetImageList(AValue : TgfxImageList);
-    procedure SetImageIndex(AValue : Longword);
     procedure SetShowImage(AValue : Boolean);
   public
     OnClick : TNotifyEvent;
@@ -61,11 +60,14 @@ type
     property Text8 : String read GetText8 write SetText8;
     
     property Font : TGfxFont read FFont;
-
+{
     // image-properties
     property ImageList : TgfxImageList read FImageList write SetImageList;
     property ImageIndex : Longword read FImageIndex write SetImageIndex;
+}
+    property ImageName : string read FImageName write SetImageName;
     property ShowImage : Boolean read FShowImage write SetShowImage;
+
   end;
 
 function CreateButton(AOwner : TComponent; x, y, w : TGfxCoord; txt : String; onclk : TNotifyEvent) : TwgButton;
@@ -100,27 +102,10 @@ begin
   if AValue <> FShowImage then
   begin
     FShowImage := AValue;
-    if (FImageList <> nil) and ShowImage then RePaint;
+    if (FImage <> nil) and ShowImage then RePaint;
   end;
 end;
 
-procedure TwgButton.SetImageList(AValue : TgfxImageList);
-begin
-  if AValue <> FImageList then
-  begin
-    FImageList := AValue;
-    if (FImageList <> nil) and ShowImage then RePaint;
-  end;
-end;
-
-procedure TwgButton.SetImageIndex(AValue : Longword);
-begin
-  if AValue <> FImageIndex then
-  begin
-    FImageIndex := AValue;
-    if ShowImage and (ImageList <> nil) then RePaint;
-  end;
-end;
 
 function TwgButton.GetText8 : String;
 begin
@@ -139,6 +124,13 @@ begin
   if FWinHandle > 0 then RePaint;
 end;
 
+procedure TwgButton.SetImageName(const AValue: string);
+begin
+  FImageName:=AValue;
+  FImage := GfxLibGetImage(FImageName);
+  FShowImage := true;
+end;
+
 constructor TwgButton.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
@@ -153,6 +145,9 @@ begin
   FDown := False;
   FConsumed := False;
   FAllowDown := False;
+  FImage := nil;
+  FImageName := '';
+  FShowImage := false;
 end;
 
 destructor TwgButton.Destroy;
@@ -163,7 +158,6 @@ end;
 
 procedure TwgButton.RePaint;
 var
-  Image : TgfxImage;
   AText : String16;
 begin
   if Windowed then
@@ -205,13 +199,12 @@ begin
 
     Canvas.SetFont(Font);
     AText := FText;    
-    if (ShowImage) and (ImageList <> nil) then
+    if (ShowImage) and (FImage <> nil) then
     begin
-      Image := ImageList.Item[ImageIndex].Image;
-      while (FFont.TextWidth16(AText) > Width - 8 - Image.Width) and (Length16(AText) > 9) do
+      while (FFont.TextWidth16(AText) > Width - 8 - FImage.Width) and (Length16(AText) > 9) do
         Delete16(AText,Length16(AText),1);
-      Canvas.DrawImage((width div 2) - (FFont.TextWidth16(AText) div 2) - Image.Width div 2 - 1, Height div 2 - Image.height div 2 + 1, Image);
-      Canvas.DrawString16(((width div 2) + Image.Width div 2) - (FFont.TextWidth16(AText) div 2) + 1, 4, AText);
+      Canvas.DrawImage((width div 2) - (FFont.TextWidth16(AText) div 2) - FImage.Width div 2 - 1, Height div 2 - FImage.height div 2 + 1, FImage);
+      Canvas.DrawString16(((width div 2) + FImage.Width div 2) - (FFont.TextWidth16(AText) div 2) + 1, 4, AText);
     end
     else
     begin

@@ -43,7 +43,8 @@ type
                     procedure SetItem(AIndex : integer; AItem : TgfxImageItem);
            public
                  property Item[AIndex : integer] : TgfxImageItem read GetItem write SetItem;
-		 procedure AddItemFromFile(AFileName : String; AIndex : Word);
+                 procedure AddItemFromFile(AFileName : String; AIndex : Word);
+                 procedure AddImage(AImage : TGfxImage; AIndex : Word);
                  procedure RemoveIndex(AIndex : integer);
                  function GetMaxItem : word;
                  constructor Create;
@@ -64,6 +65,15 @@ begin
     {$ENDIF}
     AImageItem := TgfxImageItem.Create;
     AImageItem.LoadFromFile(AFileName);
+    Item[AIndex] := AImageItem;
+end;
+
+procedure TgfxImageList.AddImage(AImage: TGfxImage; AIndex: Word);
+var
+    AImageItem : TgfxImageItem;
+begin
+    AImageItem := TgfxImageItem.Create;
+    AImageItem.Image := AImage;
     Item[AIndex] := AImageItem;
 end;
 
