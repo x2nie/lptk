@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.16  2003/12/30 13:37:40  aegluke
+// ImageList-support - ShowColumns broken
+//
 // Revision 1.15  2003/12/27 18:19:02  aegluke
 // gfxImage preparations
 //
@@ -48,7 +51,7 @@ unit wgtree;
 
 interface
 
-uses gfxwidget, gfxbase, schar16, classes, sysutils, wgscrollbar;
+uses gfxwidget, gfxbase, schar16, classes, sysutils, wgscrollbar, gfximagelist;
 
 type
   PWgTreeColumnWidth = ^TwgTreeColumnWidth;
@@ -72,7 +75,8 @@ type
     FSelColor: TgfxColor;
     FTextColor: TgfxColor;
     FSelTextColor: TgfxColor;
-
+    FImageIndex : integer;
+    
     procedure SetText(aValue: string16);
     procedure SetParent(aValue: TwgTreeNode);
     procedure SetText8(aValue: string);
@@ -117,6 +121,7 @@ type
     property Parent: TwgTreeNode read FParent write SetParent;
     property FirstSubNode: TwgTreeNode read FFirstSubNode;
     property LastSubNode: TwgTreeNode read FLastSubNode;
+    property ImageIndex : integer read FImageIndex write FImageIndex;
 
     // color-settings
     property TextColor: TgfxColor read FTextColor write SetTextColor;
@@ -136,7 +141,9 @@ type
     FShowColumns: boolean;
     FHScrollbar: TwgScrollbar;
     FVScrollbar: TwgScrollbar;
-
+    FImageList : TgfxImageList;
+    FShowImages : boolean;
+    
     FXOffset: integer; // for repaint and scrollbar-calculation
     FYOffset: integer;
 
@@ -175,6 +182,7 @@ type
     function GetNodeHeight : integer;
     procedure PreCalcColumnLeft;
     function GetColumnLeft(AIndex : integer) : integer;
+    procedure SetShowImages(AValue : Boolean);
   public
     OnChange: TNotifyEvent;
     OnExpand: TTreeExpandEvent;
@@ -185,11 +193,13 @@ type
     procedure DoShow; override;
     procedure HandleResize(dWidth, dHeight: integer); override;
     procedure HandleKeyPress(var KeyCode: word; var ShiftState: word; var consumed: boolean); override;
+    property ShowImages : boolean read FShowImages write SetShowImages;
     property ShowColumns: boolean read FShowColumns write SetShowColumns;
     property RootNode: TwgTreeNode read GetRootNode;
     property Selection: TwgTreeNode read FSelection write SetSelection;
     property DefaultColumnWidth: word read FDefaultColumnWidth write SetDefaultColumnWidth;
     property Font: TgfxFont read FFont;
+    property ImageList : TgfxImageList read FImageList write FImageList;
   end;
 
 implementation
@@ -201,7 +211,22 @@ uses gfxstyle;
 type
   PColumnLeft = ^integer;
 
+procedure TwgTree.SetShowImages(AValue : Boolean);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgTree.SetShowImages');
+     {$ENDIF}
+     if AValue <> FShowImages then
+     begin
+          FShowImages := AValue;
+          UpdateScrollbars;
+          RePaint;
+     end;
+end;
+
 function TwgTree.GetNodeWidth(ANode : TwgTreeNode) : integer;
+var
+   AImage : TgfxImageItem;
 begin
      {$IFDEF DEBUG}
      writeln('TwgTree.GetNodeWidth');
@@ -211,6 +236,11 @@ begin
      else
      begin
           result := FFont.TextWidth16(ANode.Text) + 2;
+          if ShowImages and (ImageList <> nil) then
+          begin
+               AImage := ImageList.Item[ANode.ImageIndex];
+               if AImage <> nil then result := result + AImage.Image.Width;
+          end;
      end;
 end;
 
@@ -713,6 +743,8 @@ var
   YPos: integer;
   col: integer;
   ACenterPos : integer;
+  ALeftTextPos : integer;
+  AImageItem : TgfxImageItem;
 label
   label_next;
 begin
@@ -799,16 +831,45 @@ begin
     w := GetColumnLeft(StepToRoot(h));
     YPos := YPos + GetNodeHeight;
     ACenterPos := YPos - FYOffset + col - GetNodeHeight + (GetNodeHeight div 2);
+    ALeftTextPos := w - FXOffset + 1;
     if h = Selection then // draw the selection rectangle and text
     begin
       Canvas.SetColor(h.ParentSelColor);
       Canvas.FillRectangle(w - FXOffset, YPos - FYOffset + col - GetNodeHeight + FFont.Ascent div 2 - 2, GetNodeWidth(h), GetNodeHeight);
       Canvas.SetTextColor(h.ParentSelTextColor);
-      Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2 - 1, h.text);
+      if (ImageList <> nil) and  ShowImages then
+      begin
+           AImageItem := ImageList.Item[h.ImageIndex];
+           if AImageItem <> nil then
+           begin
+                 Canvas.DrawImagePart(w - FXOffset + 1, ACenterPos - 4, AImageItem.Image,0,0,16,16);
+                 Canvas.SetClipRect(r);
+                 Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width, ACenterPos - FFont.Ascent div 2, h.text);
+           end
+           else
+               Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
+      end
+      else
+           Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
       Canvas.SetTextColor(h.ParentTextColor);
     end
     else
-      Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2 - 1, h.text);
+    begin
+      if (ImageList <> nil) and  ShowImages then
+      begin
+           AImageItem := ImageList.Item[h.ImageIndex];
+           if AImageItem <> nil then
+           begin
+                 Canvas.DrawImagePart(w - FXOffset + 1, ACenterPos - 4, AImageItem.Image,0,0,16,16);
+                 Canvas.SetClipRect(r);
+                 Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width, ACenterPos - FFont.Ascent div 2, h.text);
+           end
+           else
+               Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
+      end
+      else
+           Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
+    end;
     Canvas.SetColor(clText1);
     if h.Count > 0 then // subnodes?
     begin
@@ -1335,6 +1396,7 @@ begin
   FFirstSubNode := nil;
   FLastSubNode := nil;
   FText := '';
+  FImageIndex := -1;
   FParent := nil;
   FNext := nil;
   FPrev := nil;
