@@ -19,22 +19,28 @@ type
 
   TPopupWindow = class(TWidget)
   protected
+    DontCloseWidget : TWidget;
+    
     procedure MsgClose(var msg : TMessageRec); message MSG_CLOSE;
 
     procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
 
   public
+
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
 
     procedure ShowAt(wh : TWinHandle; x,y : integer);
     procedure Close;
+    
+    procedure SetDontCloseWidget(awg : TWidget);
 
   end;
 
 function PopupListFirst : TWidget;
 function PopupListFind(wh : TWinHandle) : TWidget;
 function PopupListNext(awg : TWidget) : TWidget;
+function PopupDontCloseWidget(awg : TWidget) : boolean;
 
 procedure ClosePopups;
 
@@ -54,7 +60,7 @@ var
 type
   PPopupListRec = ^PopupListRec;
   PopupListRec = record
-    wg   : TWidget;
+    wg   : TPopupWindow;
     Next : PPopupListRec;
   end;
 
@@ -69,21 +75,21 @@ begin
   end;
 end;
 
-procedure PopupListAdd(wg : TWidget);
+procedure PopupListAdd(pwg : TPopupWindow);
 var
   p : PPopupListRec;
 begin
-  if wg = nil then Exit;
+  if pwg = nil then Exit;
   
   if GfxFirstPopup = nil then
   begin
     OriginalFocusRoot := FocusRoot;
   end;
   
-  FocusRoot := wg;
+  FocusRoot := pwg;
 
   New(p);
-  p^.wg := wg;
+  p^.wg := pwg;
   p^.Next := nil;
   if GfxFirstPopup = nil then GfxFirstPopup := p
                          else GfxLastPopup^.Next := p;
@@ -142,6 +148,25 @@ begin
   result := nil;
 end;
 
+function PopupDontCloseWidget(awg : TWidget) : boolean;
+var
+  p : PPopupListRec;
+begin
+  result := false;
+  if awg = nil then Exit;
+  
+  p := GfxFirstPopup;
+  while p <> nil do
+  begin
+    if p^.wg.DontCloseWidget = awg then
+    begin
+      Result := true;
+      Exit;
+    end;
+    p := p^.Next;
+  end;
+end;
+
 function PopupListNext(awg : TWidget) : TWidget;
 var
   p : PPopupListRec;
@@ -172,6 +197,7 @@ begin
   inherited Create(AOwner);
   FWPOverride := true;
   FParent := nil;
+  DontCloseWidget := nil;
 end;
 
 destructor TPopupWindow.Destroy;
@@ -185,6 +211,7 @@ var
   pt : TPoint;
 begin
   PopupListAdd(self);
+  DontCloseWidget := nil;
 
   pt.X := x;
   pt.Y := y;
@@ -224,6 +251,7 @@ begin
          );
 
     PopupListAdd(self);
+    DontCloseWidget := nil;
   end;
 
   //XAllowEvents(display, ReplayPointer, 0);
@@ -242,7 +270,12 @@ begin
 {$endif}
 end;
 
-procedure TPopupWindow.HandleMouseDown(x, y: integer; button, shiftstate: word);
+procedure TPopupWindow.SetDontCloseWidget(awg: TWidget);
+begin
+  DontCloseWidget := awg;
+end;
+
+procedure TPopupWindow.HandleMouseDown(x, y: integer; button: word; shiftstate: word);
 begin
   inherited;
   //Writeln('mouse x=',x,' y=',y);

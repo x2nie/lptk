@@ -916,7 +916,7 @@ begin
     pwg := wwg;
     while (pwg <> nil) and (pwg.Parent <> nil) do pwg := pwg.Parent;
 
-    if ((pwg = nil) or (PopupListFind(pwg.WinHandle) = nil)) and
+    if ((pwg = nil) or (PopupListFind(pwg.WinHandle) = nil)) and (not PopupDontCloseWidget(ewg)) and
        ((msg = MSG_MOUSEDOWN) or (msg = MSG_MOUSEUP)) then
     begin
       ClosePopups;
@@ -1557,7 +1557,7 @@ begin
         ewg := wg;
         while (wg <> nil) and (wg.Parent <> nil) do wg := wg.Parent;
 
-        if (wg <> nil) and (PopupListFind(wg.WinHandle) = nil) then
+        if (wg <> nil) and (PopupListFind(wg.WinHandle) = nil) and (not PopupDontCloseWidget(ewg)) then
         begin
           ClosePopups;
           Popup := nil;

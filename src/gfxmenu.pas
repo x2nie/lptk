@@ -80,7 +80,7 @@ type
     function CalcMouseRow(y : integer) : integer;
     function GetItemPosY(index : integer) : integer;
     procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
-    procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
+    procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
 
@@ -128,6 +128,7 @@ type
     function GetItemPosX(index : integer) : integer;
     procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
+    procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
 
@@ -393,12 +394,12 @@ begin
   DrawRow(FFocusItem,true);
 end;
 
-procedure TPopupMenu.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
+procedure TPopupMenu.HandleMouseDown(x, y: integer; button: word; shiftstate: word);
 var
   newf : integer;
   mi : TMenuItem;
 begin
-  inherited HandleMouseUp(x, y, button, shiftstate);
+  inherited HandleMouseDown(x, y, button, shiftstate);
 
   newf := CalcMouseRow(y);
 
@@ -791,14 +792,16 @@ var
 begin
   mi := VisibleItem(FFocusItem);
 
+  CloseSubMenus;
+  
   if mi.SubMenu <> nil then
   begin
-    CloseSubMenus;
-
     // showing the submenu
     mi.SubMenu.ShowAt(self.WinHandle,GetItemPosX(FFocusItem)+2, guistyle.MenuFont.Height+4);
     mi.SubMenu.OpenerPopup := nil;
     mi.SubMenu.OpenerMenuBar := self;
+    
+    mi.SubMenu.SetDontCloseWidget(self);
 
     FocusedPopupMenu := mi.SubMenu;
 
@@ -884,7 +887,7 @@ begin
   end;
 end;
 
-procedure TMenuBar.HandleKeyPress(var keycode, shiftstate: word; var consumed: boolean);
+procedure TMenuBar.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
 var
   oldf : integer;
   i,trycnt : integer;
@@ -991,6 +994,8 @@ var
   newf : integer;
 begin
   inherited HandleMouseMove(x, y, btnstate, shiftstate);
+  
+  exit;
 
   if not MenuFocused then Exit;
 
@@ -1005,11 +1010,13 @@ begin
   DrawColumn(FFocusItem,true);
 end;
 
-procedure TMenuBar.HandleMouseUp(x, y: integer; button, shiftstate: word);
+procedure TMenuBar.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
 var
   newf : integer;
 begin
   inherited HandleMouseUp(x, y, button, shiftstate);
+  
+  exit;
 
   newf := CalcMouseCol(x);
 
@@ -1026,6 +1033,29 @@ begin
 
   DoSelect;
 end;
+
+procedure TMenuBar.HandleMouseDown(x, y: integer; button: word; shiftstate: word);
+var
+  newf : integer;
+begin
+  inherited HandleMouseDown(x, y, button, shiftstate);
+
+  newf := CalcMouseCol(x);
+
+  if NOT VisibleItem(newf).Selectable then Exit;
+
+  if newf <> FFocusItem then
+  begin
+    DrawColumn(FFocusItem,false);
+    FFocusItem := newf;
+    DrawColumn(FFocusItem,true);
+  end;
+
+  if button <> 1 then Exit;
+
+  DoSelect;
+end;
+
 
 function TMenuBar.ItemWidth(mi: TMenuItem): integer;
 begin

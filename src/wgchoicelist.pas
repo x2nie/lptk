@@ -47,13 +47,8 @@ type
     DropDownRows : integer;
 
     FDroppedDown : boolean;
-    FBlockDrop   : boolean;
 
     procedure ListSelect(sender : TObject);
-
-    procedure MsgPopupClose(var msg : TMessageRec); message MSG_POPUPCLOSE;
-
-    procedure DoSetFocus; override;
 
   public
 
@@ -66,7 +61,6 @@ type
 
     procedure DropDown;
 
-    procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
     procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
@@ -112,17 +106,6 @@ begin
   if Assigned(OnChange) then OnChange(self);
 end;
 
-procedure TwgChoiceList.MsgPopupClose(var msg: TMessageRec);
-begin
-  FBlockDrop := FDroppedDown;
-end;
-
-procedure TwgChoiceList.DoSetFocus;
-begin
-  inherited DoSetFocus;
-  FBlockDrop := false;
-end;
-
 constructor TwgChoiceList.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -149,7 +132,6 @@ begin
 
   FHeight := FFont.Height + 2*FMargin;
   FDroppedDown := false;
-  FBlockDrop := false;
 
   OnChange := nil;
 
@@ -207,22 +189,15 @@ begin
 
   FDroppedDown := true;
   FListPopup.ShowAt(self.WinHandle,0,height);
+  FListPopup.SetDontCloseWidget(self);
   FListPopup.ListBox.FocusItem := self.FocusItem;
-end;
-
-procedure TwgChoiceList.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
-begin
-  inherited HandleMouseUp(x, y, button, shiftstate);
-
-  if not FBlockDrop then DropDown;
-  FBlockDrop := false;
-  FDroppedDown := (FListPopup.WinHandle > 0);
 end;
 
 procedure TwgChoiceList.HandleMouseDown(x, y: integer; button: word; shiftstate: word);
 begin
   inherited HandleMouseDown(x, y, button, shiftstate);
-  FDroppedDown := (FListPopup.WinHandle > 0);
+  
+  if FListPopup.WinHandle <= 0 then DropDown else FListPopup.Close;
 end;
 
 procedure TwgChoiceList.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
