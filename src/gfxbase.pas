@@ -322,6 +322,53 @@ type
     function Descent : integer;
     Function Height  : integer;
   end;
+  
+  TGfxImage = class
+  private
+{$ifdef Win32}
+{$else}
+    FXimg  : TXImage;
+    FXimgmask : TXImage;
+{$endif}
+  protected
+    FWidth, FHeight : integer;
+    FColorDepth : integer;
+
+    FImageData : pointer;
+    FImageDataSize : integer;
+    
+    FMaskData : pointer;
+    FMaskDataSize : integer;
+    
+    FMasked : boolean;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure FreeImage;
+    procedure AllocateRGBImage(awidth, aheight : integer);
+    procedure Allocate2CImage(awidth, aheight : integer);
+    procedure AllocateMask;
+    
+    procedure Invert;
+    procedure CreateMaskFromSample(x,y : integer);
+    
+    property Width : integer read FWidth;
+    property Height : integer read FHeight;
+    property ColorDepth : integer read FColorDepth;
+    property ImageData : pointer read FImageData;
+    property ImageDataSize : integer read FImageDataSize;
+    property MaskData : pointer read FMaskData;
+    property MaskDataSize : integer read FMaskDataSize;
+    
+    property Masked : boolean read FMasked;
+    
+{$ifdef Win32}{$else}
+    function XImage : PXImage;
+    function XImageMask : PXImage;
+{$endif}
+
+  end;
 
   TGfxCanvas = class
   private
@@ -379,6 +426,9 @@ type
     procedure GetWinRect(var r : TGfxRect);
 
     procedure Clear(col : TGfxColor);
+    
+    procedure DrawImage(x,y : TGfxCoord; img : TGfxImage);
+    procedure DrawImagePart(x,y : TGfxCoord; img : TGfxImage; xi,yi,w,h : integer);
   end;
 
 var
@@ -433,6 +483,8 @@ procedure GfxCloseDisplay;
 function GfxColorToRGB(col : TGfxColor) : TGfxColor;
 
 function GfxGetFont(desc : string) : TGfxFont;
+
+procedure GfxProcessMessages;
 
 procedure WaitWindowMessage;
 procedure GfxDoMessageLoop;
@@ -1541,6 +1593,13 @@ begin
 
 end;
 
+function ConvertTo565Pixel(rgb : longword) : word;
+begin
+  result := (rgb and $F8) shr 3;
+  result := result or ((rgb and $FC00) shr 5);
+  result := result or ((rgb and $F80000) shr 8);
+end;
+
 function GfxColorToX(col : TGfxColor) : longword;
 var
   xc : TXColor;
@@ -1554,6 +1613,10 @@ begin
   else if DisplayDepth >= 24 then
   begin
     result := col;
+  end
+  else if DisplayDepth = 16 then
+  begin
+    result := ConvertTo565Pixel(col);
   end
   else
   begin
@@ -1606,6 +1669,30 @@ begin
 end;
 
 {$endif}
+
+procedure GfxProcessMessages;
+{$ifdef Win32}
+var
+  Msg: TMsg;
+{$endif}
+begin
+{$ifdef Win32}
+  GdiFlush;
+  while Windows.PeekMessageW( {$ifdef FPC}@{$endif} Msg, 0, 0, 0, PM_NOREMOVE) do
+  begin
+    WaitWindowMessageWin;
+    GdiFlush;
+  end;
+{$else}
+  XFlush(display);
+  while XPending(Display) > 0 do
+  begin
+    WaitWindowMessageX;
+    DeliverMessages;
+    XFlush(display);
+  end;
+{$endif}
+end;
 
 procedure WaitWindowMessage;
 begin
@@ -2100,6 +2187,55 @@ begin
 end;
 {$endif}
 
+procedure TGfxCanvas.DrawImage(x, y: TGfxCoord; img: TGfxImage);
+begin
+  DrawImagePart(x,y,img,0,0,img.width,img.height);
+end;
+
+procedure TGfxCanvas.DrawImagePart(x, y: TGfxCoord; img: TGfxImage; xi, yi, w,h: integer);
+{$ifdef Win32}{$else}
+var
+  msk : TPixmap;
+  gc2 : Tgc;
+  GcValues : TXGcValues;
+{$endif}
+begin
+{$ifdef Win32}{$else}
+  if img.Masked then
+  begin
+
+    XSetForeground(display, Fgc, 0); // $FFFFFF);
+    XSetBackground(display, Fgc, $FF0000);
+
+//    XPutImage(display, FWin, Fgc, img.XImage, 0,0, x,y, img.width, img.height);
+
+    // rendering the mask
+
+    msk := XCreatePixmap(display, XDefaultRootWindow(display), img.width, img.height, 1);
+    GcValues.foreground := 1;
+    GcValues.background := 0;
+    gc2 := XCreateGc(display, msk, GCForeground or GCBackground, @GcValues);
+
+    XPutImage(display, msk, gc2, img.XImageMask, xi,yi, 0,0, w, h);
+
+    XSetClipMask(display, Fgc, msk);
+    XSetClipOrigin(display, Fgc, x,y);
+
+    XPutImage(display, Fwin, Fgc, img.XImage, xi,yi, x,y, w, h);
+
+    XSetClipMask(display, Fgc, 0);
+    XFreePixmap(display, msk);
+    XFreeGc(display,gc2);
+
+  end
+  else
+  begin
+    XPutImage(display, FWin, Fgc, img.XImage, xi,yi, x,y, w, h);
+  end;
+
+{$endif}
+end;
+
 { TGfxRect }
 
 procedure TGfxRect.SetRect(aleft, atop, awidth, aheight : TGfxCoord);
@@ -2206,6 +2342,273 @@ begin
   result := FFont^.ascent + FFont^.descent;
 {$endif}
 end;
+
+{ TGfxImage }
+
+constructor TGfxImage.Create;
+begin
+  FWidth := 0;
+  FHeight := 0;
+  FColorDepth := 0;
+
+  FImageData := nil;
+  FImageDataSize := 0;
+  FMaskData := nil;
+  FMaskDataSize := 0;
+  FMasked := false;
+end;
+
+destructor TGfxImage.Destroy;
+begin
+  FreeImage;
+  inherited Destroy;
+end;
+
+procedure TGfxImage.FreeImage;
+begin
+  if FImageData <> nil then FreeMem(FImageData);
+  FImageData := nil;
+  FImageDataSize := 0;
+  if FMaskData <> nil then FreeMem(FMaskData);
+  FMaskData := nil;
+  FMaskDataSize := 0;
+  FMasked := false;
+  FWidth := 0;
+  FHeight := 0;
+end;
+
+procedure TGfxImage.AllocateRGBImage(awidth, aheight: integer);
+begin
+  FreeImage;
+
+  FWidth := awidth;
+  FHeight := aheight;
+  FColorDepth := DisplayDepth;
+
+  FImageDataSize := FWidth * FHeight * 4;
+  GetMem(FImageData, FImageDataSize);
+  
+  // Preparing XImage
+
+  with FXimg do
+  begin
+    width := FWidth;
+    height := FHeight;
+    xoffset := 0;
+    format := ZPixmap;
+    byte_order := LSBFirst;
+    bitmap_unit := 32;
+    bitmap_bit_order := MSBFirst;
+    bitmap_pad := 32;
+    depth := FColorDepth;
+    bytes_per_line := 0;
+    bits_per_pixel := 32;
+
+    red_mask :=   $000000FF;
+    green_mask := $0000FF00;
+    blue_mask :=  $00FF0000;
+
+    obdata := #0;
+
+    data := FImageData;
+  end;
+  
+  XInitImage(@FXimg);
+
+  //XPutImage(display, win, gc, @img3, 0,0, 50,50, img3.width, img3.height);
+
+end;
+
+procedure TGfxImage.Allocate2CImage(awidth, aheight: integer);
+var
+  dww : integer;
+begin
+  FreeImage;
+  
+  FWidth := awidth;
+  FHeight := aheight;
+  
+  FColorDepth := 1;
+  
+  // Real bitmap
+  dww := awidth div 32;
+  if (awidth and $1F) > 0 then inc(dww);
+
+  FImageDataSize := dww * FHeight * 4;
+  GetMem(FImageData, FImageDataSize);
+
+  // Preparing XImage
+
+  with FXimg do
+  begin
+    width := FWidth;
+    height := FHeight;
+    xoffset := 0;
+    format := XYBitmap;
+    byte_order := LSBFirst;
+    bitmap_unit := 8;
+    bitmap_bit_order := MSBFirst;
+    bitmap_pad := 32;
+    depth := 1;
+    bytes_per_line := 0;
+    bits_per_pixel := 1;
+
+    red_mask :=   1;
+    green_mask := 0;
+    blue_mask :=  0;
+
+    obdata := #0;
+
+    data := FImageData;
+  end;
+
+  XInitImage(@FXimg);
+  
+end;
+
+procedure TGfxImage.AllocateMask;
+var
+  dww : integer;
+begin
+  if (FWidth < 1) or (FHeight < 1) then Exit;
+  
+  if FMaskData <> nil then FreeMem(FMaskData);
+  
+  dww := FWidth div 32;
+  if (FWidth and $1F) > 0 then inc(dww);
+
+  FMaskDataSize := dww * FHeight * 4;
+  GetMem(FMaskData, FMaskDataSize);
+  
+  FMasked := true;
+
+  // Preparing XImage
+
+  with FXimgMask do
+  begin
+    width := FWidth;
+    height := FHeight;
+    xoffset := 0;
+    format := XYBitmap;
+    byte_order := LSBFirst;
+    bitmap_unit := 8;
+    bitmap_bit_order := MSBFirst;
+    bitmap_pad := 32;
+    depth := 1;
+    bytes_per_line := 0;
+    bits_per_pixel := 1;
+
+    red_mask :=   1;
+    green_mask := 0;
+    blue_mask :=  0;
+
+    obdata := #0;
+
+    data := FMaskData;
+  end;
+
+  XInitImage(@FXimgMask);
+
+end;
+
+procedure TGfxImage.Invert;
+var
+  p : ^Byte;
+  n : integer;
+begin
+  if FImageData = nil then Exit;
+  
+  p := FImageData;
+  for n:=1 to FImageDataSize do
+  begin
+    p^ := p^ XOR $FF;
+    inc(p);
+  end;
+  
+  if FMaskData <> nil then
+  begin
+    p := FMaskData;
+    for n:=1 to FMaskDataSize do
+    begin
+      p^ := p^ XOR $FF;
+      inc(p);
+    end;
+  end;
+end;
+
+procedure TGfxImage.CreateMaskFromSample(x, y: integer);
+var
+  p : ^longword;
+  pmsk : ^byte;
+  c : longword;
+  
+  linecnt : integer;
+  bcnt : integer;
+  pixelcnt : integer;
+  bit : byte;
+  msklinelen : integer;
+begin
+  if (FImageData = nil) then Exit;
+  if FColorDepth = 1 then Exit;
+  
+  p := FImageData;
+  if x < 0 then inc(p,FWidth-1) else inc(p,x);
+  if y < 0 then inc(p,FWidth*(FHeight-1)) else inc(p,FWidth*y);
+  
+  c := p^;  // the sample
+  
+  AllocateMask;
+  
+  msklinelen := FWidth div 32;
+  if (FWidth and $1F) > 0 then inc(msklinelen);
+  
+  msklinelen := msklinelen shl 2;
+  
+  p := FImageData;
+  linecnt := 0;
+  
+  repeat
+    pixelcnt := 0;
+    bit := $80;
+    pmsk := FMaskData;
+    inc(pmsk, linecnt*msklinelen);
+
+    repeat
+
+      if bit = $80 then pmsk^ := 0;
+
+      if p^ <> c then pmsk^ := pmsk^ or bit;
+
+      inc(p);
+      inc(pixelcnt);
+
+      if bit = 1 then
+      begin
+        bit := $80;
+        inc(pmsk);
+      end
+      else bit := bit shr 1;
+
+    until pixelcnt >= FWidth;
+
+    inc(linecnt);
+
+  until linecnt >= FHeight;
+
+end;
+
+{$ifdef Win32}{$else}
+function TGfxImage.XImage: PXImage;
+begin
+  result := @FXimg;
+end;
+
+function TGfxImage.XImageMask: PXImage;
+begin
+  result := @FXimgMask;
+end;
+
+{$endif}
 
 initialization
 begin
