@@ -580,7 +580,7 @@ var
   hh : integer;
   n : integer;
 
-  cw : integer;
+  cw,nw : integer;
   prow, pcol : integer;
 begin
   inherited HandleMouseDown(x, y, button, shiftstate);
@@ -618,7 +618,8 @@ begin
         FColResizing := true;
         FResizedCol := n;
         FDragPos := x;
-        SetColumnWidth(FResizedCol, ColumnWidth[FResizedCol] - (cw+FMargin-x) );
+        nw := ColumnWidth[FResizedCol] - (cw+FMargin-x);
+        if nw > 0 then SetColumnWidth(FResizedCol, nw );
 
         break;
 
@@ -684,7 +685,9 @@ begin
     if (btnstate and 1) = 0 then FColResizing := false
     else
     begin
-      SetColumnWidth(FResizedCol, ColumnWidth[FResizedCol]+x-FDragPos);
+      cw := ColumnWidth[FResizedCol]+x-FDragPos;
+      if cw < 1 then cw := 1;
+      SetColumnWidth(FResizedCol, cw );
       FDragPos := x;
     end;
   end
