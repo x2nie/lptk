@@ -39,13 +39,14 @@ begin
 
   pmenu := TPopupMenu.Create(nil);
 
-  pmenu.AddMenuItem8('This is a very long menu item','',nil);
+  pmenu.AddMenuItem8('This is a &very long && menu item','',nil);
   pmenu.AddMenuItem8('-','',nil);
-  pmenu.AddMenuItem8('First...','',@MenuSelect);
-  pmenu.AddMenuItem8('Second...','CTRL-X',@MenuSelect);
-  pmenu.AddMenuItem8('Third','',@MenuSelect);
+  pmenu.AddMenuItem8('First is invisible','',@MenuSelect).Visible := false;
+  pmenu.AddMenuItem8('&Second...','CTRL-X',@MenuSelect);
+  pmenu.AddMenuItem8('&Third is disabled','',@MenuSelect).Enabled := false;
+  pmenu.AddMenuItem8('Unicode: bend&^337','',@MenuSelect);
   pmenu.AddMenuItem8('-','',nil);
-  pmenu.AddMenuItem8('Exit','CTRL-Q', @MenuExit);
+  pmenu.AddMenuItem8('E&xit','CTRL-Q', @MenuExit);
 end;
 
 procedure TMainForm.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
