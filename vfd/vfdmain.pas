@@ -1,4 +1,4 @@
-{ Copyright (c) 2003, Nagy Viktor 
+{ Copyright (c) 2003, Nagy Viktor
 
  Main window functionality
 }
@@ -17,9 +17,12 @@ uses
   vfdresizer, vfdforms, vfddesigner, vfdfile;
 
 const
-  program_version = '0.56';
+  program_version = '0.57';
 
 {version description:
+0.57
+  - WindowTitle8 correction
+
 0.56
   - DBColumn editor
 
@@ -29,7 +32,7 @@ const
   - Items editor at F4
   - widget selection by TAB
   - New form creation dialog
-  
+
 0.51
   - ENTER switches between the form and properties
   - Other widget handling
@@ -77,9 +80,9 @@ type
 
     procedure OnPropTextChange(sender : TObject);
     procedure OnPropNameChange(sender : TObject);
-    
+
     procedure OnPropPosEdit(sender : TObject);
-    
+
     procedure OnOtherChange(sender : TObject);
     procedure OnAnchorChange(sender : TObject);
 
@@ -232,7 +235,7 @@ begin
     begin
       fd := TFormDesigner.Create;
       fd.Form.Name := nfrm.edName.Text8;
-      fd.Form.WindowTitle := nfrm.edName.Text8;
+      fd.Form.WindowTitle := nfrm.edName.Text;
       FDesigners.Add(fd);
       fd.Show;
     end;
@@ -243,7 +246,7 @@ end;
 procedure TMainDesigner.CreateWindows;
 begin
   MainForm := TMainForm.Create(nil);
-  MainForm.WindowTitle := 'LPTK Visual Form Designer - v'+program_version;
+  MainForm.WindowTitle8 := 'LPTK Visual Form Designer - v'+program_version;
   MainForm.Show;
 
 

@@ -30,7 +30,7 @@ procedure TTestForm.AfterCreate;
 begin
   inherited AfterCreate;
 
-  WindowTitle := 'DBGrid Test Form';
+  WindowTitle8 := 'DBGrid Test Form';
 
   SetDimensions(10,10,500,390);
 

@@ -1,4 +1,4 @@
-{ Copyright (c) 2003, Nagy Viktor 
+{ Copyright (c) 2003, Nagy Viktor
 
  Some property editors
 }
@@ -29,7 +29,7 @@ type
     procedure OnButtonClick(sender : TObject);
 
   end;
-  
+
   TColumnsGrid = class(TwgGrid)
   public
     function ColumnCount : integer; override;
@@ -40,14 +40,14 @@ type
 
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
     procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
-    
+
   public
     dbgrid : TwgDBGrid;
-    
+
     constructor Create(AOwner : TComponent); override;
-    
+
   end;
-  
+
   TColumnEditForm = class(TGfxForm)
   public
     {@VFD_HEAD_BEGIN: ColumnEditForm}
@@ -73,11 +73,11 @@ type
     dbgrid : TwgDBGrid;
 
     procedure AfterCreate; override;
-    
+
     procedure GridRowChange(Sender : TObject; row : integer);
-    
+
     procedure SaveColumn(row : integer);
-    
+
     procedure EditChange(Sender : TObject);
 
     procedure NewButtonClick(Sender : TObject);
@@ -121,7 +121,7 @@ begin
   inherited;
   WindowPosition := wpUser;
 
-  WindowTitle := 'Items';
+  WindowTitle8 := 'Items';
 
   SetDimensions(0,0,360,230);
 
@@ -152,7 +152,7 @@ procedure TColumnEditForm.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: ColumnEditForm}
   SetDimensions(281,137,511,269);
-  WindowTitle := 'Column editor';
+  WindowTitle8 := 'Column editor';
 
   lbLabel1 := TWGLABEL.Create(self);
   with lbLabel1 do
@@ -291,7 +291,7 @@ var
 begin
   c := dbgrid.Columns[row-1];
   if c=nil then Exit;
-  
+
   lbCOLNO.Text8 := IntToStr(row);
   edTITLE.Text := c.Title;
   edFIELDNAME.Text8 := c.FieldName8;
@@ -302,9 +302,9 @@ begin
   else
     i := 1;
   end;
-  
+
   chlALIGN.FocusItem := i;
-  
+
 end;
 
 procedure TColumnEditForm.SaveColumn(row : integer);
@@ -332,7 +332,7 @@ end;
 procedure TColumnEditForm.EditChange(Sender: TObject);
 begin
   if grid.FocusRow < 1 then Exit;
-  
+
   SaveColumn(grid.FocusRow);
 end;
 
@@ -430,7 +430,7 @@ begin
   else
     s := u8('?');
   end;
-  
+
   canvas.DrawString16(x,FFont.Ascent+rect.top+1,  s );
 end;
 
@@ -454,7 +454,7 @@ begin
   x := (rect.width div 2) - (FHeaderFont.TextWidth16(s) div 2);
   if x < 1 then x := 1;
   canvas.DrawString16(rect.left + x,  FHeaderFont.Ascent+rect.top+1, s);
-  
+
 end;
 
 constructor TColumnsGrid.Create(AOwner: TComponent);

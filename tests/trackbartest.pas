@@ -16,7 +16,7 @@ begin
     Height := 250;
     Width := 200;
     inherited AfterCreate;
-    WindowTitle := 'Trackbar-Test';
+    WindowTitle8 := 'Trackbar-Test';
     trackbar := TwgTrackBar.create(self);
     trackbar.setdimensions(10,10,180,180);
     trackbar.anchors := [anleft,anright,antop,anbottom];

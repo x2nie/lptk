@@ -54,7 +54,7 @@ var
   mf : TMessageBox;
 begin
   mf := TMessageBox.Create(nil);
-  mf.WindowTitle := title;
+  mf.WindowTitle8 := title;
   mf.SetMessage8(msg);
   mf.ShowModal;
   mf.Free;

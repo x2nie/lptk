@@ -409,7 +409,7 @@ begin
   FForm := TDesignedForm.Create(nil);
   FForm.FormDesigner := self;
   FForm.Name := maindsgn.NewFormName;
-  FForm.WindowTitle := FForm.Name;
+  FForm.WindowTitle8 := FForm.Name;
   FFormOther := '';
 end;
 
@@ -831,7 +831,7 @@ begin
     bedit := false;
     lbText.Text := u8('Text:');
 
-    if wg is TGfxForm then edText.Text := str8to16(TGfxForm(wg).WindowTitle)
+    if wg is TGfxForm then edText.Text := TGfxForm(wg).WindowTitle
     else if wg is TwgLabel then edText.Text := TwgLabel(wg).Text
     else if wg is TwgEdit  then edText.Text := TwgEdit(wg).Text
     else if wg is TwgButton then edText.Text := TwgButton(wg).Text
@@ -902,7 +902,7 @@ begin
 
   if wg = nil then
   begin
-    FForm.WindowTitle := str16to8(s);
+    FForm.WindowTitle := s;
   end;
 
 end;
@@ -940,9 +940,9 @@ begin
 
   if wg = nil then
   begin
-    if FForm.Name = FForm.WindowTitle then
+    if FForm.Name = FForm.WindowTitle8 then
     begin
-      FForm.WindowTitle := s8;
+      FForm.WindowTitle8 := s8;
       PropertyForm.edText.Text8 := s8;
     end;
     try
@@ -1158,7 +1158,7 @@ begin
 
   s := s + '  SetDimensions('+IntToStr(FForm.Left)+','+IntToStr(FForm.Top)
     +','+IntToStr(FForm.Width)+','+IntToStr(FForm.Height)+');'#10;
-  s := s + '  WindowTitle := '''+FForm.WindowTitle+''';'#10;
+  s := s + '  WindowTitle8 := '+QuotedStr(u8encode(FForm.WindowTitle))+';'#10;
 
   //adding other form properties, idented
   sl := TStringList.Create;
@@ -1347,7 +1347,7 @@ begin
 
   WindowPosition := wpUser;
 
-  WindowTitle := 'New Form';
+  WindowTitle8 := 'New Form';
 
   SetDimensions(300,100,300,250);
 //  SetDimensions(300,100,150,150);

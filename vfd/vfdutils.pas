@@ -22,7 +22,7 @@ implementation
 
 procedure SetWidgetText(wg : TWidget; txt : string16);
 begin
-  if      wg is TGfxForm then TGfxForm(wg).WindowTitle := str16to8(txt)
+  if      wg is TGfxForm then TGfxForm(wg).WindowTitle := txt
   else if wg is TwgLabel then TwgLabel(wg).Text := txt
   else if wg is TwgEdit  then TwgEdit(wg).Text := txt
   else if wg is TwgMemo  then TwgMemo(wg).Text := txt
@@ -34,7 +34,7 @@ end;
 function GetWidgetText(wg : TWidget; var txt : string) : boolean;
 begin
   result := true;
-  if wg is TGfxForm then txt := str8to16(TGfxForm(wg).WindowTitle)
+  if wg is TGfxForm then txt := TGfxForm(wg).WindowTitle
   else if wg is TwgLabel then txt := TwgLabel(wg).Text
   else if wg is TwgEdit  then txt := TwgEdit(wg).Text
   else if wg is TwgMemo  then txt := TwgMemo(wg).Text

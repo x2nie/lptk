@@ -406,7 +406,7 @@ begin
 
     if lok then wg.Anchors := wga;
   end
-  else if ident = 'WINDOWTITLE' then
+  else if ident = 'WINDOWTITLE8' then
   begin
     lok := (wg is TgfxForm);
     if lok then
@@ -417,7 +417,7 @@ begin
         sval := GetStringValue(s);
         lok := CheckSymbol(s, ';');
       end;
-      if lok then TGfxForm(wg).WindowTitle := sval;
+      if lok then TGfxForm(wg).WindowTitle8 := sval;
     end;
   end
   else if ident = 'SETDIMENSIONS' then

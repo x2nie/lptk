@@ -78,7 +78,7 @@ begin
 
   writeln('aftercreate');
 
-  WindowTitle := 'LPTK test form';
+  WindowTitle8 := 'LPTK test form';
 
   SetDimensions(30,10,400,340);
 
@@ -185,7 +185,7 @@ end;
 
 procedure TModalForm.AfterCreate;
 begin
-  WindowTitle := 'Modal form';
+  WindowTitle8 := 'Modal form';
 
   SetDimensions(100,100,200,120);
 
@@ -204,7 +204,7 @@ end;
 procedure TTestForm.AfterCreate;
 begin
   inherited AfterCreate;
-  WindowTitle := 'Widget Test Form';
+  WindowTitle8 := 'Widget Test Form';
 
   SetDimensions(10,10,450,300);
 
@@ -220,7 +220,7 @@ end;
 procedure RunMain;
 var
   mf : TMyForm;
-  
+
   testform : TTestForm;
 begin
   Writeln('LPTK test');

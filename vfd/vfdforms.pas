@@ -1,4 +1,4 @@
-{ Copyright (c) 2003, Nagy Viktor 
+{ Copyright (c) 2003, Nagy Viktor
 
  Main VFD forms
 }
@@ -19,9 +19,9 @@ type
 
   TVFDDialog = class(TGfxForm)
   public
-  
+
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
-    
+
   end;
 
   TInsertCustomForm = class(TVFDDialog)
@@ -37,7 +37,7 @@ type
     procedure OnButtonClick(sender : TObject);
 
   end;
-  
+
   TNewFormForm = class(TVFDDialog)
   public
     l1 : TwgLabel;
@@ -64,7 +64,7 @@ type
   TWidgetOrderForm = class(TVFDDialog)
   public
     l1 : TwgLabel;
-    
+
     list : TwgTextListBox;
 
     btnUP, btnDOWN,
@@ -79,7 +79,7 @@ type
   public
     clab  : TwgLabel;
     clist : TwgTextListBox;
-  
+
     procedure AfterCreate; override;
 
     procedure HandleClose; override;
@@ -155,19 +155,19 @@ begin
 
   WindowPosition := wpUser;
 
-  WindowTitle := 'Palette';
+  WindowTitle8 := 'Palette';
 
   SetDimensions(10,450,110,220);
-  
+
   clab := CreateLabel(self, 3,3,'Widget Palette:');
-  
+
   clist := TwgTextListBox.Create(self);
   clist.Left := 1;
   clist.width := width - 2;
   clist.Top := 22;
   clist.height := height - clist.top - 2;
   clist.Anchors := AllAnchors;
-  
+
   clist.Items.Add(str8to16('-'));
   clist.Items.Add(str8to16('Label'));
   clist.Items.Add(str8to16('Edit'));
@@ -197,14 +197,14 @@ begin
 
   WindowPosition := wpUser;
 
-  WindowTitle := 'Properties';
+  WindowTitle8 := 'Properties';
 
   SetDimensions(10,80,250,320);
-  
+
   x  := 3;
   x2 := x + 90;
   gap := 22;
-  
+
   w := width - x2 - 3;
 
   y := 3;
@@ -213,9 +213,9 @@ begin
   lbClass := CreateLabel(self, x2,y, 'CLASS');
   lbClass.Width := w;
   lbClass.Font := guistyle.LabelFont2;
-  
+
   inc(y, gap);
-  
+
   l2 := CreateLabel(self, x,y, 'Name:');
   edName := CreateEdit(self, x2,y,w,0);
   edName.Text8 := 'NAME';
@@ -310,7 +310,7 @@ begin
 
   WindowPosition := wpUser;
 
-  WindowTitle := 'LPTK Visual Form Designer';
+  WindowTitle8 := 'LPTK Visual Form Designer';
 
   SetDimensions(0,0,550,50);
 
@@ -344,7 +344,7 @@ begin
   inherited;
   WindowPosition := wpScreenCenter;
 
-  WindowTitle := 'Insert Custom Widget';
+  WindowTitle8 := 'Insert Custom Widget';
 
   SetDimensions(0,0,300,100);
 
@@ -370,7 +370,7 @@ begin
   WindowPosition := wpScreenCenter;
 
   SetDimensions(0,0,286,66);
-  WindowTitle := 'New Form';
+  WindowTitle8 := 'New Form';
 
   l1 := CreateLabel(self, 8,8, 'Form name:');
   edName := CreateEdit(self, 8,28, 180, 0);
@@ -393,7 +393,7 @@ begin
   WindowPosition := wpUser;
 
   SetDimensions(0,0,186,66);
-  WindowTitle := 'Position';
+  WindowTitle8 := 'Position';
 
   lbPos := CreateLabel(self, 8,8, 'Pos:      ');
   edPos := CreateEdit(self, 8,28, 80, 0);
@@ -415,16 +415,16 @@ begin
   WindowPosition := wpScreenCenter;
 
   SetDimensions(0,0,322,258);
-  WindowTitle := 'Widget order';
+  WindowTitle8 := 'Widget order';
 
   l1 := CreateLabel(self, 4,4, 'Form widget order:');
-  
+
   list := TwgTextListBox.Create(self);
   list.SetDimensions(4,24,220,228);
-  
+
   btnOK := CreateButton(self,232,24,80, 'OK', {$ifdef FPC}@{$endif}OnButtonClick);
   btnCancel := CreateButton(self,232,52,80, 'Cancel', {$ifdef FPC}@{$endif}OnButtonClick);
-  
+
   btnUP := CreateButton(self,232,108,80, 'UP', {$ifdef FPC}@{$endif}OnButtonClick);
   btnDOWN := CreateButton(self,232,136,80, 'DOWN', {$ifdef FPC}@{$endif}OnButtonClick);
 
