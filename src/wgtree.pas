@@ -457,10 +457,10 @@ var
     w : integer;
     YPos : integer;
     col : integer;
-    cw : integer; // column width
 label label_next;
 begin
     if FWinHandle = 0 then exit;
+    UpdateScrollbars;
     inherited RePaint;
     Canvas.ClearClipRect;
     Canvas.Clear(BackgroundColor);
@@ -701,14 +701,11 @@ begin
 end;
 
 function TwgTree.VisibleHeight : integer;
-var
-    i : integer;
 begin
     {$IFDEF DEBUG}
     writeln('VisibleHeight');
     {$ENDIF}
     result := 0;
-    i := GetNodeHeightSum;
     if FShowColumns then
     begin
 	if MaxNodeWidth > Width - 2 then
