@@ -23,9 +23,9 @@ type
   TstdImageList = class(TwgGrid)
   public
     firstcolwidth : integer;
-    
+
     constructor Create(AOwner : TComponent); override;
-  
+
     function ColumnCount : integer; override;
     function RowCount : integer; override;
 
@@ -55,7 +55,7 @@ type
     cb : TwgCheckBox;
 
     choicel : TwgChoiceList;
-    
+
     imglist : TstdImageList;
 
     procedure AfterCreate; override;
@@ -125,7 +125,7 @@ procedure TstdImageList.DrawCell(row, col: integer; rect: TGfxRect; flags: integ
 begin
   if col = 1 then
   begin
-    Canvas.DrawString16(rect.Left+1,rect.Top+1+Font.Ascent,u8(lowercase(GfxImageLibrary.Strings[row-1])));
+    Canvas.DrawString16(rect.Left+1,rect.Top+1,u8(lowercase(GfxImageLibrary.Strings[row-1])));
   end
   else
   begin
@@ -139,7 +139,7 @@ var
 begin
   if col=1 then s := 'Image ID' else s := 'Pic';
 
-  Canvas.DrawString16(rect.Left+1,rect.Top+1+Font.Ascent,u8(s));
+  Canvas.DrawString16(rect.Left+1,rect.Top+1,u8(s));
 end;
 
 { TMyForm }
@@ -224,7 +224,7 @@ begin
   cb.Top := 300;
   cb.Width := 150; //(200,300,150,20);
   cb.Text := str8to16('CheckBox Widget');
-  
+
   l7 := CreateLabel(self, 380, 10, 'Std Images:');
 
   imglist := TstdImageList.Create(self);
