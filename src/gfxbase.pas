@@ -9,7 +9,11 @@ unit gfxbase;
 {$ifdef FPC}
 {$mode objfpc}{$H+}
 {$endif}
+{$IFDEF BUFFERING}
+{$IFNDEF win32}
 {$linklib Xext}
+{$ENDIF}
+{$ENDIF}
 
 interface
 
