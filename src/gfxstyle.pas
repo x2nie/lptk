@@ -191,7 +191,7 @@ begin
     xc.green := (c and $0000FF00);
     xc.red   := (c and $00FF0000) shr 8;
 
-    XAllocColor(display, DefaultColorMap, @xc);
+    XAllocColor(display, GfxDefaultColorMap, @xc);
     NamedColors[n].xcolor := xc.pixel;
   end;
 end;
