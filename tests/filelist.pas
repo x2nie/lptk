@@ -425,6 +425,7 @@ begin
        end;
                           
        if img <> nil then canvas.DrawImage(rect.Left+1,y,img);
+       if e.islink then canvas.DrawImage(rect.Left+1,y,GfxLibGetImage('stdimg.link'));
        x := rect.left + 20;
        s := u8(e.Name);
      end;
@@ -646,6 +647,7 @@ begin
 
       if (e.name = '.') or
          ((e.name = '..') and (FDirectoryName = '/')) or
+         (not ShowHidden and (copy(e.name,1,1)='.') and (copy(e.name,2,1)<>'.') ) or
          ((e.etype = etFile) and not FileNameMatches(e.Name,fmask))  then
       begin
         // do not add this entry
