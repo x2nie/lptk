@@ -92,6 +92,8 @@ begin
 
   qr := nil;
 
+  MouseCursor := CUR_DIR_NS;
+  
 end;
 
 destructor TSqlForm.Destroy;
@@ -136,14 +138,14 @@ begin
   begin
     FSplitterDrag := true;
     FDragPos := y;
-    MouseCursor := CUR_DIR_NS;
+    //MouseCursor := CUR_DIR_NS;
   end;
 end;
 
 procedure TSqlForm.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
 begin
   inherited HandleMouseUp(x, y, button, shiftstate);
-  MouseCursor := CUR_DEFAULT;
+  //MouseCursor := CUR_DEFAULT;
   FSplitterDrag := False;
 end;
 
