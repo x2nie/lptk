@@ -1,9 +1,9 @@
 program helolptk;
 
+{$apptype GUI}
+
 {$ifdef FPC}
   {$mode delphi}{$H+}
-{$else}
-  {$apptype CONSOLE}
 {$endif}
 
 uses
