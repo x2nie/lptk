@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.13  2004/01/29 10:03:04  aegluke
+// DoubleClick on filename is like clicking "OK"
+//
 // Revision 1.12  2004/01/28 08:11:34  aegluke
 // fixed handling of switching between detail and list-view
 //
@@ -528,7 +531,10 @@ begin
           DoDirectoryChange;
   end
   else
+  begin
     DoFileChose;
+    inherited HandleDoubleClick(x,y,btnstate,shiftstate);
+  end;
 end;
 
 procedure TwgFileGrid.RecalcGrid;

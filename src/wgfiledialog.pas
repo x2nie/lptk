@@ -35,7 +35,7 @@ type
             procedure FilenameChange(ASender : TObject);
             procedure OkClick(ASender : TObject);
             procedure FileGridImageIndex(Sender : TObject; AFileData : TwgFileData; var AImageIndex : integer);
-            
+	    procedure GridDoubleClick(ASender : TObject; AX, AY : TgfxCoord; var AButton : Word; var ShiftState : Word);
             function GetFileName : String;
             procedure SetFileName(AValue : String);
 	public
@@ -55,6 +55,11 @@ uses
 {$I stdimg_ok16x16.inc}
 {$I stdimg_cancel16x16.inc}
 {$I stdimg_lens16x16.inc}
+
+procedure TwgFileDialog.GridDoubleClick(ASender : TObject; AX, AY : TgfxCoord; var AButton : Word; var ShiftState : Word);
+begin
+    OkClick(ASender);
+end;
 
 function TwgFileDialog.GetFileName : String;
 begin
@@ -194,6 +199,7 @@ begin
     FFileGrid.onImageIndex := {$IFDEF fpc}@{$ENDIF}FileGridImageIndex;
     FFileGrid.ImageList := FImageList;
     FFileGrid.ShowImages := True;
+    FFileGrid.OnDoubleClick := {$IFDEF FPC}@{$ENDIF}GridDoubleClick;
     FDirTree.onChange := {$IFDEF fpc}@{$ENDIF}TreeDirectoryChange;
     FFileName.onChange := {$IFDEF fpc}@{$ENDIF}FileNameChange;
 end;
