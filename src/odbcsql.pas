@@ -11,8 +11,9 @@ unit odbcsql;
 {$else}
 {$mode objfpc}
 {$h+}
-{$define odbcver3}
 {$endif}
+
+{$define odbcver3}
 
 interface
 
