@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.23  2004/01/13 17:40:41  aegluke
+// speed-improvements
+//
 // Revision 1.22  2004/01/13 10:38:28  aegluke
 // Doublebuffer-Support
 //
@@ -783,6 +786,7 @@ var
   col: integer;
   ACenterPos : integer;
   AImageItem : TgfxImageItem;
+  AVisibleHeight : Integer;
 label
   label_next;
 begin
@@ -793,6 +797,7 @@ begin
   i1 := 0;
   PreCalcColumnLeft;
   UpdateScrollbars;
+  AVisibleHeight := VisibleHeight;
   Canvas.DrawOnBuffer := True;
   Canvas.ClearClipRect;
   Canvas.Clear(BackgroundColor);
@@ -869,123 +874,147 @@ begin
     w := GetColumnLeft(StepToRoot(h));
     YPos := YPos + GetNodeHeight;
     ACenterPos := YPos - FYOffset + col - GetNodeHeight + (GetNodeHeight div 2);
-    if h = Selection then // draw the selection rectangle and text
+    if ACenterPos > FHScrollbar.Position - GetNodeHeight then
     begin
-      if Focused then
-      begin
-        Canvas.SetColor(h.ParentSelColor);
-        Canvas.SetTextColor(h.ParentSelTextColor);
-      end
-      else
-      begin
-        Canvas.SetColor(h.ParentInactSelColor);
-        Canvas.SetTextColor(h.ParentInActSelTextColor);
-      end;
-      Canvas.FillRectangle(w - FXOffset, YPos - FYOffset + col - GetNodeHeight + FFont.Ascent div 2 - 2, GetNodeWidth(h), GetNodeHeight);      
-      if (ImageList <> nil) and  ShowImages then
-      begin
-           AImageItem := ImageList.Item[h.ImageIndex];
-           if AImageItem <> nil then
-           begin
+         if h = Selection then // draw the selection rectangle and text
+         begin
+              if Focused then
+              begin
+                   Canvas.SetColor(h.ParentSelColor);
+                   Canvas.SetTextColor(h.ParentSelTextColor);
+              end
+              else
+              begin
+                   Canvas.SetColor(h.ParentInactSelColor);
+                   Canvas.SetTextColor(h.ParentInActSelTextColor);
+              end;
+              Canvas.FillRectangle(w - FXOffset, YPos - FYOffset + col - GetNodeHeight + FFont.Ascent div 2 - 2, GetNodeWidth(h), GetNodeHeight);
+              if (ImageList <> nil) and  ShowImages then
+              begin
+                   AImageItem := ImageList.Item[h.ImageIndex];
+                   if AImageItem <> nil then
+                   begin
                      Canvas.DrawImagePart(w - FXOffset + 1, ACenterPos - 4, AImageItem.Image,0,0,16,16);
                      Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width + 2, ACenterPos - FFont.Ascent div 2, h.text);
-           end
-           else
-               Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
-      end
-      else
-        Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
-     Canvas.SetTextColor(h.ParentTextColor);
-    end
-    else
-    begin
-      if (ImageList <> nil) and  ShowImages then
-      begin
-           AImageItem := ImageList.Item[h.ImageIndex];
-           if AImageItem <> nil then
-           begin
-                 Canvas.DrawImagePart(w - FXOffset + 1, ACenterPos - 4, AImageItem.Image,0,0,16,16);
-                 Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width + 2, ACenterPos - FFont.Ascent div 2, h.text);
-           end
-           else
-               Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
-      end
-      else
-           Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
-    end;
-    Canvas.SetColor(clText1);
-    if h.Count > 0 then // subnodes?
-    begin
-      Canvas.DrawRectangle(w - FXOffset - GetColumnWidth(i1) div 2 - 3, ACenterPos - 3, 9, 9);
-      if h.Collapsed then // draw a "+"
-      begin
-        Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 - 1, ACenterPos + 1, w - FXOffset - GetColumnWidth(i1) div 2 + 3, ACenterPos + 1);
-        Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - 1, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos + 3);
-      end
-      else
-      begin // draw a "-"
-        Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 - 1, ACenterPos + 1, w - FXOffset - GetColumnWidth(i1) div 2 + 3, ACenterPos + 1);
-      end;
-    end
-    else
-    begin
-      if (h.next <> nil) or (h.prev <> nil) then
-      // draw the line in front of a single node
-      begin
-        Canvas.SetColor(clText1);
-        Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1,  ACenterPos + 1, w - FXOffset - 3,  ACenterPos + 1);
-      end;
-    end;
-    if h.prev <> nil then
-    begin
-      // line up to the previous node
-      if h.prev.count > 0 then
-      begin
-          if h.count > 0 then
-             Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - 4, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - SpaceToVisibleNext(h.prev) * GetNodeHeight + 6)
-          else
-            Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - SpaceToVisibleNext(h.prev) * GetNodeHeight + 6)
-      end
-      else
-      begin
-         if h.count > 0 then
-            Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - 3, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - SpaceToVisibleNext(h.prev) * GetNodeHeight + 2)
+                   end
+                   else
+                       Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
+              end
+              else
+                  Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
+              Canvas.SetTextColor(h.ParentTextColor);
+         end
          else
-            Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - SpaceToVisibleNext(h.prev) * GetNodeHeight + 2)
-      end
-    end
-    else
-    begin
-      if h.count > 0 then
-        Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1,ACenterPos - 3, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - GetNodeHeight div 2 + 3)
-      else
-        Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - GetNodeHeight div 2 + 3);
+         begin
+         if (ImageList <> nil) and  ShowImages then
+         begin
+                 AImageItem := ImageList.Item[h.ImageIndex];
+                 if AImageItem <> nil then
+                 begin
+                      Canvas.DrawImagePart(w - FXOffset + 1, ACenterPos - 4, AImageItem.Image,0,0,16,16);
+                      Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width + 2, ACenterPos - FFont.Ascent div 2, h.text);
+                 end
+                 else
+                     Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
+            end
+            else
+                Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
+         end;
+         Canvas.SetColor(clText1);
+         if h.Count > 0 then // subnodes?
+         begin
+              Canvas.DrawRectangle(w - FXOffset - GetColumnWidth(i1) div 2 - 3, ACenterPos - 3, 9, 9);
+              if h.Collapsed then // draw a "+"
+              begin
+                   Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 - 1, ACenterPos + 1, w - FXOffset - GetColumnWidth(i1) div 2 + 3, ACenterPos + 1);
+                   Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - 1, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos + 3);
+              end
+              else
+              begin // draw a "-"
+                    Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 - 1, ACenterPos + 1, w - FXOffset - GetColumnWidth(i1) div 2 + 3, ACenterPos + 1);
+              end;
+         end
+         else
+         begin
+              if (h.next <> nil) or (h.prev <> nil) then
+              // draw the line in front of a single node
+              begin
+                   Canvas.SetColor(clText1);
+                   Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1,  ACenterPos + 1, w - FXOffset - 3,  ACenterPos + 1);
+              end;
+         end;
+         if h.prev <> nil then
+         begin
+         // line up to the previous node
+            if h.prev.count > 0 then
+            begin
+                 if h.count > 0 then
+                    Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - 4, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - SpaceToVisibleNext(h.prev) * GetNodeHeight + 6)
+                 else
+                     Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - SpaceToVisibleNext(h.prev) * GetNodeHeight + 6)
+            end
+            else
+            begin
+                 if h.count > 0 then
+                    Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - 3, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - SpaceToVisibleNext(h.prev) * GetNodeHeight + 2)
+                 else
+                     Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - SpaceToVisibleNext(h.prev) * GetNodeHeight + 2)
+            end
+         end
+         else
+         begin
+              if h.count > 0 then
+                 Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1,ACenterPos - 3, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - GetNodeHeight div 2 + 3)
+              else
+                  Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos, w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos - GetNodeHeight div 2 + 3);
+         end;
     end;
-    if h.count > 0 then
+    if AVisibleHeight > ACenterPos + GetNodeHeight then
     begin
-      if not h.collapsed then
-        h := h.FirstSubNode
-      else
-        goto label_next;
+         if h.count > 0 then
+         begin
+              if not h.collapsed then h := h.FirstSubNode
+              else goto label_next;
+         end
+         else
+         begin
+              label_next:
+              if h.next <> nil then
+                 h := h.next // next node
+              else
+              begin
+                   while h.next = nil do // or recurse next node per parent
+                   begin
+                        h := h.parent;
+                        if (h = nil) or (h = rootnode) then
+                        begin
+                             Canvas.SwapBuffer;
+                             exit;
+                        end;
+                   end;
+                   h := h.next;
+              end;
+         end;
     end
     else
     begin
-      label_next:
-      if h.next <> nil then
-        h := h.next // next node
-      else
+         // Draw Lines up to the parent nodes
+      ACenterPos := ACenterPos + GetNodeHeight;
+      while h <> RootNode do
       begin
-        while h.next = nil do // or recurse next node per parent
-        begin
-          h := h.parent;
-          if (h = nil) or (h = rootnode) then
-          begin
-            Canvas.SwapBuffer;
-            exit;
-          end;
-        end;
-        h := h.next;
+         w := GetColumnLeft(StepToRoot(h));
+         if h.next <> nil then
+         begin
+              h := h.next;
+              if h.prev.count > 0 then
+                  Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos, w - FXOffset - GetColumnWidth(i1) div 2 + 1, GetAbsoluteNodeTop(h.prev) - FYOffset + 6 + GetNodeHeight div 2)
+              else
+                  Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, ACenterPos, w - FXOffset - GetColumnWidth(i1) div 2 + 1, GetAbsoluteNodeTop(h.prev) - FYOffset + 2 + GetNodeHeight div 2);
+         end;
+         h := h.parent;
       end;
+      Canvas.SwapBuffer;
+      exit;
     end;
   end;
   Canvas.SwapBuffer;
