@@ -29,8 +29,8 @@ type
     function ColumnCount : integer; override;
     function RowCount : integer; override;
 
-    function ColumnWidth(col : integer) : TGfxCoord; override;
-    procedure ResizeCol(col, cwidth : integer); override;
+    function GetColumnWidth(col : integer) : TGfxCoord; override;
+    procedure SetColumnWidth(col, cwidth : integer); override;
 
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
     procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
@@ -107,12 +107,12 @@ begin
   Result:=GfxImageLibrary.Count;
 end;
 
-function TstdImageList.ColumnWidth(col: integer): TGfxCoord;
+function TstdImageList.GetColumnWidth(col: integer): TGfxCoord;
 begin
   if col=1 then result := firstcolwidth else result := 30;
 end;
 
-procedure TstdImageList.ResizeCol(col, cwidth: integer);
+procedure TstdImageList.SetColumnWidth(col, cwidth: integer);
 begin
   if col=1 then
   begin
