@@ -36,6 +36,8 @@ type
     FColumns : TList;
     FResultSet : TSqlResult;
 
+    function GetColumnWidth(col : integer) : TGfxCoord; override;
+    procedure SetColumnWidth(col : integer; cwidth : TgfxCoord); override;
   public
 
     MaxColWidth : integer;
@@ -44,8 +46,6 @@ type
     function ColumnCount : integer; override;
     function RowCount : integer; override;
 
-    function ColumnWidth(col : integer) : TGfxCoord; override;
-    procedure ResizeCol(col, cwidth : integer); override;
 
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
     procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
@@ -196,7 +196,7 @@ begin
                        else result := 0;
 end;
 
-function TwgDBGrid.ColumnWidth(col: integer): TGfxCoord;
+function TwgDBGrid.GetColumnWidth(col: integer): TGfxCoord;
 begin
   if (col > 0) and (col <= ColumnCount) then
     Result := TDBColumn(FColumns[col-1]).Width
@@ -204,7 +204,7 @@ begin
     result := 10;
 end;
 
-procedure TwgDBGrid.ResizeCol(col, cwidth: integer);
+procedure TwgDBGrid.SetColumnWidth(col : integer; cwidth: TgfxCoord);
 begin
   with TDBColumn(FColumns[col-1]) do
   begin

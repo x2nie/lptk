@@ -31,11 +31,12 @@ type
   end;
 
   TColumnsGrid = class(TwgGrid)
+  protected
+    function GetColumnWidth(col : integer) : TgfxCoord; override;
   public
     function ColumnCount : integer; override;
     function RowCount : integer; override;
 
-    function ColumnWidth(col : integer) : TGfxCoord; override;
     //procedure ResizeCol(col, cwidth : integer); override;
 
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
@@ -390,7 +391,7 @@ begin
   Result := dbgrid.ColumnCount;
 end;
 
-function TColumnsGrid.ColumnWidth(col: integer): TGfxCoord;
+function TColumnsGrid.GetColumnWidth(col: integer): TGfxCoord;
 begin
   case col of
     1 : result := 30;
