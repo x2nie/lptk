@@ -2,6 +2,7 @@
   File maintainer: nvitya@freemail.hu
 
 History:
+    13.01.2004	Buffer-support added (Erik Grohnwaldt)
 }
 unit wglistbox;
 
@@ -237,6 +238,7 @@ var
   r : TGfxRect;
 begin
   //inherited RePaint;
+  Canvas.DrawOnBuffer := True;
   canvas.ClearClipRect;
   canvas.Clear(FBackgroundColor);
   canvas.SetFont(FFont);
@@ -284,7 +286,7 @@ begin
     r.SetBottom(Height - fmargin);
     canvas.FillRect(r);
   end;
-
+  Canvas.SwapBuffer;
 end;
 
 procedure TwgListBox.Update;
