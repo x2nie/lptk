@@ -6,7 +6,7 @@
 program phonebook;
 
 {$IFDEF FPC}
-    {$mode objfpc}
+    {$mode delphi}
     {$H+}
 {$ELSE}
 {$APPTYPE CONSOLE}
@@ -37,17 +37,17 @@ type
   TFormMain = class(TGfxForm)
   public
     {@VFD_HEAD_BEGIN: FormMain}
-    lbLabel2 : TwgLabel;
-    edFLTNAME : TwgEdit;
-    lbLabel1 : TwgLabel;
-    chlFLTCAT : TwgChoiceList;
-    grid : TwgDBGrid;
-    txtOther : TwgMemo;
-    btnNew : TwgButton;
-    btnEdit : TwgButton;
-    btnDelete : TwgButton;
-    btnClose : TwgButton;
-    lbLabel3 : TwgLabel;
+    lbLabel2 : TWGLABEL;
+    edFLTNAME : TWGEDIT;
+    lbLabel1 : TWGLABEL;
+    chlFLTCAT : TWGCHOICELIST;
+    grid : TWGDBGRID;
+    txtOther : TWGMEMO;
+    btnNew : TWGBUTTON;
+    btnEdit : TWGBUTTON;
+    btnDelete : TWGBUTTON;
+    btnClose : TWGBUTTON;
+    lbLabel3 : TWGLABEL;
     {@VFD_HEAD_END: FormMain}
 
     procedure AfterCreate; override;
@@ -78,16 +78,16 @@ type
   TFormEdit = class(TGfxForm)
   public
     {@VFD_HEAD_BEGIN: FormEdit}
-    lbLabel1 : TwgLabel;
-    edCAT : TwgEdit;
-    lbLabel2 : TwgLabel;
-    edNAME : TwgEdit;
-    lbLabel3 : TwgLabel;
-    edPHONE : TwgEdit;
-    lbLabel4 : TwgLabel;
-    edOTHER : TwgMemo;
-    btnOK : TwgButton;
-    btnCancel : TwgButton;
+    lbLabel1 : TWGLABEL;
+    edCAT : TWGEDIT;
+    lbLabel2 : TWGLABEL;
+    edNAME : TWGEDIT;
+    lbLabel3 : TWGLABEL;
+    edPHONE : TWGEDIT;
+    lbLabel4 : TWGLABEL;
+    edOTHER : TWGMEMO;
+    btnOK : TWGBUTTON;
+    btnCancel : TWGBUTTON;
     {@VFD_HEAD_END: FormEdit}
 
     procedure AfterCreate; override;
@@ -98,9 +98,9 @@ type
   TfrmAskDelete = class(TGfxForm)
   public
     {@VFD_HEAD_BEGIN: frmAskDelete}
-    lbLabel1 : TwgLabel;
-    btnYES : TwgButton;
-    btnNO : TwgButton;
+    lbLabel1 : TWGLABEL;
+    btnYES : TWGBUTTON;
+    btnNO : TWGBUTTON;
     {@VFD_HEAD_END: frmAskDelete}
 
     procedure AfterCreate; override;
@@ -124,27 +124,29 @@ begin
   SetDimensions(300,100,339,83);
   WindowTitle8 := 'Deleting entry';
 
-  lbLabel1 := TwgLabel.Create(self);
+  lbLabel1 := TWGLABEL.Create(self);
   with lbLabel1 do
   begin
     SetDimensions(32,8,274,16);
     Text := u8('Are you sure you want to delete this entry ?');
   end;
 
-  btnYES := TwgButton.Create(self);
+  btnYES := TWGBUTTON.Create(self);
   with btnYES do
   begin
     SetDimensions(72,44,80,24);
     Text := u8('YES');
-    OnClick := {$ifdef FPC}@{$endif}ButtonClick;
+    ImageName := 'stdimg.yes';
+    OnClick := ButtonClick;
   end;
 
-  btnNO := TwgButton.Create(self);
+  btnNO := TWGBUTTON.Create(self);
   with btnNO do
   begin
     SetDimensions(172,44,80,24);
     Text := u8('NO');
-    OnClick := {$ifdef FPC}@{$endif}ButtonClick;
+    ImageName := 'stdimg.no';
+    OnClick := ButtonClick;
   end;
 
   {@VFD_BODY_END: frmAskDelete}
@@ -159,31 +161,31 @@ end;
 procedure TFormEdit.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: FormEdit}
-  SetDimensions(334,266,321,306);
+  SetDimensions(285,329,321,306);
   WindowTitle8 := 'Edit phonebook entry';
 
-  lbLabel1 := TwgLabel.Create(self);
+  lbLabel1 := TWGLABEL.Create(self);
   with lbLabel1 do
   begin
     SetDimensions(12,8,74,16);
     Text := u8('Cathegory:');
   end;
 
-  edCAT := TwgEdit.Create(self);
+  edCAT := TWGEDIT.Create(self);
   with edCAT do
   begin
     SetDimensions(12,28,86,20);
     Text := u8('');
   end;
 
-  lbLabel2 := TwgLabel.Create(self);
+  lbLabel2 := TWGLABEL.Create(self);
   with lbLabel2 do
   begin
     SetDimensions(12,56,54,16);
     Text := u8('Name:');
   end;
 
-  edNAME := TwgEdit.Create(self);
+  edNAME := TWGEDIT.Create(self);
   with edNAME do
   begin
     SetDimensions(12,76,299,20);
@@ -191,14 +193,14 @@ begin
     Text := u8('');
   end;
 
-  lbLabel3 := TwgLabel.Create(self);
+  lbLabel3 := TWGLABEL.Create(self);
   with lbLabel3 do
   begin
     SetDimensions(12,104,110,16);
     Text := u8('Phone numbers:');
   end;
 
-  edPHONE := TwgEdit.Create(self);
+  edPHONE := TWGEDIT.Create(self);
   with edPHONE do
   begin
     SetDimensions(12,124,299,20);
@@ -206,14 +208,14 @@ begin
     Text := u8('');
   end;
 
-  lbLabel4 := TwgLabel.Create(self);
+  lbLabel4 := TWGLABEL.Create(self);
   with lbLabel4 do
   begin
     SetDimensions(12,148,54,16);
     Text := u8('Memo:');
   end;
 
-  edOTHER := TwgMemo.Create(self);
+  edOTHER := TWGMEMO.Create(self);
   with edOTHER do
   begin
     SetDimensions(12,168,299,100);
@@ -221,22 +223,24 @@ begin
     Lines.Add(u8(''));
   end;
 
-  btnOK := TwgButton.Create(self);
+  btnOK := TWGBUTTON.Create(self);
   with btnOK do
   begin
     SetDimensions(12,276,100,24);
     Anchors := [anLeft,anBottom];
     Text := u8('OK');
-    OnClick := {$ifdef FPC}@{$endif}OnButtonClick;
+    ImageName := 'stdimg.ok';
+    OnClick := OnButtonClick;
   end;
 
-  btnCancel := TwgButton.Create(self);
+  btnCancel := TWGBUTTON.Create(self);
   with btnCancel do
   begin
     SetDimensions(211,276,100,24);
     Anchors := [anRight,anBottom];
     Text := u8('Cancel');
-    OnClick := {$ifdef FPC}@{$endif}OnButtonClick;
+    ImageName := 'stdimg.cancel';
+    OnClick := OnButtonClick;
   end;
 
   {@VFD_BODY_END: FormEdit}
@@ -250,18 +254,18 @@ end;
 procedure TFormMain.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: FormMain}
-  SetDimensions(295,122,573,356);
+  SetDimensions(329,187,573,356);
   WindowTitle8 := 'Phonebook';
   WindowPosition := wpScreenCenter;
 
-  lbLabel2 := TwgLabel.Create(self);
+  lbLabel2 := TWGLABEL.Create(self);
   with lbLabel2 do
   begin
     SetDimensions(8,8,54,16);
     Text := u8('Name:');
   end;
 
-  edFLTNAME := TwgEdit.Create(self);
+  edFLTNAME := TWGEDIT.Create(self);
   with edFLTNAME do
   begin
     SetDimensions(8,29,154,20);
@@ -269,21 +273,21 @@ begin
     OnChange := {$ifdef FPC}@{$endif}FilterChange;
   end;
 
-  lbLabel1 := TwgLabel.Create(self);
+  lbLabel1 := TWGLABEL.Create(self);
   with lbLabel1 do
   begin
     SetDimensions(168,8,74,16);
     Text := u8('Cathegory:');
   end;
 
-  chlFLTCAT := TwgChoiceList.Create(self);
+  chlFLTCAT := TWGCHOICELIST.Create(self);
   with chlFLTCAT do
   begin
     SetDimensions(168,28,114,22);
     OnChange := {$ifdef FPC}@{$endif}FilterChange;
   end;
 
-  grid := TwgDBGrid.Create(self);
+  grid := TWGDBGRID.Create(self);
   with grid do
   begin
     SetDimensions(8,60,465,152);
@@ -296,7 +300,7 @@ begin
     RowSelect := true;
   end;
 
-  txtOther := TwgMemo.Create(self);
+  txtOther := TWGMEMO.Create(self);
   with txtOther do
   begin
     SetDimensions(8,240,465,108);
@@ -304,43 +308,47 @@ begin
     Lines.Add(u8(''));
   end;
 
-  btnNew := TwgButton.Create(self);
+  btnNew := TWGBUTTON.Create(self);
   with btnNew do
   begin
     SetDimensions(482,59,80,24);
     Anchors := [anRight,anTop];
     Text := u8('New');
-    OnClick := {$ifdef FPC}@{$endif}OnEditClick;
+    ImageName := 'stdimg.new';
+    OnClick := OnEditClick;
   end;
 
-  btnEdit := TwgButton.Create(self);
+  btnEdit := TWGBUTTON.Create(self);
   with btnEdit do
   begin
     SetDimensions(482,87,80,24);
     Anchors := [anRight,anTop];
     Text := u8('Edit');
-    OnClick := {$ifdef FPC}@{$endif}OnEditClick;
+    ImageName := 'stdimg.edit';
+    OnClick := OnEditClick;
   end;
 
-  btnDelete := TwgButton.Create(self);
+  btnDelete := TWGBUTTON.Create(self);
   with btnDelete do
   begin
     SetDimensions(482,139,80,24);
     Anchors := [anRight,anTop];
     Text := u8('Delete');
-    OnClick := {$ifdef FPC}@{$endif}DeleteClick;
+    ImageName := 'stdimg.delete';
+    OnClick := DeleteClick;
   end;
 
-  btnClose := TwgButton.Create(self);
+  btnClose := TWGBUTTON.Create(self);
   with btnClose do
   begin
     SetDimensions(482,324,80,24);
     Anchors := [anRight,anBottom];
     Text := u8('Close');
-    OnClick := {$ifdef FPC}@{$endif}OnCloseClick;
+    ImageName := 'stdimg.close';
+    OnClick := OnCloseClick;
   end;
 
-  lbLabel3 := TwgLabel.Create(self);
+  lbLabel3 := TWGLABEL.Create(self);
   with lbLabel3 do
   begin
     SetDimensions(8,220,54,16);
