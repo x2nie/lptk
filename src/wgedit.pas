@@ -207,6 +207,8 @@ begin
 
   //writeln('edit onpaint event...');
 
+  Canvas.DrawOnBuffer := true;
+
   Canvas.Clear(FBackgroundColor);
   if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
   Canvas.DrawRectangle(0,0,width,height);
@@ -240,6 +242,7 @@ begin
     Canvas.FillRectangle(- FDrawOffset + FSideMargin + tw, 2, 2, FFont.Height);
   end;
 
+  Canvas.SwapBuffer;
 end;
 
 procedure TwgEdit.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean);
@@ -535,7 +538,6 @@ end;
 
 procedure TwgEdit.SetFont(const Value: TGfxFont);
 begin
-  if FFont = Value then Exit;
   FFont := Value;
   if FWinHandle <> 0 then RePaint;
 end;
