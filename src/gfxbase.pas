@@ -1260,6 +1260,13 @@ var
   h : HWND;
   r : TRECT;
 begin
+  // The lptk uses several writelines that we redirect to nul if {$APPTYPE GUI}
+  if GetStdHandle(STD_OUTPUT_HANDLE) <= 0 then
+  begin
+    Assign(output,'nul');
+    rewrite(output);
+  end;
+
   display := Windows.GetDC(0);
 
   h := GetDesktopWindow;
@@ -1309,7 +1316,7 @@ begin
   GfxInternalInit;
 
   if pos('-HIDECONSOLE',UpperCase(CmdLine)) > 0 then GfxHideConsoleWindow;
-  
+
   result := true;
 end;
 {$else}
