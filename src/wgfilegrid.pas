@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.8  2004/01/02 20:43:08  aegluke
+// ImageList-Support, Detailed-View-Bugfix
+//
 // Revision 1.7  2003/12/23 18:27:47  aegluke
 // fgDetail-Bugfix in HandleKeyPress
 //
@@ -32,7 +35,7 @@ unit wgfilegrid;
 interface
 
 uses
-  gfxbase, wgcustomgrid, classes, schar16, sysutils{$IFDEF win32},windows{$ENDIF};
+  gfxbase, wgcustomgrid, classes, schar16, gfximagelist, sysutils{$IFDEF win32},windows{$ENDIF};
 
 const
   ftDirectory = 1;
@@ -45,6 +48,8 @@ const
   CSizeStr = 'Size';
 
 type
+  TwgFileData = class;
+  
   TfgOptions = set of (fgDirectories, fgFiles, fgDetail, fgDirectoriesFirst);
   // Display-Options: fgDirectories shows directories in the grid
   //                  fgFiles shows files in the grid
@@ -53,6 +58,8 @@ type
   //                  fgDirectoriesFirst: Directories will showed first in the list
 
   TwgFileGridChange = procedure(Sender : TObject; Filename : String) of object;
+  TwgFileGridImageIndex = procedure(Sender : TObject; AFileData : TwgFileData; var AImageIndex : integer) of Object;
+  // returns the image-number -1 for image not set
 
   TwgFileData = class
   public
@@ -70,6 +77,8 @@ type
     FFiles: TList;
     FDirectoryColor : TgfxColor;
     FFileColor : TgfxColor;
+    FImageList : TgfxImageList;
+    FShowImages : Boolean;
   protected
 
     procedure ReadDirectory;
@@ -90,6 +99,9 @@ type
     function GetFileName : String;
     procedure DoDirectoryChange;
     procedure DoFileChose;
+    procedure SetImageList(AValue : TgfxImageList);
+    procedure SetShowImages(AValue : Boolean);
+    procedure DoImageIndex(AFileData : TwgFileData; var AImageIndex : integer);
     {$IFDEF win32}
     procedure ReadDriveNames;
     {$endif}
@@ -103,10 +115,12 @@ type
     property FileColor : TgfxColor read FFileColor write SetFileColor;
     constructor Create(aOwner: TComponent); override;
     property FileName : String read GetFileName write SetFileName;
+    property ImageList : TgfxImageList read FImageList write SetImageList;
+    property ShowImages : boolean read FShowImages write SetShowImages;
   public
     onDirectoryChange : TwgFileGridChange;
     onFileChose : TwgFileGridChange;
-    // executed if somebody doubleclicks on a filename    
+    onImageIndex : TwgFileGridImageIndex;
   end;
 
 implementation
@@ -120,6 +134,39 @@ const
 {$ELSE}
   DirSeparator = '/';
 {$ENDIF}
+
+procedure TwgFileGrid.DoImageIndex(AFileData : TwgFileData; var AImageIndex : integer);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgFileGrid.DoImageIndex');
+     {$ENDIF}
+     if Assigned(onImageIndex) then
+        onImageIndex(Self,AFileData, AImageIndex);
+end;
+
+procedure TwgFileGrid.SetShowImages(AValue : Boolean);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgFileGrid.SetShowImages');
+     {$ENDIF}
+     if AValue <> FShowImages then
+     begin
+          FShowImages := AValue;
+          if FImageList <> nil then RePaint;
+     end;
+end;
+
+procedure TwgFileGrid.SetImageList(AValue : TgfxImageList);
+begin
+     {$IFDEF DEBUG}
+     writeln('TwgFileGrid.SetImageList');
+     {$ENDIF}
+     if FImageList <> AValue then
+     begin
+          FImageList := AValue;
+          if FShowImages then RePaint;
+     end;
+end;
 
 {$IFDEF win32}
 procedure TwgFileGrid.ReadDriveNames;
@@ -315,12 +362,15 @@ var
   AFilesPos : Integer;
   AVisibleLines : Integer;
 begin
-  AVisibleLines := VisibleLines;
-  AFilesPos := (FocusCol - 1) * AVisibleLines + FocusRow - 1;
-  if AFilesPos > FFiles.Count - 1 then
+  if not (fgDetail in Options) then
   begin
-    FFocusRow := (FFiles.Count) MOD AVisibleLines;
-    FFocusCol := ((FFiles.Count) DIV AVisibleLines) + 1;
+       AVisibleLines := VisibleLines;
+       AFilesPos := (FocusCol - 1) * AVisibleLines + FocusRow - 1;
+       if AFilesPos > FFiles.Count - 1 then
+       begin
+            FFocusRow := (FFiles.Count) MOD AVisibleLines;
+            FFocusCol := ((FFiles.Count) DIV AVisibleLines) + 1;
+       end;
   end;
   inherited FollowFocus;
 end;
@@ -372,12 +422,15 @@ var
   AVisibleLines : integer;
   AWidth : integer;
   AFilePos : integer;
+  AImageIndex : integer;
 begin
   if fgDetail in FOptions then
   begin
     DrawGrid := true;
     RowCount := FFiles.Count;
     ColumnCount := 0;
+    RowSelect := true;
+    HeadersOn := True;
     AddColumn8(CFileStr, 100);
     AddColumn8(CSizeStr, 72);
     AddColumn8(CDateStr, 72);
@@ -416,6 +469,13 @@ begin
         if AFilePos < FFiles.Count then
         begin
           AWidth := guistyle.GridFont.TextWidth16(Str8To16(TwgFileData(FFiles[AFilePos]).FileName))+6;
+          AImageIndex := -1;
+          if ShowImages and (ImageList <> nil) then
+          begin
+               DoImageIndex(TwgFileData(FFiles[AFilePos]),AImageIndex);
+               if AImageIndex > -1 then
+                  AWidth := AWidth + ImageList.Item[AImageIndex].Image.Width + 2;
+          end;
           if AWidth > AColumnWidth then AColumnWidth := AWidth;
         end;
       end;
@@ -428,6 +488,8 @@ procedure TwgFileGrid.DrawCell(aRow, aCol: integer; aRect: TGfxRect; aFlags: int
 var
   s: string16;
   FilesPos : Integer;
+  AImageIndex : Integer;
+  
   procedure setDrawColor(AFile : TwgFileData; ASelected : Boolean);
   begin
     if ASelected then
@@ -454,7 +516,7 @@ begin
   if fgDetail in FOptions then
   begin
     SetDrawColor(TwgFileData(FFiles[aRow-1]),ARow = FocusRow);
-    case aCol of
+    case ACol of
       1:
         begin
           s := Str8To16(TwgFileData(FFiles[aRow - 1]).FileName);
@@ -495,8 +557,21 @@ begin
       if FilesPos < FFiles.Count then
       begin
         s := Str8To16(TwgFileData(FFiles[FilesPos]).FileName);
-        SetDrawColor(TwgFileData(FFiles[FilesPos]),(ARow = FocusRow) and (ACol = FocusCol));        
-        canvas.DrawString16(aRect.left + 1, aRect.top + 1, s);
+        SetDrawColor(TwgFileData(FFiles[FilesPos]),(ARow = FocusRow) and (ACol = FocusCol));
+        AImageIndex := -1;
+        if ShowImages and (ImageList <> nil) then
+        begin
+             DoImageIndex(TwgFileData(FFiles[FilesPos]),AImageIndex);
+             if AImageIndex > -1 then
+             begin
+                Canvas.DrawImagePart(aRect.Left + 1,aRect.Height div 2 + aRect.Top - 8,ImageList.Item[AImageIndex].Image,0,0,16,16);
+                Canvas.DrawString16(aRect.left + 18, aRect.top + 1, s);
+             end
+             else
+                 Canvas.DrawString16(aRect.left + 1, aRect.top + 1, s);
+        end
+        else
+            Canvas.DrawString16(aRect.left + 1, aRect.top + 1, s);
       end;
   end;
 end;
@@ -508,6 +583,8 @@ begin
   ColumnCount := 1;
   FOptions := [fgDetail, fgDirectoriesFirst];
   FFileColor := clUnset;
+  FShowImages := false;
+  FImageList := nil;
   FDirectoryColor := clUnset;
   RowSelect := true;
 end;
