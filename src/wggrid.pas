@@ -3,7 +3,7 @@
 
 History:
 }
-// $LOG$
+//$LOG$
 
 
 unit wggrid;
