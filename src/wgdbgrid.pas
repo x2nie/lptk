@@ -16,6 +16,9 @@ uses
 
 type
 
+  TGridDrawNotifyEvent = procedure(Sender: TObject; row,col : integer; rect : TGfxRect;
+                            flags : integer; var stddraw : boolean) of object;
+
   TDBColumn = class
   public
     Width : integer;
@@ -64,6 +67,10 @@ type
     property Columns[index : integer] : TDBColumn read GetColumns;
     
     function FocusField(fname : string) : TSqlField;
+
+  public
+
+    OnDrawCell : TGridDrawNotifyEvent;
 
   end;
 
@@ -215,8 +222,17 @@ var
   s16 : string16;
   x, x2, cw : integer;
   c : TDBColumn;
+  cont : boolean;
 begin
   FResultSet.RecNo := row;
+  
+  if Assigned(OnDrawCell) then
+  begin
+    cont := true;
+    OnDrawCell(self, row, col, rect, flags, cont);
+    if not cont then Exit;
+  end;
+
   c := TDBColumn(FColumns[col-1]);
 
   if c.FieldIndex < 1 then Exit;
@@ -259,6 +275,7 @@ begin
   FColumns := TList.Create;
   MaxColWidth := 300;
   MinColWidth := 16;
+  OnDrawCell := nil;
 end;
 
 destructor TwgDBGrid.Destroy;
@@ -286,7 +303,7 @@ end;
 
 function TwgDBGrid.AddColumn8(ATitle: string; AFieldName8: string; Awidth: integer; Align : TAlignment): TDBColumn;
 begin
-  AddColumn(u8(ATitle),AFieldName8,AWidth,Align);
+  result := AddColumn(u8(ATitle),AFieldName8,AWidth,Align);
 end;
 
 function TwgDBGrid.GetColumns(index: integer): TDBColumn;
