@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.10  2004/01/23 12:29:11  aegluke
+// LocateFile added
+//
 // Revision 1.9  2004/01/03 10:28:05  aegluke
 // Fixed ScrollBar-Bug
 //
@@ -33,6 +36,10 @@
 // Initial release, only for presentation
 //
 
+{$IFDEF FPC}
+    {$mode objfpc}
+    {$h+}
+{$ENDIF}
 unit wgfilegrid;
 {//$DEFINE DEBUG}
 interface
@@ -112,6 +119,7 @@ type
     procedure HandleResize(DWidth, DHeight : Integer); override;
     procedure DoShow; override;
     procedure DrawCell(aRow, aCol: integer; aRect: TGfxRect; aFlags: integer); override;
+    procedure LocateFile(AFileName : String);
     property Directory: string read FDirectory write SetDirectory;
     property Options: TfgOptions read FOptions write SetOptions;
     property DirectoryColor : TgfxColor read FDirectoryColor write SetDirectoryColor;
@@ -137,6 +145,20 @@ const
 {$ELSE}
   DirSeparator = '/';
 {$ENDIF}
+
+procedure TwgFileGrid.LocateFile(AFileName : String);
+var
+   i : Integer;
+begin
+     for i := 0 to FFiles.Count - 1 do
+     begin
+          if TwgFileData(FFiles[i]).FileName = AFileName then
+          begin
+               FileName := AFileName;
+               Break;
+          end;
+     end;
+end;
 
 procedure TwgFileGrid.DoImageIndex(AFileData : TwgFileData; var AImageIndex : integer);
 begin
@@ -206,20 +228,22 @@ end;
 procedure TwgFileGrid.DoDirectoryChange;
 begin
   if Assigned(onDirectoryChange) then
-    onDirectoryChange(self,FileName);
+    onDirectoryChange(self,Directory);
 end;
 
 procedure TwgFileGrid.SetFileName(AValue : String);
 var
-  AFilePath : String;
+//  AFilePath : String;
   ACounter : integer;
   AFileName : String;
   AFilePos : Integer;
+  AFilePath : String;
 begin
   AFilePath := ExtractFilePath(AValue);
-  if FileExists(AFilePath) then
+  if FileExists(AValue) then
   begin
-    Directory := AFilePath;
+    if AFilePath <> '' then
+       Directory := AFilePath;
     AFileName := ExtractFileName(AValue);
     AFilePos := -1;
     for ACounter := 0 to FFiles.Count - 1 do
@@ -242,8 +266,9 @@ begin
       end
       else
       begin
-        FocusRow := (AFilePos) MOD VisibleLines;
+        FocusRow := (AFilePos) MOD VisibleLines + 1;
         FocusCol := ((AFilePos) DIV VisibleLines) + 1;
+        RePaint;
       end;
     end;
   end;
@@ -255,12 +280,12 @@ var
 begin
   if fgDetail in Options then
   begin
-    result := Directory + DirSeparator + TwgFileData(FFiles[FocusRow-1]).FileName;
+    result := Directory + TwgFileData(FFiles[FocusRow-1]).FileName;
   end
   else
   begin
     AFilesPos := (FocusCol - 1) * VisibleLines + FocusRow - 1;
-    result := Directory + DirSeparator + TwgFileData(FFiles[AFilesPos]).FileName;
+    result := Directory + TwgFileData(FFiles[AFilesPos]).FileName;
   end;
 end;
 
@@ -624,7 +649,7 @@ var
           Container := TwgFileData.Create;
           Container.FileName := rec.Name;
           Container.FileSize := rec.Size;
-          Container.FileDate := FileDateToDateTime(rec.Time);
+ //         Container.FileDate := FileDateToDateTime(rec.Time);
           if (faDirectory and rec.Attr) = faDirectory then
             Container.FileType := ftDirectory
           else
@@ -653,7 +678,7 @@ var
           Container := TwgFileData.Create;
           Container.FileName := rec.Name;
           Container.FileSize := rec.Size;
-          Container.FileDate := FileDateToDateTime(rec.Time);
+ //         Container.FileDate := FileDateToDateTime(rec.Time);
           if (faDirectory and rec.Attr) = faDirectory then
             Container.FileType := ftDirectory
           else
@@ -682,7 +707,7 @@ var
           Container := TwgFileData.Create;
           Container.FileName := rec.Name;
           Container.FileSize := rec.Size;
-          Container.FileDate := FileDateToDateTime(rec.Time);
+{          Container.FileDate := FileDateToDateTime(rec.Time);     }
           if (faDirectory and rec.Attr) = faDirectory then
             Container.FileType := ftDirectory
           else
@@ -703,12 +728,22 @@ begin
   FFiles.Add(Container);
   if fgDirectoriesFirst in Options then
   begin
-    ReadDirectories;
-    ReadFiles;
+       if fgDirectories in Options then
+          ReadDirectories;
+       if fgFiles in Options then
+          ReadFiles;
   end
   else
   begin
-    ReadAll;
+    if (fgDirectories in Options) and (fgFiles in Options) then
+       ReadAll
+    else
+    begin
+        if fgDirectories in Options then
+           ReadDirectories;
+        if fgFiles in Options then
+           ReadFiles;
+    end;
   end;
   RecalcGrid;
 end;
@@ -718,6 +753,7 @@ begin
   {$IFDEF DEBUG}
   Writeln('SetDirectory: ',AValue);
   {$ENDIF}
+  if not DirectoryExists(AValue) then exit;
   if AValue <> '' then
   begin
     if AValue[Length(aValue)] = DirSeparator then
