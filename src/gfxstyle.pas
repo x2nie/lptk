@@ -50,7 +50,9 @@ const
   clTextCursor           = $80000016;
 
   clChoiceListBox        = $80000017;
-
+  
+  clUnset		 = $80000018;
+  
   LastColorIndex         = $00000017;
 
 type
@@ -167,7 +169,7 @@ begin
     clTextCursor:           result := $000000;
 
     clChoiceListBox:        result := $E8E8E8;
-
+    clUnset:		    result := clUnset;
   else
     result := 0;
   end;
