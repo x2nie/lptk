@@ -71,12 +71,13 @@ type
 
     property ModalResult : integer read FModalResult write FModalResult;
 
-    property WindowTitle : string read FWindowTitle write SetWindowTitle;
     property WindowTitle8 : string read GetWindowTitle8 write SetWindowTitle8;
 
     property ParentForm : TGfxForm read FParentForm write FParentForm;
 
-    procedure HandleResize(dwidth, dheight : integer); override;
+  published
+
+    property WindowTitle : string read FWindowTitle write SetWindowTitle;
 
   end;
 
@@ -374,70 +375,6 @@ procedure TGfxForm.SetMinSize;
 begin
   FSizeParams.min_width := width;
   FSizeParams.min_height := height;
-end;
-
-procedure TGfxForm.HandleResize(dwidth, dheight: integer);
-var
-  n : integer;
-  wg : TWidget;
-  //resized : boolean;
-  dx,dy,dw,dh : integer;
-  //x,y,w,h : integer;
-begin
-  //inherited HandleResize(width, height);
-
-//  writeln('form resize: dwidth=',dwidth,' dheight=',dheight);
-
-  // handling auto alignments
-  for n:=0 to ComponentCount-1 do
-  begin
-    if (Components[n] is TWidget) then
-    begin
-      wg := TWidget(Components[n]);
-
-      if (anBottom in wg.Anchors) or (anRight in wg.Anchors) then
-      begin
-        // we must alter the window
-        dx := 0; dy := 0; dw := 0; dh := 0;
-
-        //resized := false;
-        if (anLeft in wg.Anchors) and (anRight in wg.Anchors) then
-        begin
-          dw := dwidth;
-          //wg.Width := wg.Width + dwidth;
-          //resized := true;
-        end else if anRight in wg.Anchors then
-        begin
-          dx := dwidth;
-          //wg.Left := wg.Left + dwidth;
-        end;
-
-        if (anTop in wg.Anchors) and (anBottom in wg.Anchors) then
-        begin
-          dh := dheight;
-          //wg.Height := wg.Height + dheight;
-          //resized := true;
-        end else if anBottom in wg.Anchors then
-        begin
-          dy := dheight;
-          //wg.top := wg.top + dheight;
-        end;
-
-        wg.MoveResizeBy(dx,dy,dw,dh);
-
-{
-        GfxMoveResizeWindow(wg.WinHandle, wg.Left,wg.Top,wg.Width,wg.Height);
-
-        if resized then
-        begin
-          wg.MoveResizeBy(dwidth,dheight);
-        end;
-}
-
-      end;
-    end;
-  end;
-
 end;
 
 function TGfxForm.GetWindowName: string;

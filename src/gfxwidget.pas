@@ -401,6 +401,7 @@ begin
   FTop := FTop + dy;
   FWidth := FWidth + dw;
   FHeight := FHeight + dh;
+
   if FWinHandle > 0 then
     Canvas.MoveResizeWindow(FLeft,FTop,FWidth,FHeight);
 
@@ -631,8 +632,46 @@ begin
 end;
 
 procedure TWidget.HandleResize(dwidth, dheight: integer);
+var
+  n : integer;
+  wg : TWidget;
+  dx,dy,dw,dh : integer;
 begin
+  for n:=0 to ComponentCount-1 do
+  begin
+    if (Components[n] is TWidget) then
+    begin
+      wg := TWidget(Components[n]);
+
+      if (anBottom in wg.Anchors) or (anRight in wg.Anchors) then
+      begin
+        // we must alter the window
+        dx := 0; dy := 0; dw := 0; dh := 0;
+
+        if (anLeft in wg.Anchors) and (anRight in wg.Anchors) then
+        begin
+          dw := dwidth;
+        end else if anRight in wg.Anchors then
+        begin
+          dx := dwidth;
+        end;
+
+        if (anTop in wg.Anchors) and (anBottom in wg.Anchors) then
+        begin
+          dh := dheight;
+        end else if anBottom in wg.Anchors then
+        begin
+          dy := dheight;
+        end;
+
+        wg.MoveResizeBy(dx,dy,dw,dh);
+
+      end;
+    end;
+  end;
+
   if WinHandle > 0 then repaint;
+
 end;
 
 procedure TWidget.HandleMove(x, y: integer);
