@@ -1310,8 +1310,6 @@ begin
 
   if pos('-HIDECONSOLE',UpperCase(CmdLine)) > 0 then GfxHideConsoleWindow;
   
-  DefaultFont := GfxGetFont(DefaultFontDesc);
-
   result := true;
 end;
 {$else}
