@@ -886,6 +886,18 @@ begin
     lstProps.RePaint;
   end;
 
+  with frmProperties do
+  begin
+    btnLeft.Text8 := IntToStr(wg.Left);
+    btnTop.Text8 := IntToStr(wg.Top);
+    btnWidth.Text8 := IntToStr(wg.Width);
+    btnHeight.Text8 := IntToStr(wg.Height);
+
+    btnAnLeft.Down := anLeft in wg.Anchors;
+    btnAnTop.Down := anTop in wg.Anchors;
+    btnAnRight.Down := anRight in wg.Anchors;
+    btnAnBottom.Down := anBottom in wg.Anchors;
+  end;
 
   exit;
 
@@ -991,10 +1003,10 @@ var
   n : integer;
   cd : TWidgetDesigner;
   wg : TWidget;
-  s8, s : string;
+  s8 : string;
 begin
-  writeln('namechange');
-  s8 := str16to8(PropertyForm.edName.Text);
+//  writeln('namechange');
+  s8 := str16to8(frmProperties.edName.Text);
   wg := nil;
   for n:=0 to FWidgets.Count-1 do
   begin
@@ -1002,33 +1014,32 @@ begin
     if cd.Selected then
     begin
       wg := cd.Widget;
-
+{
       if GetWidgetText(wg,s) and (wg.Name = str16to8(s)) then
       begin
         PropertyForm.edText.Text8 := s8;
         OnPropTextChange(sender);
       end;
-
-      try
-        wg.Name := s8;
-      except
-        // invalid name...
-      end;
+}
     end;
   end;
 
   if wg = nil then
   begin
+    wg := FForm;
+{
     if FForm.Name = FForm.WindowTitle8 then
     begin
       FForm.WindowTitle8 := s8;
       PropertyForm.edText.Text8 := s8;
     end;
-    try
-      FForm.Name := s8;
-    except
-      // invalid name...
-    end;
+}    
+  end;
+
+  try
+    wg.Name := s8;
+  except
+    // invalid name...
   end;
 end;
 
@@ -1046,10 +1057,10 @@ var
 
   procedure SetNewPos(awg : TWidget; pval : integer);
   begin
-    if sender = PropertyForm.btnLeft then awg.Left := pval
-    else if sender = PropertyForm.btnTop then awg.Top := pval
-    else if sender = PropertyForm.btnWidth then awg.Width := pval
-    else if sender = PropertyForm.btnHeight then awg.Height := pval
+    if sender = frmProperties.btnLeft then awg.Left := pval
+    else if sender = frmProperties.btnTop then awg.Top := pval
+    else if sender = frmProperties.btnWidth then awg.Width := pval
+    else if sender = frmProperties.btnHeight then awg.Height := pval
     ;
   end;
 
@@ -1072,22 +1083,22 @@ begin
   GfxGetAbsolutePosition(btn.WinHandle, btn.width, 0, ax,ay);
   frm.Left := ax;
   frm.Top := ay;
-  if sender = PropertyForm.btnLeft then
+  if sender = frmProperties.btnLeft then
   begin
     frm.lbPos.Text8 := 'Left:';
     frm.edPos.Text8 := IntToStr(wg.Left);
   end
-  else if sender = PropertyForm.btnTop then
+  else if sender = frmProperties.btnTop then
   begin
     frm.lbPos.Text8 := 'Top:';
     frm.edPos.Text8 := IntToStr(wg.Top);
   end
-  else if sender = PropertyForm.btnWidth then
+  else if sender = frmProperties.btnWidth then
   begin
     frm.lbPos.Text8 := 'Width:';
     frm.edPos.Text8 := IntToStr(wg.Width);
   end
-  else if sender = PropertyForm.btnHeight then
+  else if sender = frmProperties.btnHeight then
   begin
     frm.lbPos.Text8 := 'Height:';
     frm.edPos.Text8 := IntToStr(wg.Height);
@@ -1136,7 +1147,7 @@ var
   sc : integer;
 begin
   sc := 0;
-  s := PropertyForm.edOther.Text8;
+  s := frmProperties.edOther.Text8;
   for n:=0 to FWidgets.Count-1 do
   begin
     cd := TWidgetDesigner(FWidgets.Items[n]);
@@ -1167,10 +1178,10 @@ begin
       wg := cd.Widget;
 
       wg.Anchors := [];
-      if PropertyForm.cbAL.Checked then wg.Anchors := wg.Anchors + [anLeft];
-      if PropertyForm.cbAT.Checked then wg.Anchors := wg.Anchors + [anTop];
-      if PropertyForm.cbAR.Checked then wg.Anchors := wg.Anchors + [anRight];
-      if PropertyForm.cbAB.Checked then wg.Anchors := wg.Anchors + [anBottom];
+      if frmProperties.btnAnLeft.Down then wg.Anchors := wg.Anchors + [anLeft];
+      if frmProperties.btnAnTop.Down then wg.Anchors := wg.Anchors + [anTop];
+      if frmProperties.btnAnRight.Down then wg.Anchors := wg.Anchors + [anRight];
+      if frmProperties.btnAnBottom.Down then wg.Anchors := wg.Anchors + [anBottom];
     end;
   end;
 end;
@@ -1326,6 +1337,7 @@ begin
     s := s + ident + 'Anchors := ' + ts + #10;
   end;
 
+{
   if wg is TwgMemo then
   begin
     SaveItems('Lines',TwgMemo(wg).Lines);
@@ -1347,6 +1359,7 @@ begin
     begin
       s := s + ident + 'Text := u8('+QuotedStr(u8encode(ts))+');'#10;  // encoding with all printable characters
     end;
+}    
 
   for n:=0 to wd.other.Count-1 do
     if trim(wd.other.Strings[n]) <> '' then

@@ -156,7 +156,8 @@ var
 
   fname, uname : string;
 begin
-  fname := MainForm.edFormFile.Text8;
+  fname := 'aaatest.pas';
+  DeleteFile(fname);
 
   if FileExists(fname) then
   begin
