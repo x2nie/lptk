@@ -326,7 +326,7 @@ end;
 procedure TfrmWait.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: frmWait}
-  SetDimensions(468,292,244,45);
+  SetDimensions(292,536,244,45);
   WindowTitle8 := 'frmWait';
 
   lbLabel1 := TWGLABEL.Create(self);
@@ -345,7 +345,7 @@ end;
 procedure TfrmMain.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: frmMain}
-  SetDimensions(295,101,220,389);
+  SetDimensions(295,101,391,299);
   WindowTitle8 := 'SMS Sender';
 
   lbLabel1 := TWGLABEL.Create(self);
@@ -358,7 +358,7 @@ begin
   chlDevice := TWGCHOICELIST.Create(self);
   with chlDevice do
   begin
-    SetDimensions(8,28,106,22);
+    SetDimensions(8,28,114,22);
     Items.Add(u8('/dev/ttyS0'));
     Items.Add(u8('/dev/ttyS1'));
   end;
@@ -405,7 +405,7 @@ begin
   edMessage := TWGMEMO.Create(self);
   with edMessage do
   begin
-    SetDimensions(8,128,200,194);
+    SetDimensions(8,128,371,104);
     Anchors := [anLeft,anRight,anTop,anBottom];
     Lines.Add(u8(''));
     OnChange := @TextChange;
@@ -414,7 +414,7 @@ begin
   btnSend := TWGBUTTON.Create(self);
   with btnSend do
   begin
-    SetDimensions(8,358,81,24);
+    SetDimensions(8,268,81,24);
     Anchors := [anLeft,anBottom];
     Text := u8('Send');
     OnClick := @SendClick;
@@ -424,7 +424,7 @@ begin
   btnExit := TWGBUTTON.Create(self);
   with btnExit do
   begin
-    SetDimensions(124,358,81,24);
+    SetDimensions(295,268,81,24);
     Anchors := [anRight,anBottom];
     Text := u8('Exit');
     OnClick := @ExitClick;
@@ -434,7 +434,7 @@ begin
   lbLabel5 := TWGLABEL.Create(self);
   with lbLabel5 do
   begin
-    SetDimensions(8,328,111,16);
+    SetDimensions(8,238,111,16);
     Anchors := [anLeft,anBottom];
     Text := u8('Number of chars:');
   end;
@@ -442,7 +442,7 @@ begin
   txtCharNum := TWGLABEL.Create(self);
   with txtCharNum do
   begin
-    SetDimensions(124,328,52,20);
+    SetDimensions(124,238,52,20);
     Anchors := [anLeft,anBottom];
     Text := u8('0');
     Font := guistyle.LabelFont2;
