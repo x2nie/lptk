@@ -4,6 +4,10 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.21  2004/01/10 16:21:03  aegluke
+// HandleKeyPress-Bugfix
+// TwgTreeNode - Inactive-Selection-Color-Support added
+//
 // Revision 1.20  2004/01/02 20:50:26  aegluke
 // Bugfix
 //
@@ -87,6 +91,8 @@ type
     FSelColor: TgfxColor;
     FTextColor: TgfxColor;
     FSelTextColor: TgfxColor;
+    FInactSelColor : TgfxColor;
+    FInactSelTextColor : TgfxColor;
     FImageIndex : integer;
     
     procedure SetText(aValue: string16);
@@ -96,6 +102,8 @@ type
     procedure DoRePaint;
 
     function GetText8: string;
+    procedure SetInactSelTextColor(aValue: TgfxColor);
+    procedure SetInactSelColor(aValue: TgfxColor);
     procedure SetSelTextColor(aValue: TgfxColor);
     procedure SetSelColor(aValue: TgfxColor);
     procedure SetTextColor(aValue: TgfxColor);
@@ -118,9 +126,12 @@ type
     function CountRecurse: integer;
     procedure Remove(aNode: TwgTreeNode);
 
+    // Color-Settings
     function ParentTextColor: TgfxColor;
     function ParentSelTextColor: TgfxColor;
     function ParentSelColor: TgfxColor;
+    function ParentInactSelTextColor : TgfxColor;
+    function ParentInactSelColor : TgfxColor;
 
     procedure Clear;
     // removes all subnodes recourse
@@ -139,6 +150,8 @@ type
     property TextColor: TgfxColor read FTextColor write SetTextColor;
     property SelColor: TgfxColor read FSelColor write SetSelColor;
     property SelTextColor: TgfxColor read FSelTextColor write SetSelTextColor;
+    property InactSelColor : TgfxColor read FInactSelColor write SetInActSelColor;
+    property InactSelTextColor : TgfxColor read FInactSelTextColor write SetInactSelTextColor;
   end;
 
   TTreeExpandEvent = procedure(aSender: TObject; Node: TwgTreeNode) of object;
@@ -421,6 +434,7 @@ begin
   writeln('TwgTree.HandleMouseUp');
   {$ENDIF}
   inherited HandleMouseUp(x, y, button, shiftstate);
+  node := nil;
   if button <> 1 then
     exit;
   OldSel := Selection;
@@ -504,6 +518,7 @@ begin
   case KeyCode of
     KEY_RIGHT:
       begin
+        Consumed := True;
         Selection.Collapsed := false;
         DoExpand(Selection);
         ResetScrollbar;
@@ -511,6 +526,7 @@ begin
       end;
     KEY_LEFT:
       begin
+        Consumed := True;
         Selection.Collapsed := true;
         ResetScrollbar;
         RePaint;
@@ -533,9 +549,11 @@ begin
               Selection := RootNode.FirstSubNode;
             end;
           end;
+          Consumed := True;
       end;
     KEY_DOWN:
       begin
+        Consumed := True;
         if Selection = nil then
           Selection := RootNode.FirstSubNode
         else
@@ -555,7 +573,7 @@ begin
   end;
   if Selection <> OldSelection then
     DoChange;
-  if Consumed then
+  if not Consumed then
     inherited HandleKeyPress(keycode, shiftstate, consumed);
 end;
 
@@ -850,9 +868,17 @@ begin
     ACenterPos := YPos - FYOffset + col - GetNodeHeight + (GetNodeHeight div 2);
     if h = Selection then // draw the selection rectangle and text
     begin
-      Canvas.SetColor(h.ParentSelColor);
-      Canvas.FillRectangle(w - FXOffset, YPos - FYOffset + col - GetNodeHeight + FFont.Ascent div 2 - 2, GetNodeWidth(h), GetNodeHeight);
-      Canvas.SetTextColor(h.ParentSelTextColor);
+      if Focused then
+      begin
+        Canvas.SetColor(h.ParentSelColor);
+        Canvas.SetTextColor(h.ParentSelTextColor);
+      end
+      else
+      begin
+        Canvas.SetColor(h.ParentInactSelColor);
+        Canvas.SetTextColor(h.ParentInActSelTextColor);
+      end;
+      Canvas.FillRectangle(w - FXOffset, YPos - FYOffset + col - GetNodeHeight + FFont.Ascent div 2 - 2, GetNodeWidth(h), GetNodeHeight);      
       if (ImageList <> nil) and  ShowImages then
       begin
            AImageItem := ImageList.Item[h.ImageIndex];
@@ -865,8 +891,8 @@ begin
                Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
       end
       else
-           Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
-      Canvas.SetTextColor(h.ParentTextColor);
+        Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
+     Canvas.SetTextColor(h.ParentTextColor);
     end
     else
     begin
@@ -1417,6 +1443,8 @@ begin
   FSelColor := clUnset;
   FSelTextColor := clUnset;
   FTextColor := clUnset;
+  FInactSelColor := clUnset;
+  FInactSelTextColor := clUnset;
 end;
 
 procedure TwgTreeNode.DoRePaint;
@@ -1583,6 +1611,32 @@ begin
   end;
 end;
 
+function TwgTreeNode.ParentInactSelTextColor : TgfxColor;
+begin
+  if InactSelTextColor <> clUnset then
+    result := InactSelTextColor
+  else
+  begin
+    if Parent <> nil then
+      Result := Parent.ParentInactSelTextColor
+    else
+      Result := clInactiveSelText;
+  end;
+end;
+
+function TwgTreeNode.ParentInactSelColor : TgfxColor;
+begin
+  if InactSelColor <> clUnset then
+    result := InactSelColor
+  else
+  begin
+    if Parent <> nil then
+      result := parent.ParentInactSelColor
+    else
+      result := clInactiveSel;
+  end;
+end;
+
 function TwgTreeNode.ParentSelColor: TgfxColor;
 begin
   if SelColor <> clUnset then
@@ -1593,6 +1647,24 @@ begin
       result := parent.ParentSelColor
     else
       result := clSelection;
+  end;
+end;
+
+procedure TwgTreeNode.SetInactSelTextColor(aValue: TgfxColor);
+begin
+  if AValue <> FInactSelTextColor then
+  begin
+    FInactSelTextColor := AValue;
+    DoRePaint;
+  end;
+end;
+
+procedure TwgTreeNode.SetInactSelColor(aValue: TgfxColor);
+begin
+  if AValue <> FInactSelColor then
+  begin
+    FInactSelColor := AValue;
+    DoRePaint;
   end;
 end;
 
