@@ -184,6 +184,8 @@ procedure TPopupWindow.ShowAt(wh : TWinHandle; x,y : integer);
 var
   pt : TPoint;
 begin
+  PopupListAdd(self);
+
   pt.X := x;
   pt.Y := y;
   ClientToScreen(wh, pt);
@@ -193,8 +195,6 @@ begin
   DoShow;
 
   SetCapture(FWinHandle);
-
-  PopupListAdd(self);
 end;
 {$else}
 var

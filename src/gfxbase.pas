@@ -1169,6 +1169,8 @@ begin
           blockmsg := true;
         end;
       end;
+      
+      if (PopupListFirst <> nil) and (PopupListFirst.Visible) then BlockMsg := True;
 
       //writeln('ncactivate: ', ord(BlockMsg));
 
