@@ -9,11 +9,11 @@ uses
   gfxwidget, gfxform, wglabel, wgbutton,
   wglistbox, wgmemo, wgchoicelist, wggrid, wgcustomgrid, sqldb, sqluis,
   wgdbgrid, gfxdialogs, wgcheckbox, wgbevel,
-  linux;
+  libc, linux;
 
 type
 
-  TFileEntryType = (etFile,etDir,etLink);
+  TFileEntryType = (etFile,etDir);
   TFileListSortOrder = (soNone,soFileName,soCSFileName,soFileExt,soSize,soTime);
 
   TFileEntry = class
@@ -22,6 +22,7 @@ type
     NameExt : string;
     Size : int64;
     etype : TFileEntryType;
+    islink : boolean;
     mode : integer;
     modtime : TDateTime;
     ownerid : integer;
@@ -59,6 +60,8 @@ type
   TwgFileGrid = class(TwgCustomGrid)
   public
     flist : TFileList;
+    
+    FixedFont : TGfxFont;
 
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -72,25 +75,48 @@ type
   TfrmFileList = class(TGfxForm)
   public
     {@VFD_HEAD_BEGIN: frmFileList}
-    chlDir : TWGCHOICELIST;
+    chlDir : TwgChoiceList;
     grid : TwgFileGrid;
-    panel1 : TWGBEVEL;
-    ed1 : TWGEDIT;
-    btnOK : TWGBUTTON;
-    btnCancel : TWGBUTTON;
-    lbFileInfo : TWGLABEL;
-    lb1 : TWGLABEL;
+    panel1 : TwgBevel;
+    lbFileInfo : TwgLabel;
+    edFilename : TwgEdit;
+    chlFilter : TwgChoiceList;
+    btnOK : TwgButton;
+    btnCancel : TwgButton;
+    lb1 : TwgLabel;
+    lb2 : TwgLabel;
     {@VFD_HEAD_END: frmFileList}
     
     procedure AfterCreate; override;
     
     procedure ListChange(Sender : TObject; row : integer);
+    procedure DirChange(Sender : TObject);
+    procedure GridDblClick(Sender : TObject; x,y : integer; var btnstate, shiftstate : word);
 
     procedure CancelClick(sender : TObject);
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
+    
+    procedure SetCurrentDir(const dir : string);
 
   end;
+  
+function GetGroupName(gid : integer) : string;
+var
+  p : PGroup;
+begin
+  p := getgrgid(gid);
+  if p <> nil then result := p^.gr_name;
+end;
+
+function GetUserName(uid : integer) : string;
+var
+  p : PPasswd;
+begin
+  p := getpwuid(uid);
+  if p <> nil then result := p^.pw_name else result := '';
+end;
+
 
 { TwgFileGrid }
 
@@ -102,15 +128,18 @@ begin
 
   AddColumn8('Name',220);
   AddColumn8('Size',80);
-  AddColumn8('Mod. Time',120);
-  AddColumn8('Rights',80);
-  AddColumn8('Owner',80);
-  AddColumn8('Group',80);
+  AddColumn8('Mod. Time',108);
+  AddColumn8('Rights',78);
+  AddColumn8('Owner',54);
+  AddColumn8('Group',54);
   RowSelect := true;
+  
+  FixedFont := GfxGetFont('Courier New-9:antialias=false');
 end;
 
 destructor TwgFileGrid.Destroy;
 begin
+  FixedFont.Free;
   flist.Free;
   inherited Destroy;
 end;
@@ -126,6 +155,7 @@ const
 var
   e : TFileEntry;
   x,y,b,n : integer;
+  rx : integer;
   s : string;
   img : TGfxImage;
 begin
@@ -141,7 +171,6 @@ begin
   1: begin
        case e.etype of
         etDir: img := GfxLibGetImage('stdimg.folder');
-        etLink: img := nil; //GfxLibGetImage('stdimg.yes');
        else
          if (e.mode and $40) <> 0
            then img := GfxLibGetImage('stdimg.yes')
@@ -153,8 +182,8 @@ begin
        s := u8(e.Name);
      end;
   2: begin
-       s := u8(IntToStr(e.size));
-       x := rect.right - Font.TextWidth16(s);
+       s := u8(FormatFloat('###,###,###,##0',e.size));
+       x := rect.right - Font.TextWidth16(s) - 1;
        if x < rect.Left+2 then x := rect.Left+2;
      end;
   3: s := u8(FormatDateTime('yyyy.mm.dd hh:nn',e.modtime));
@@ -172,10 +201,11 @@ begin
          inc(n);
          b := b shl 1;
        end;
+       canvas.SetFont(FixedFont);
        s := u8(s);
      end;
-  5: s := u8(IntToStr(e.ownerid));  // use getpwuid(); for the name of this user
-  6: s := u8(IntToStr(e.groupid));  // use getgrgid(); for the name of this group
+  5: s := u8(GetUserName(e.ownerid));  // use getpwuid(); for the name of this user
+  6: s := u8(GetGroupName(e.groupid));  // use getgrgid(); for the name of this group
   end;
   canvas.DrawString16(x,y,s);
   
@@ -194,6 +224,7 @@ begin
   NameExt := '';
   Size := 0;
   etype := etFile;
+  islink := false;
   mode := 0;
   modtime := 0;
   ownerid := 0;
@@ -273,6 +304,13 @@ begin
     //Writeln('fullname: ',fullname);
     if lstat(fullname,info) then
     begin
+      e.islink := ((info.mode and $F000) = $A000);
+      if e.islink then
+      begin
+        e.linktarget := ReadLink(fullname);
+        fstat(fullname,info);
+      end;
+
       e.mode := info.mode;
       e.size := info.size;
       e.ownerid := info.uid;
@@ -280,17 +318,7 @@ begin
       e.modtime   := EpochToDateTime(info.mtime);
       
       if (e.mode and $F000) = $4000 then e.etype := etDir
-      else if (e.mode and $F000) = $A000 then e.etype := etLink
       else e.etype := etFile;
-      
-      if e.etype = etLink then
-      begin
-        e.linktarget := ReadLink(fullname);
-        fstat(fullname,info);
-        e.mode := info.mode;
-        //e.size := info.size;
-        //e.modtime
-      end;
       
       //write('  (',e.linktarget,')');
       
@@ -418,47 +446,66 @@ begin
   Writeln('aftercreate');
 
   {@VFD_BODY_BEGIN: frmFileList}
-  SetDimensions(274,132,487,398);
+  SetDimensions(303,171,640,460);
   WindowTitle8 := 'frmFileList';
 
-  chlDir := TWGCHOICELIST.Create(self);
+  chlDir := TwgChoiceList.Create(self);
   with chlDir do
   begin
-    SetDimensions(8,12,385,22);
+    SetDimensions(8,12,538,22);
     Anchors := [anLeft,anRight,anTop];
     FontName := '#List';
+    OnChange := DirChange;
   end;
 
   grid := TwgFileGrid.Create(self);
   with grid do
   begin
-    SetDimensions(8,44,469,238);
+    SetDimensions(8,44,622,252);
     Anchors := [anLeft,anRight,anTop,anBottom];
     OnRowChange := ListChange;
+    OnDoubleClick := GridDblClick;
   end;
 
-  panel1 := TWGBEVEL.Create(self);
+  panel1 := TwgBevel.Create(self);
   with panel1 do
   begin
-    SetDimensions(8,287,469,25);
+    SetDimensions(8,305,622,25);
     Anchors := [anLeft,anRight,anBottom];
-    shape := bsbox;
-    style := bslowered;
+    shape := bsBox;
+    style := bsLowered;
   end;
 
-  ed1 := TWGEDIT.Create(self);
-  with ed1 do
+  lbFileInfo := TwgLabel.Create(panel1);
+  with lbFileInfo do
   begin
-    SetDimensions(8,335,469,22);
+    SetDimensions(5,4,609,16);
+    Anchors := [anLeft,anRight,anTop];
+    Text := u8('Label');
+    FontName := '#Label1';
+  end;
+
+  edFilename := TwgEdit.Create(self);
+  with edFilename do
+  begin
+    SetDimensions(8,353,622,22);
     Anchors := [anLeft,anRight,anBottom];
     Text := u8('');
     FontName := '#Edit1';
   end;
 
-  btnOK := TWGBUTTON.Create(self);
+  chlFilter := TwgChoiceList.Create(self);
+  with chlFilter do
+  begin
+    SetDimensions(8,397,622,22);
+    Anchors := [anLeft,anRight,anBottom];
+    FontName := '#List';
+  end;
+
+  btnOK := TwgButton.Create(self);
   with btnOK do
   begin
-    SetDimensions(8,365,96,24);
+    SetDimensions(8,427,96,24);
     Anchors := [anLeft,anBottom];
     Text := u8('OK');
     FontName := '#Label1';
@@ -466,10 +513,10 @@ begin
     ModalResult := 0;
   end;
 
-  btnCancel := TWGBUTTON.Create(self);
+  btnCancel := TwgButton.Create(self);
   with btnCancel do
   begin
-    SetDimensions(381,365,96,24);
+    SetDimensions(534,427,96,24);
     Anchors := [anRight,anBottom];
     Text := u8('Cancel');
     FontName := '#Label1';
@@ -478,21 +525,21 @@ begin
     OnClick := CancelClick;
   end;
 
-  lbFileInfo := TWGLABEL.Create(panel1);
-  with lbFileInfo do
+  lb1 := TwgLabel.Create(self);
+  with lb1 do
   begin
-    SetDimensions(5,4,456,16);
-    Anchors := [anLeft,anRight,anTop];
-    Text := u8('Label');
+    SetDimensions(8,335,80,16);
+    Anchors := [anLeft,anBottom];
+    Text := u8('Filename:');
     FontName := '#Label1';
   end;
 
-  lb1 := TWGLABEL.Create(self);
-  with lb1 do
+  lb2 := TwgLabel.Create(self);
+  with lb2 do
   begin
-    SetDimensions(8,318,80,16);
-    Text := u8('Filename:');
+    SetDimensions(8,379,64,16);
     Anchors := [anLeft,anBottom];
+    Text := u8('File type:');
     FontName := '#Label1';
   end;
 
@@ -509,8 +556,30 @@ var
 begin
   if grid.currententry = nil then Exit;
   s := grid.currententry.Name;
-  if grid.currententry.etype = etLink then s := s + ' -> '+grid.currententry.linktarget;
+  
+  if grid.currententry.islink then s := s + ' -> '+grid.currententry.linktarget;
+
+  if grid.currententry.etype = etDir
+    then edFileName.Text := ''
+    else edFileName.Text8 := grid.currententry.Name;
+
   lbFileInfo.Text8 := s;
+end;
+
+procedure TfrmFileList.DirChange(Sender: TObject);
+begin
+  SetCurrentDir(chlDir.Text8);
+end;
+
+procedure TfrmFileList.GridDblClick(Sender: TObject; x, y: integer; var btnstate, shiftstate: word);
+var
+  e : TFileEntry;
+begin
+  e := grid.CurrentEntry;
+  if (e <> nil) and (e.etype = etDir) then
+  begin
+    SetCurrentDir(e.Name);
+  end;
 end;
 
 procedure TfrmFileList.CancelClick(sender: TObject);
@@ -529,16 +598,50 @@ begin
       e := grid.CurrentEntry;
       if (e <> nil) and (e.etype = etDir) then
       begin
-        chdir(e.Name);
-        grid.flist.ReadDirectory('*');
-        grid.flist.Sort(soFileName);
-        grid.Update;
-        grid.FocusRow := 1;
+        SetCurrentDir(e.Name);
         consumed := true;
       end;
     end;
   end;
   if not consumed then inherited;
+end;
+
+procedure TfrmFileList.SetCurrentDir(const dir: string);
+var
+  ds,s : string;
+  n : integer;
+begin
+  try
+    chdir(dir);
+    edFileName.Text := '';
+  except
+    ShowMessage8('Could not open the directory '+dir,'Error');
+  end;
+  
+  GetDir(0,ds);
+  if copy(ds,1,1) <> DirectorySeparator then ds := DirectorySeparator + ds;
+  
+  chlDir.Items.Clear;
+  chlDir.Items.Add(u8(DirectorySeparator));  // add root
+  n := 2;
+  while n <= length(ds) do
+  begin
+    if ds[n] = DirectorySeparator then
+    begin
+      chlDir.Items.Add(u8(copy(ds,1,n-1)));
+    end;
+
+    inc(n);
+  end;
+  
+  chlDir.Items.Add(u8(ds));
+  chlDir.FocusItem := chlDir.Items.Count;
+  
+  grid.flist.ReadDirectory('*');
+  grid.flist.Sort(soFileName);
+  grid.Update;
+  grid.FocusRow := 1;
+
 end;
 
 var
