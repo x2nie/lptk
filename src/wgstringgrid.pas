@@ -1,6 +1,9 @@
 unit wgstringgrid;
 
 // $Log$
+// Revision 1.2  2003/11/09 17:24:48  aegluke
+// dynamic memory freeing, freeing row/column memory on destroy
+//
 // Revision 1.1  2003/11/09 15:59:17  aegluke
 // first release without freeing memory after destroy
 //
@@ -20,6 +23,7 @@ type
 	width : TgfxCoord;
 	Title : String16;
 	constructor Create;
+	destructor Destroy; override;
     end;
         
     TwgStringGrid = class(TwgGrid)
@@ -42,17 +46,39 @@ type
 	    
 	    procedure SetColumnTitle(aColumn : integer; aValue : string16);
 	    function GetColumnTitle(aColumn : integer) : string16;
+	    
+	    procedure SetCell8(aColumn, aRow : longword; aValue : string);
+	    function GetCell8(aColumn, aRow : Longword) : string;
 	public	    	    
 	    constructor Create(aOwner : TComponent); override;
+	    destructor Destroy; override;
 	    property ColumnTitle[aColumn : integer] : string16 read GetColumnTitle write SetColumnTitle;
 	    property ColumnWidth[aColumn : integer] : integer read GetColumnWidth write SetColumnWidth;
 	    property Cells[aColumn, aRow : Longword] : string16 read GetCell write SetCell;
+	    property Cells8[aColumn, aRow : Longword] : string read GetCell8 write SetCell8;
 	    property DefaultColumnWidth : TgfxCoord read FDefaultColumnWidth write FDefaultColumnWidth;
     end;
 
 implementation
 
 // {$DEFINE DEBUG}
+
+destructor TwgStringGrid.Destroy;
+begin
+    ColumnCount := 0;
+    RowCount := 0;
+    inherited Destroy;
+end;
+
+function TwgStringGrid.GetCell8(aColumn, aRow : Longword) : string;
+begin
+    result := Str16To8(Cells[aColumn, aRow]);
+end;
+
+procedure TwgStringGrid.SetCell8(aColumn, aRow : Longword; aValue : string);
+begin
+    Cells[aColumn, aRow] := Str8To16(aValue);
+end;
 
 procedure TwgStringGrid.SetColumnTitle(aColumn : integer; aValue : string16);
 var
@@ -63,6 +89,7 @@ begin
 	Cells[aColumn,0] := '';
     if aValue <> TStringColumn(FColumns[aColumn]).Title then
     begin
+	if aColumn+1 > FColumnCount then FColumnCount := aColumn + 1;
 	TStringColumn(FColumns[aColumn]).Title := aValue;
 	RePaint;
     end;
@@ -75,18 +102,55 @@ begin
 end;
 
 procedure TwgStringGrid.SetRowCount(aValue : integer);
+var
+    i, i1 : integer;
+//    TmpCol : TStringColumn;
+    aCalc : integer;
+    SL : TStringList;
 begin
     if aValue <> FRowCount then
     begin
+	if aValue < FRowCount then
+	begin
+	    // loeschen und freigeben der zeilen
+	    for i := 0 to FColumns.Count - 1 do
+	    begin
+		
+		aCalc := TStringColumn(FColumns[i]).Cells.Count - aValue;
+		if aCalc > 0 then
+		begin
+		    sl := TStringColumn(FColumns[i]).Cells;
+		    for i1 := 1 to aCalc do
+			sl.Delete(sl.Count-1);
+		end;
+	    end;
+	end;
 	FRowCount := aValue;
 	RePaint;
     end;
 end;
 
 procedure TwgStringGrid.SetColumnCount(aValue : integer);
+var
+    i : integer;
+    aCalc : integer;
+//    TmpCol : TStringColumn;
 begin
     if aValue <> FColumnCount then
     begin
+	// freigeben der spalten
+	if aValue < FColumnCount then
+	begin
+	    aCalc := FColumns.Count - aValue;
+	    if aCalc > 0 then
+	    begin
+		for i := 1 to aCalc do
+		begin
+		    TStringColumn(FColumns[i]).Destroy;
+		    FColumns.Delete(FColumns.Count-1);
+		end;
+	    end;
+	end;
 	FColumnCount := aValue;
 	RePaint;
     end;
@@ -164,6 +228,8 @@ begin
 end;
 
 function TwgStringGrid.GetCell(aColumn, aRow : Longword) : String16;
+var
+    diff : integer;
 begin
     {$IFDEF DEBUG}
     writeln('GetCell:',aColumn,',',aRow);
@@ -171,10 +237,15 @@ begin
     if aColumn > FColumns.Count - 1 then
 	result := ''
     else
-	if aRow > TStringColumn(FColumns[aColumn]).Cells.Count - 1 then
+    begin
+	diff := (TStringColumn(FColumns[aColumn]).Cells.Count - 1) - aRow;
+	if diff < 0 then
 	    result := ''
 	else
+	begin
 	    result := TStringColumn(FColumns[aColumn]).Cells[aRow];
+	end;
+    end;
 end;
 
 procedure TwgStringGrid.SetCell(aColumn, aRow : Longword; aValue : String16);
@@ -225,6 +296,11 @@ constructor TStringColumn.Create;
 begin
     Cells := TStringList.Create;
     Width := 100;
+end;
+
+destructor TStringColumn.Destroy;
+begin
+    Cells.Destroy;
 end;
 
 end.
