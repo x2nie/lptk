@@ -13,11 +13,7 @@ procedure GfxCreateStandardImages;
 
 implementation
 
-{$ifdef Win32}
-  {$I ..\stdimg\stdimages.inc}
-{$else}
-  {$I ../stdimg/stdimages.inc}
-{$endif}
+{$I stdimages.inc}
 
 procedure GfxCreateStandardImages;
 var
