@@ -3,6 +3,7 @@ unit wgtree;
 { 
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
+    25.06.2003	0.7	fixed error in DoChange, visual enhancements, fixed bug in keyboard selection handling
     20.06.2003	0.6	use of the clUnset-Color, it replaces the ColorSet-properties in the treenodes
     19.06.2003	0.5	nodecolor can set for every node - if not set color setting of the parent is used
 			- feature-request from gunter burchard
@@ -89,7 +90,7 @@ type
 	    property Parent : TwgTreeNode read FParent write SetParent;
 	    property FirstSubNode : TwgTreeNode read FFirstSubNode;
 	    property LastSubNode : TwgTreeNode read FLastSubNode;
-	    
+	
 	    // color-settings
 	    property TextColor : TgfxColor read FTextColor write SetTextColor;
 	    property SelColor : TgfxColor read FSelColor write SetSelColor;
@@ -128,6 +129,7 @@ type
 	    function MaxNodeWidth : integer;
 	    procedure UpdateScrollbars;
 	    procedure DoChange;
+	    function NodeIsVisible(node : TwgTreeNode) : boolean;
 	protected
 	    function StepToRoot(aNode : TwgTreeNode) : integer; 
 	    function NextVisualNode(aNode : TwgTreeNode) : TwgTreeNode;
@@ -136,6 +138,7 @@ type
 	    procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;	    
 	    procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
 	public
+	    OnChange : TNotifyEvent;
 	    constructor Create(aOwner : TComponent); override;
 	    procedure SetColumnWidth(aindex, awidth : word);
 	    function GetColumnWidth(aIndex : word) : word; // the width of a column - aIndex of the rootnode = 0
@@ -156,8 +159,25 @@ uses gfxstyle;
 
 { TwgTree }
 
+function TwgTree.NodeIsVisible(node : TwgTreeNode) : boolean;
+begin
+    result := true;
+    if node = nil then 
+    begin
+	result := false;
+	exit;
+    end;
+    node := node.parent;
+    while node <> nil do
+    begin
+	if node.collapsed  and (node.parent <> nil) then result := false;
+	node := node.parent;
+    end;
+end;
+
 procedure TwgTree.DoChange;
 begin
+    if Assigned(OnChange) then OnChange(self);
 end;
 
 procedure TwgTree.HandleMouseDown(x,y : integer; button : word; shiftstate : word);
@@ -224,7 +244,7 @@ begin
 	x := x + FXOffset;
 	cancel := false;
 	last := RootNode;
-	while not (((i-1) * FFont.Height <= y) and ((i) * FFont.Height >= y)) do
+	while not (((i-1) * FFont.Height-2 <= y) and ((i) * FFont.Height+2 >= y)) do
 	begin
 	    node := NextVisualNode(last);
 	    if node = nil then exit;	    
@@ -252,7 +272,7 @@ begin
 	    end
 	    else	    
 	    begin
-		if x > w - GetColumnWidth(i1) div 2 + 6 then				
+		if x > w - GetColumnWidth(i1) div 2 + 6 then
 		    Selection := node;
 	    end;
 	end;
@@ -263,8 +283,10 @@ end;
 
 procedure TwgTree.HandleKeyPress(var KeyCode : word; var shiftstate : word; var consumed : boolean);
 var
-    h : TwgTreeNode;
+    h : TwgTreeNode;    
+    oldSelection : TwgTreeNode;
 begin
+    OldSelection := Selection;
     case KeyCode of
 	KEY_RIGHT : begin
 	    Selection.Collapsed := false;
@@ -280,21 +302,32 @@ begin
 	  else
 	  if Selection <> RootNode then	
 	  begin
+	    if NodeIsVisible(selection) then
+	    begin
 		h := PrevVisualNode(Selection);
 		if (h <> RootNode) and (h <> nil) then		
 		    Selection := h;
+	    end else begin
+		Selection := RootNode.FirstSubNode;
+	    end;
 	  end;
 	end;
 	KEY_DOWN : begin
 	    if Selection = nil then Selection := RootNode.FirstSubNode
 	    else
 	    begin
+	      if NodeIsVisible(selection) then
+	      begin
 		h := NextVisualNode(Selection);
 		if (h <> nil) then Selection := h;
+	      end
+	      else
+	        Selection := RootNode.FirstSubNode;
 	    end;
 	end;
 	else Consumed := false;
     end;
+    if Selection <> OldSelection then DoChange;
     inherited HandleKeyPress(keycode, shiftstate, consumed);
 end;
 
@@ -432,7 +465,7 @@ begin
     Canvas.Clear(BackgroundColor);
     if FFocused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWGFrame);    
     Canvas.DrawRectangle(0,0,Width, Height); // border
-
+    
     if ShowColumns then // draw the column header?
     begin
 	r.SetRect(1,1,VisibleWidth, FColumnHeight);
@@ -503,7 +536,7 @@ begin
       if h = Selection then	// draw the selection rectangle and text
       begin
         Canvas.SetColor(h.ParentSelColor);
-        Canvas.FillRectangle(w-FXOffset+1-1,YPos-FYOffset+col-FFont.Height + FFont.Ascent div 2,FFont.TextWidth16(h.text)+2,FFont.Height);
+        Canvas.FillRectangle(w-FXOffset,YPos-FYOffset+col-FFont.Height + FFont.Ascent div 2 - 2,FFont.TextWidth16(h.text)+2,FFont.Height);
 	Canvas.SetTextColor(h.ParentSelTextColor);
         Canvas.DrawString16(w-FXOffset+1,YPos-FYOffset+col,h.text);
 	Canvas.SetTextColor(h.ParentTextColor);	
@@ -514,7 +547,8 @@ begin
       if h.Count > 0 then	// subnodes? 
       begin
         Canvas.DrawRectangle(w - FXOffset - GetColumnWidth(i1) div 2 - 3, YPos - FYOffset + col - FFont.Height + FFont.Ascent - 4,9,9);
-	Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) + 2, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 - 3,YPos - FYOffset + col - FFont.Height + FFont.Ascent);
+	Canvas.Drawline(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent - 4);
+//	Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) + 2, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 - 3,YPos - FYOffset + col - FFont.Height + FFont.Ascent);
         if h.Collapsed then	// draw a "+"
 	begin
 	    Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 - 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 + 3, YPos - FYOffset + col - FFont.Height + FFont.Ascent);	
@@ -530,13 +564,29 @@ begin
     	if (h.next <> nil) or (h.prev <> nil) then
 	begin
 	    Canvas.SetColor(clText1);
-	    Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) + 2, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - 3, YPos - FYOffset + col - FFont.Height + FFont.Ascent);
+	    Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2+1, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - 3, YPos - FYOffset + col - FFont.Height + FFont.Ascent);
 	end;
       end;
       if h.prev <> nil then
       begin
         // line up to the previous node
-	Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) + 2, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) + 2, YPos - FYOffset + col - SpaceToVisibleNext(h.prev) * FFont.Height - FFont.Height + FFont.Ascent);
+	if h.prev.count > 0 then
+	    if h.count > 0 then
+		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent - 4, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - SpaceToVisibleNext(h.prev) * FFont.Height - FFont.Height + FFont.Ascent + 4)
+	    else
+		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - SpaceToVisibleNext(h.prev) * FFont.Height - FFont.Height + FFont.Ascent + 4)	    
+	else
+	    if h.count > 0 then
+		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent - 4, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - SpaceToVisibleNext(h.prev) * FFont.Height - FFont.Height + FFont.Ascent)
+	    else
+		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - SpaceToVisibleNext(h.prev) * FFont.Height - FFont.Height + FFont.Ascent);	
+      end
+      else
+      begin
+        if h.count > 0 then
+		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent - 4, w - FXOffset - GetColumnWidth(i1) div 2 + 1,  YPos - FYOffset + col - FFont.Height + FFont.Descent)
+	else
+		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 + 1,  YPos - FYOffset + col - FFont.Height+FFont.Descent);
       end;
       if h.count > 0 then
       begin
