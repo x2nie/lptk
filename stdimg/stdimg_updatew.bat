@@ -1,1 +1,1 @@
-updatestdimgs > stdimages.inc
+updatestdimgs > ../src/stdimages.inc

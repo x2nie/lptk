@@ -1,3 +1,3 @@
 #!/bin/sh
 chmod +x updatestdimgs
-./updatestdimgs > stdimages.inc
+./updatestdimgs > ../src/stdimages.inc
