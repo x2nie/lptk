@@ -27,9 +27,10 @@ begin
 
   lbLabel1 := CreateLabel(self, 24,12, 'Hello from LPTK');
 
-  btnClose := CreateButton(self, 28, 40, 96, 'Close', CloseClick);
+  btnClose := CreateButton(self, 28, 40, 96, 'Close', nil);
+  btnClose.OnClick := CloseClick;
   btnClose.ImageName := 'stdimg.close';
-end;
+end;                                
 
 procedure TfrmMain.CloseClick(sender: TObject);
 begin
