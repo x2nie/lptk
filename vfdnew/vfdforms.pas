@@ -85,6 +85,18 @@ type
     procedure HandleClose; override;
   end;
 
+  TfrmLoadSave = class(TGfxForm)
+  public
+    {@VFD_HEAD_BEGIN: frmLoadSave}
+    lb1 : TwgLabel;
+    edFileName : TwgEdit;
+    btnOK : TwgButton;
+    btnCancel : TwgButton;
+    {@VFD_HEAD_END: frmLoadSave}
+
+    procedure AfterCreate; override;
+  end;
+
   TMainForm = class(TGfxForm)
   public
     l1,l2 : TwgLabel;
@@ -98,6 +110,7 @@ type
 
     procedure AfterCreate; override;
   end;
+
 
   TPropertyForm = class(TGfxForm)
   public
@@ -128,8 +141,8 @@ type
 
 var
   PaletteForm : TPaletteForm;
-  MainForm : TMainForm;
-  PropertyForm : TPropertyForm;
+  //MainForm : TMainForm;
+  //PropertyForm : TPropertyForm;
 
 function GridResolution : integer;
 
@@ -142,13 +155,14 @@ begin
   result := 4;
 
   exit;
-  
+{
   case MainForm.chlGrid.FocusItem of
     2 : result := 4;
     3 : result := 8;
   else
     result := 1;
   end;
+}  
 end;
 
 { TPaletteForm }
@@ -475,6 +489,56 @@ begin
     consumed := true;
   end
   else inherited HandleKeyPress(keycode, shiftstate, consumed);
+end;
+
+{ TfrmLoadSave }
+
+procedure TfrmLoadSave.AfterCreate;
+begin
+  {@VFD_BODY_BEGIN: frmLoadSave}
+  SetDimensions(276,141,300,95);
+  WindowTitle8 := 'Form file';
+
+  lb1 := TwgLabel.Create(self);
+  with lb1 do
+  begin
+    SetDimensions(8,8,80,16);
+    Text := u8('File name:');
+    FontName := '#Label1';
+  end;
+
+  edFileName := TwgEdit.Create(self);
+  with edFileName do
+  begin
+    SetDimensions(8,28,280,22);
+    Anchors := [anLeft,anRight,anTop];
+    Text := u8('');
+    FontName := '#Edit1';
+  end;
+
+  btnOK := TwgButton.Create(self);
+  with btnOK do
+  begin
+    SetDimensions(8,60,96,24);
+    Anchors := [anLeft,anBottom];
+    Text := u8('OK');
+    FontName := '#Label1';
+    ImageName := 'stdimg.ok';
+    ModalResult := 1;
+  end;
+
+  btnCancel := TwgButton.Create(self);
+  with btnCancel do
+  begin
+    SetDimensions(192,60,96,24);
+    Anchors := [anRight,anBottom];
+    Text := u8('Cancel');
+    FontName := '#Label1';
+    ImageName := 'stdimg.cancel';
+    ModalResult := -1;
+  end;
+
+  {@VFD_BODY_END: frmLoadSave}
 end;
 
 end.

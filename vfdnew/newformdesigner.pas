@@ -184,11 +184,18 @@ var
   x : integer;
   wgc : TVFDWidgetClass;
   btn : TwgPaletteButton;
+  mi : TMenuItem;
 begin
   {@VFD_BODY_BEGIN: frmMain}
   SetDimensions(0,0,506,87);
   WindowTitle8 := 'frmMain';
   WindowPosition := wpUser;
+
+  MainMenu := TMenuBar.Create(self);
+  with MainMenu do
+  begin
+    SetDimensions(0,0,500,24);
+  end;
 
   btnOpen := TwgButton.Create(self);
   with btnOpen do
@@ -197,12 +204,7 @@ begin
     Text := u8('');
     ImageName := 'stdimg.open';
     Focusable := false;
-  end;
-
-  MainMenu := TMenuBar.Create(self);
-  with MainMenu do
-  begin
-    SetDimensions(0,0,500,24);
+    OnClick := maindsgn.OnLoadFile;
   end;
 
   btnSave := TwgButton.Create(self);
@@ -255,18 +257,23 @@ begin
   filemenu := TPopupMenu.Create(self);
   with filemenu do
   begin
-    AddMenuItem8('Open','',nil);
-    AddMenuItem8('Save','',nil);
+    mi := AddMenuItem8('Open','',nil);
+    mi.OnClick := maindsgn.OnLoadFile;
+    mi := AddMenuItem8('Save','',nil);
+    mi.OnClick := maindsgn.OnSaveFile;
     AddMenuItem8('-','',nil);
-    AddMenuItem8('New Form...','',nil);
+    mi := AddMenuItem8('New Form...','',nil);
+    mi.OnClick := maindsgn.OnNewForm;
     AddMenuItem8('-','',nil);
-    AddMenuItem8('Exit','',nil);
+    mi := AddMenuItem8('Exit','',nil);
+    mi.OnClick := maindsgn.OnExit;
   end;
 
   formmenu := TPopupMenu.Create(self);
   with formmenu do
   begin
-    AddMenuItem8('Widget Order...','',nil);
+    mi := AddMenuItem8('Widget Order...','',nil);
+    mi.OnClick := maindsgn.OnEditWidgetOrder;
     AddMenuItem8('-','',nil);
     AddMenuItem8('Edit special...','',nil);
   end;
@@ -367,24 +374,40 @@ begin
   l3 := CreateLabel(self, 3,y+1, 'Left:');
   l3.Anchors := [anLeft,anBottom];
   btnLeft := CreateButton(self, 50, y-2, 48, '1234', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
-  btnLeft.Height := 22;
-  btnLeft.Anchors := [anLeft,anBottom];
+  with btnLeft do
+  begin
+    Height := 22;
+    btnLeft.Anchors := [anLeft,anBottom];
+    Focusable := false;
+  end;
   l4 := CreateLabel(self, 110, y, 'Top:');
   l4.Anchors := [anLeft,anBottom];
   btnTop := CreateButton(self, 160, y-2, 48, '45', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
-  btnTop.Height := 22;
-  btnTop.Anchors := [anLeft,anBottom];
+  with btnTop do
+  begin
+    Height := 22;
+    btnLeft.Anchors := [anLeft,anBottom];
+    Focusable := false;
+  end;
   inc(y, gap+5);
   l5 := CreateLabel(self, 3,y+1, 'Width:');
   l5.Anchors := [anLeft,anBottom];
   btnWidth := CreateButton(self, 50, y-2, 48, '1234', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
-  btnWidth.Height := 22;
-  btnWidth.Anchors := [anLeft,anBottom];
+  with btnWidth do
+  begin
+    Height := 22;
+    btnLeft.Anchors := [anLeft,anBottom];
+    Focusable := false;
+  end;
   l6 := CreateLabel(self, 110, y, 'Height:');
   l6.Anchors := [anLeft,anBottom];
   btnHeight := CreateButton(self, 160, y-2, 48, '45', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
-  btnHeight.Height := 22;
-  btnHeight.Anchors := [anLeft,anBottom];
+  with btnHeight do
+  begin
+    Height := 22;
+    btnLeft.Anchors := [anLeft,anBottom];
+    Focusable := false;
+  end;
   inc(y, gap+5);
 
   l8 := CreateLabel(self, 3,y+1, 'Anchors:');
@@ -438,8 +461,6 @@ begin
     Anchors := [anLeft,anBottom];
     OnClick := maindsgn.OnAnchorChange;
   end;
-
-  x := 3;
 
   y := btnAnRight.Bottom + 5;
 

@@ -159,6 +159,7 @@ begin
   wc.AddProperty('Text',TPropertyString16,'Initial text (string16)');
   wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
   wc.AddProperty('ImageName',TPropertyString8,'');
+  wc.AddProperty('ModalResult',TPropertyInteger,'');
   wc.WidgetIconName := 'vfd.button';
   RegisterVFDWidget(wc);
 

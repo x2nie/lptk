@@ -55,6 +55,8 @@ type
     FFile : TVFDFile;
 
   public
+    EditedFileName : string;
+
     SaveComponentNames : boolean;
 
     constructor Create;
@@ -94,6 +96,10 @@ type
 
     procedure OnEditWidget(sender : TObject);
 
+    procedure OnEditWidgetOrder(sender : TObject);
+
+    procedure OnExit(sender : TObject);
+
   end;
 
 var
@@ -109,7 +115,27 @@ procedure TMainDesigner.OnLoadFile(sender: TObject);
 var
   n, m : integer;
   bl, bl2 : TVFDFileBlock;
+  fname : string;
+  frm : TfrmLoadSave;
 begin
+  fname := EditedFileName;
+  
+  if sender <> maindsgn then
+  begin
+    frm := TfrmLoadSave.Create(nil);
+    frm.WindowTitle8 := 'Load form source';
+    frm.edFileName.Text8 := EditedFileName;
+    if frm.ShowModal > 0 then
+    begin
+      EditedFileName := frm.edFileName.Text8;
+      fname := EditedFileName;
+    end
+    else fname := '';
+    frm.Free;
+  end;
+
+  if fname = '' then Exit;
+
   for n := 0 to FDesigners.Count-1 do
   begin
     selectedform := nil;
@@ -117,11 +143,15 @@ begin
   end;
   FDesigners.Clear;
 
-  if not FileExists(MainForm.edFormFile.Text8) then Exit;
+  if not FileExists(fname) then
+  begin
+    ShowMessage8('File does not exists.','Error loading form');
+    Exit;
+  end;
 
   Writeln('loading file...');
 
-  FFile.LoadFile(MainForm.edFormFile.Text8);
+  FFile.LoadFile(fname);
   FFile.GetBlocks;
 
   for n := 1 to FFile.BlockCount do
@@ -155,9 +185,21 @@ var
   ff : file;
 
   fname, uname : string;
+
+  frm : TfrmLoadSave;
 begin
-  fname := 'aaatest.pas';
-  DeleteFile(fname);
+  frm := TfrmLoadSave.Create(nil);
+  frm.WindowTitle8 := 'Save form source';
+  frm.edFileName.Text8 := EditedFileName;
+  if frm.ShowModal > 0 then
+  begin
+    EditedFileName := frm.edFileName.Text8;
+    fname := EditedFileName;
+  end
+  else fname := '';
+  frm.Free;
+
+  if fname = '' then Exit;
 
   if FileExists(fname) then
   begin
@@ -251,8 +293,8 @@ begin
 end;
 
 procedure TMainDesigner.CreateWindows;
-var
-  fd : TFormDesigner;
+//var
+//  fd : TFormDesigner;
 begin
   frmMain := TfrmMain.Create(nil);
   frmMain.WindowTitle8 := 'LPTK VFD - v'+program_version;
@@ -261,11 +303,11 @@ begin
   frmProperties := TfrmProperties.Create(nil);
   frmProperties.Show;
 
-  fd := TFormDesigner.Create;
-  fd.Form.Name := 'frmNewForm';
+//  fd := TFormDesigner.Create;
+//  fd.Form.Name := 'frmNewForm';
 //  fd.Form.WindowTitle := u8('frmNewForm');
-  FDesigners.Add(fd);
-  fd.Show;
+//  FDesigners.Add(fd);
+//  fd.Show;
 end;
 
 constructor TMainDesigner.Create;
@@ -274,6 +316,7 @@ begin
   SelectedForm := nil;
   FFile := TVFDFile.Create;
   SaveComponentNames := false;
+  EditedFileName := 'aanewform.pas';
 end;
 
 destructor TMainDesigner.Destroy;
@@ -343,6 +386,17 @@ procedure TMainDesigner.OnEditWidget(sender: TObject);
 begin
   if SelectedForm <> nil then
     SelectedForm.OnEditWidget(sender);
+end;
+
+procedure TMainDesigner.OnEditWidgetOrder(sender: TObject);
+begin
+  if SelectedForm <> nil then
+    SelectedForm.EditWidgetOrder;
+end;
+
+procedure TMainDesigner.OnExit(sender: TObject);
+begin
+  halt(0);
 end;
 
 end.

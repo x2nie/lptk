@@ -80,9 +80,9 @@ begin
   maindsgn := TMainDesigner.Create;
   maindsgn.CreateWindows;
 
-//  if ParamStr(1) <> '' then MainForm.edFormFile.Text8 := ParamStr(1);
+  if ParamStr(1) <> '' then maindsgn.EditedFileName := ParamStr(1);
 
-//  maindsgn.OnLoadFile(maindsgn);
+  maindsgn.OnLoadFile(maindsgn);
 
 
   //maindsgn.Show;

@@ -815,8 +815,8 @@ var
   wg : TWidget;
 
   wgcnt : integer;
-  btxt  : boolean;
-  bedit : boolean;
+  //btxt  : boolean;
+  //bedit : boolean;
 
   lastpropname : string;
 
@@ -900,7 +900,7 @@ begin
   end;
 
   exit;
-
+{
   with PropertyForm do
   begin
     if wg is TOtherWidget then lbClass.Text8 := TOtherWidget(wg).wgClassName
@@ -959,16 +959,19 @@ begin
     edOther.Visible := (wgcnt < 2);
 
   end; // with PropertyForm
-
+}
 end;
 
 procedure TFormDesigner.OnPropTextChange(sender: TObject);
+{
 var
   n : integer;
   cd : TWidgetDesigner;
   wg : TWidget;
   s : string16;
+}
 begin
+{
   s := PropertyForm.edText.Text;
   wg := nil;
   for n:=0 to FWidgets.Count-1 do
@@ -995,7 +998,7 @@ begin
   begin
     FForm.WindowTitle := s;
   end;
-
+}
 end;
 
 procedure TFormDesigner.OnPropNameChange(sender: TObject);
@@ -1283,6 +1286,7 @@ var
   ts,cs : string;
   s : string;
   wg : TWidget;
+  wgc : TVFDWidgetClass;
   n : integer;
 
   procedure SaveItems(name : string; sl : TStringList);
@@ -1317,6 +1321,7 @@ var
 
 begin
   wg := wd.Widget;
+  wgc := wd.FVFDClass;
   s := '';
 
   if maindsgn.SaveComponentNames then
@@ -1337,6 +1342,11 @@ begin
     s := s + ident + 'Anchors := ' + ts + #10;
   end;
 
+  for n:=1 to wgc.PropertyCount do
+  begin
+    s := s + ident + wgc.GetProperty(n).GetPropertySource(wg) + #10;
+  end;
+  
 {
   if wg is TwgMemo then
   begin
@@ -1392,12 +1402,12 @@ end;
 procedure EditItems(sl : TStringList);
 var
   frmie : TItemEditorForm;
-  ax,ay : integer;
+  //ax,ay : integer;
 begin
   frmie := TItemEditorForm.Create(nil);
-  GfxGetAbsolutePosition(PropertyForm.btnEdit.WinHandle, PropertyForm.btnEdit.width, 0, ax,ay);
-  frmie.Left := ax;
-  frmie.Top := ay;
+  //GfxGetAbsolutePosition(PropertyForm.btnEdit.WinHandle, PropertyForm.btnEdit.width, 0, ax,ay);
+  //frmie.Left := ax;
+  //frmie.Top := ay;
 
   frmie.edItems.Lines.Assign(sl);
   if frmie.ShowModal = 1 then
