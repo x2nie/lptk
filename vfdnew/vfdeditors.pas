@@ -116,7 +116,7 @@ end;
 procedure TItemEditorForm.AfterCreate;
 begin
   inherited;
-  WindowPosition := wpUser;
+//  WindowPosition := wpUser;
 
   WindowTitle8 := 'Items';
 
@@ -431,6 +431,9 @@ end;
 
 {
   $Log$
+  Revision 1.2  2004/05/06 12:21:34  nvitya
+  big update, external property editor added
+
   Revision 1.1  2004/05/05 01:35:32  nvitya
   new vfd branch
 

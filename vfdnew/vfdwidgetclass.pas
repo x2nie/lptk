@@ -42,13 +42,15 @@ type
     constructor Create(aName : string); virtual;
 
     function ParseSourceLine(wg : TWidget; const line : string) : boolean; virtual;
-    function GetPropertySource(wg : TWidget) : string; virtual;
+    function GetPropertySource(wg : TWidget; const ident : string) : string; virtual;
 
     // Property editing
     function GetValueText(wg : TWidget) : string; virtual;
     procedure DrawValue(wg : TWidget; canvas : TGfxCanvas; rect: TGfxRect; flags: integer); virtual;
 
     function CreateEditor(AOwner : TComponent) : TVFDPropertyEditor; virtual;
+
+    procedure OnExternalEdit(wg : TWidget); virtual;
   end;
 
   TVFDPropertyClass = class of TVFDWidgetProperty;
@@ -128,7 +130,7 @@ begin
   Description := '';
 end;
 
-function TVFDWidgetProperty.GetPropertySource(wg: TWidget): string;
+function TVFDWidgetProperty.GetPropertySource(wg: TWidget; const ident : string): string;
 begin
 
 end;
@@ -159,6 +161,11 @@ end;
 function TVFDWidgetProperty.GetValueText(wg: TWidget): string;
 begin
   result := u8('['+Name+']');
+end;
+
+procedure TVFDWidgetProperty.OnExternalEdit(wg: TWidget);
+begin
+  writeln('external edit');
 end;
 
 { TVFDPropertyEditor }

@@ -288,7 +288,7 @@ begin
 }
       if wg = nil then
       begin
-        wgc := nil;
+        wgc := VFDOtherWidget;
         wg := TOtherWidget.Create(pwg);
         TOtherWidget(wg).wgClassName := wgclass;
       end;

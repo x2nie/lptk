@@ -36,6 +36,7 @@ type
 
     FileMenu : TPopupMenu;
     FormMenu : TPopupMenu;
+    SetMenu : TPopupMenu;
 
     function GetSelectedWidget : TVFDWidgetClass;
     procedure SetSelectedWidget(wgc : TVFDWidgetClass);
@@ -278,8 +279,15 @@ begin
     AddMenuItem8('Edit special...','',nil);
   end;
 
+  setmenu := TPopupMenu.Create(self);
+  with setmenu do
+  begin
+    mi := AddMenuItem8('General options ...','',nil);
+    mi.OnClick := maindsgn.OnOptionsClick;
+  end;
+
   MainMenu.AddMenuItem8('&File',nil).SubMenu := filemenu;
-  MainMenu.AddMenuItem8('&Settings',nil).SubMenu := nil;
+  MainMenu.AddMenuItem8('&Settings',nil).SubMenu := setmenu;
   MainMenu.AddMenuItem8('Fo&rm',nil).SubMenu := formmenu;
 
 end;

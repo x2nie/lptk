@@ -2,7 +2,7 @@ unit vfdprops;
 
 interface
 
-uses Classes, SysUtils, gfxbase, gfxwidget, schar16, vfdwidgetclass,
+uses Classes, SysUtils, gfxbase, gfxwidget, schar16, gfxstyle, vfdwidgetclass,
   wgLabel, wgEdit, wgButton;
 
 type
@@ -10,7 +10,7 @@ type
   TPropertyString16 = class(TVFDWidgetProperty)
   public
     function ParseSourceLine(wg : TWidget; const line : string) : boolean; override;
-    function GetPropertySource(wg : TWidget) : string; override;
+    function GetPropertySource(wg : TWidget; const ident : string) : string; override;
 
     function GetValueText(wg : TWidget) : string; override;
 
@@ -20,7 +20,7 @@ type
   TPropertyString8 = class(TVFDWidgetProperty)
   public
     function ParseSourceLine(wg : TWidget; const line : string) : boolean; override;
-    function GetPropertySource(wg : TWidget) : string; override;
+    function GetPropertySource(wg : TWidget; const ident : string) : string; override;
 
     function GetValueText(wg : TWidget) : string; override;
 
@@ -30,12 +30,25 @@ type
   TPropertyInteger = class(TVFDWidgetProperty)
   public
     function ParseSourceLine(wg : TWidget; const line : string) : boolean; override;
-    function GetPropertySource(wg : TWidget) : string; override;
+    function GetPropertySource(wg : TWidget; const ident : string) : string; override;
 
     function GetValueText(wg : TWidget) : string; override;
 
     function CreateEditor(AOwner : TComponent) : TVFDPropertyEditor; override;
   end;
+
+  TPropertyStringList = class(TVFDWidgetProperty)
+  public
+    function ParseSourceLine(wg : TWidget; const line : string) : boolean; override;
+    function GetPropertySource(wg : TWidget; const ident : string) : string; override;
+
+    function GetValueText(wg : TWidget) : string; override;
+
+    function CreateEditor(AOwner : TComponent) : TVFDPropertyEditor; override;
+
+    procedure OnExternalEdit(wg : TWidget); override;
+  end;
+
 
 
   TGPEType = (gptInteger, gptString8, gptString16);
@@ -58,9 +71,44 @@ type
     procedure StoreStrValue(wg : TWidget);
   end;
 
+  TExternalPropertyEditor = class(TVFDPropertyEditor)
+  public
+    btnEdit : TwgButton;
+    Widget  : TWidget;
+
+    procedure CreateLayout; override;
+
+    procedure RePaint; override;
+
+    procedure LoadValue(wg : TWidget); override;
+    procedure StoreValue(wg : TWidget); override;
+
+    procedure OnEditClick(sender : TObject);
+  end;
+
+procedure EditStringList(sl : TStringList);
+
 implementation
 
-uses TypInfo, vfdformparser;
+uses TypInfo, vfdformparser, vfdeditors;
+
+procedure EditStringList(sl : TStringList);
+var
+  frmie : TItemEditorForm;
+begin
+  frmie := TItemEditorForm.Create(nil);
+  //GfxGetAbsolutePosition(PropertyForm.btnEdit.WinHandle, PropertyForm.btnEdit.width, 0, ax,ay);
+  //frmie.Left := ax;
+  //frmie.Top := ay;
+
+  frmie.edItems.Lines.Assign(sl);
+  if frmie.ShowModal = 1 then
+  begin
+    sl.Assign(frmie.edItems.Lines);
+  end;
+  frmie.Free;
+end;
+
 
 { TPropertyString16 }
 
@@ -73,9 +121,9 @@ begin
   end;
 end;
 
-function TPropertyString16.GetPropertySource(wg: TWidget): string;
+function TPropertyString16.GetPropertySource(wg: TWidget; const ident : string): string;
 begin
-  result := Name+' := u8(' + QuotedStr(str16to8( GetStrProp(wg,Name) )) + ');';
+  result := ident+Name+' := u8(' + QuotedStr(str16to8( GetStrProp(wg,Name) )) + ');'#10;
 end;
 
 function TPropertyString16.GetValueText(wg: TWidget): string;
@@ -112,9 +160,9 @@ begin
   end;
 end;
 
-function TPropertyString8.GetPropertySource(wg: TWidget): string;
+function TPropertyString8.GetPropertySource(wg: TWidget; const ident : string): string;
 begin
-  result := Name+' := '+QuotedStr( GetStrProp(wg,Name) ) + ';';
+  result := ident+Name+' := '+QuotedStr( GetStrProp(wg,Name) ) + ';'#10;
 end;
 
 function TPropertyString8.GetValueText(wg: TWidget): string;
@@ -152,9 +200,9 @@ begin
   end;
 end;
 
-function TPropertyInteger.GetPropertySource(wg: TWidget): string;
+function TPropertyInteger.GetPropertySource(wg: TWidget; const ident : string): string;
 begin
-  result := Name+' := '+IntToStr( GetOrdProp(wg,Name) ) + ';';
+  result := ident+Name+' := '+IntToStr( GetOrdProp(wg,Name) ) + ';'#10;
 end;
 
 function TPropertyInteger.GetValueText(wg: TWidget): string;
@@ -242,6 +290,124 @@ begin
   else
     StoreStrValue(wg);
   end;
+end;
+
+{ TPropertyStringList }
+
+function TPropertyStringList.CreateEditor(AOwner: TComponent): TVFDPropertyEditor;
+begin
+  result := TExternalPropertyEditor.Create(AOwner,self);
+end;
+
+function TPropertyStringList.GetPropertySource(wg: TWidget; const ident : string): string;
+var
+  sl : TStringList;
+  f : integer;
+begin
+  sl := TStringList(GetObjectProp(wg,Name,TStrings));
+
+  result := '';
+
+  for f := 0 to sl.Count - 1 do
+  begin
+    result := result + ident + Name + '.Add(u8('+QuotedStr(u8encode(sl.Strings[f]))+'));'#10;
+  end;
+end;
+
+function TPropertyStringList.GetValueText(wg: TWidget): string;
+var
+  sl : TStringList;
+begin
+  sl := TStringList(GetObjectProp(wg,Name,TStrings));
+  result := u8('['+IntToStr(sl.Count)+' lines]');
+end;
+
+procedure TPropertyStringList.OnExternalEdit(wg: TWidget);
+var
+  sl : TStringList;
+begin
+  sl := TStringList(GetObjectProp(wg,Name,TStrings));
+  EditStringList(sl);
+end;
+
+function TPropertyStringList.ParseSourceLine(wg: TWidget; const line: string): boolean;
+var
+  s : string;
+  sval : string;
+  sl : TStringList;
+begin
+  s := line;
+  result := false;
+  if UpperCase(GetIdentifier(s)) <> UpperCase(Name) then Exit;
+
+
+  result := CheckSymbol(s, '.');
+  result := result and (UpperCase(GetIdentifier(s)) = 'ADD');
+  result := result and CheckSymbol(s, '(');
+  if result then
+  begin
+    sval := GetStringValue(s);
+    result := result and CheckSymbol(s, ')');
+    result := result and CheckSymbol(s, ';');
+  end;
+
+  if result then
+  begin
+    sl := TStringList(GetObjectProp(wg,Name,TStrings));
+    sl.Add(sval)
+  end;
+end;
+
+{ TExternalPropertyEditor }
+
+procedure TExternalPropertyEditor.CreateLayout;
+begin
+  inherited;
+  Widget := nil;
+  self.Anchors := [anTop,anLeft,anRight];
+
+  btnEdit := TwgButton.Create(self);
+  with btnEdit do
+  begin
+    Height := self.Height;
+    Width := 24;
+    Top := 0;
+    Left := self.Width-width;
+    Text8 := '...';
+    UpdateWindowPosition;
+    Anchors := [anTop,anRight];
+    OnClick := OnEditClick;
+  end;
+end;
+
+procedure TExternalPropertyEditor.LoadValue(wg: TWidget);
+begin
+  Widget := wg;
+  RePaint;
+end;
+
+procedure TExternalPropertyEditor.OnEditClick(sender: TObject);
+begin
+  if widget = nil then Exit;
+  prop.OnExternalEdit(widget);
+  if widget.Windowed then widget.RePaint;
+end;
+
+procedure TExternalPropertyEditor.RePaint;
+var
+  r : TGfxRect;
+begin
+  if not Windowed then Exit;
+  if widget = nil then Exit;
+  canvas.Clear(clBoxColor);
+  canvas.GetWinRect(r);
+  canvas.SetTextColor(clText1);
+  prop.DrawValue(Widget,canvas,r,0);
+end;
+
+procedure TExternalPropertyEditor.StoreValue(wg: TWidget);
+begin
+  // nothing
 end;
 
 end.

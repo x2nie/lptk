@@ -56,6 +56,7 @@ type
 
   public
     EditedFileName : string;
+    GridResolution : integer;
 
     SaveComponentNames : boolean;
 
@@ -99,6 +100,8 @@ type
     procedure OnEditWidgetOrder(sender : TObject);
 
     procedure OnExit(sender : TObject);
+
+    procedure OnOptionsClick(sender : TObject);
 
   end;
 
@@ -315,7 +318,11 @@ begin
   FDesigners := TList.Create;
   SelectedForm := nil;
   FFile := TVFDFile.Create;
+
+  // options
   SaveComponentNames := false;
+  GridResolution := 4;
+
   EditedFileName := 'aanewform.pas';
 end;
 
@@ -397,6 +404,30 @@ end;
 procedure TMainDesigner.OnExit(sender: TObject);
 begin
   halt(0);
+end;
+
+procedure TMainDesigner.OnOptionsClick(sender: TObject);
+var
+  frm : TfrmVFDSetup;
+begin
+  frm := TfrmVFDSetup.Create(nil);
+
+  case GridResolution of
+  1 : frm.chlGrid.FocusItem := 1;
+  4 : frm.chlGrid.FocusItem := 2;
+  8 : frm.chlGrid.FocusItem := 3;
+  end;
+
+  if frm.ShowModal > 0 then
+  begin
+    case frm.chlGrid.FocusItem of
+    1 : GridResolution := 1;
+    2 : GridResolution := 4;
+    3 : GridResolution := 8;
+    end;
+  end;
+
+  frm.Free;
 end;
 
 end.

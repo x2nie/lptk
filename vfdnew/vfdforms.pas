@@ -97,6 +97,18 @@ type
     procedure AfterCreate; override;
   end;
 
+  TfrmVFDSetup = class(TGfxForm)
+  public
+    {@VFD_HEAD_BEGIN: frmVFDSetup}
+    lb1 : TwgLabel;
+    chlGrid : TwgChoiceList;
+    btnOK : TwgButton;
+    btnCancel : TwgButton;
+    {@VFD_HEAD_END: frmVFDSetup}
+
+    procedure AfterCreate; override;
+  end;
+
   TMainForm = class(TGfxForm)
   public
     l1,l2 : TwgLabel;
@@ -152,17 +164,7 @@ uses vfdmain;
 
 function GridResolution : integer;
 begin
-  result := 4;
-
-  exit;
-{
-  case MainForm.chlGrid.FocusItem of
-    2 : result := 4;
-    3 : result := 8;
-  else
-    result := 1;
-  end;
-}  
+  result := maindsgn.GridResolution;
 end;
 
 { TPaletteForm }
@@ -417,6 +419,8 @@ begin
   edPos := CreateEdit(self, 8,28, 80, 0);
   btnOK := CreateButton(self,96,8,80, 'OK', {$ifdef FPC}@{$endif}OnButtonClick);
   btnCancel := CreateButton(self,96,36,80, 'Cancel', {$ifdef FPC}@{$endif}OnButtonClick);
+  btnOK.ImageName := 'stdimg.ok';
+  btnCancel.ImageName := 'stdimg.cancel';
 end;
 
 procedure TEditPositionForm.OnButtonClick(sender: TObject);
@@ -441,7 +445,9 @@ begin
   list.SetDimensions(4,24,220,228);
 
   btnOK := CreateButton(self,232,24,80, 'OK', {$ifdef FPC}@{$endif}OnButtonClick);
+  btnOK.ImageName := 'stdimg.ok';
   btnCancel := CreateButton(self,232,52,80, 'Cancel', {$ifdef FPC}@{$endif}OnButtonClick);
+  btnCancel.ImageName := 'stdimg.cancel';
 
   btnUP := CreateButton(self,232,108,80, 'UP', {$ifdef FPC}@{$endif}OnButtonClick);
   btnDOWN := CreateButton(self,232,136,80, 'DOWN', {$ifdef FPC}@{$endif}OnButtonClick);
@@ -540,5 +546,50 @@ begin
 
   {@VFD_BODY_END: frmLoadSave}
 end;
+
+procedure TfrmVFDSetup.AfterCreate;
+begin
+  {@VFD_BODY_BEGIN: frmVFDSetup}
+  SetDimensions(322,337,237,70);
+  WindowTitle8 := 'General settings';
+
+  lb1 := TwgLabel.Create(self);
+  with lb1 do
+  begin
+    SetDimensions(8,8,92,16);
+    Text := u8('Grid resolution:');
+  end;
+
+  chlGrid := TwgChoiceList.Create(self);
+  with chlGrid do
+  begin
+    SetDimensions(104,4,56,22);
+    items.Add(u8('1'));
+    items.Add(u8('4'));
+    items.Add(u8('8'));
+    FocusItem := 2;
+  end;
+
+  btnOK := TwgButton.Create(self);
+  with btnOK do
+  begin
+    SetDimensions(8,40,96,24);
+    Text := u8('OK');
+    ImageName := 'stdimg.ok';
+    ModalResult := 1;
+  end;
+
+  btnCancel := TwgButton.Create(self);
+  with btnCancel do
+  begin
+    SetDimensions(132,40,96,24);
+    Text := u8('Cancel');
+    ImageName := 'stdimg.cancel';
+    ModalResult := -1;
+  end;
+
+  {@VFD_BODY_END: frmVFDSetup}
+end;
+
 
 end.

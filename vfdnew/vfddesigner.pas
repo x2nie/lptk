@@ -121,6 +121,7 @@ type
     procedure DesignerKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean);
 
     procedure PutControlByName(x,y : integer; cname : string);
+    procedure InsertWidget(x,y : integer; wgc : TVFDWidgetClass);
 
     procedure OnPaletteChange(Sender : TObject);
 
@@ -307,7 +308,6 @@ procedure TFormDesigner.MsgMouseUp(var msg: TMessageRec);
 var
   wgd : TWidgetDesigner;
   wgc : TVFDWidgetClass;
-  wg : TWidget;
   shift : boolean;
   x,y : integer;
 begin
@@ -331,7 +331,33 @@ begin
         x := x - x mod GridResolution;
         y := y - y mod GridResolution;
       end;
-      
+
+      InsertWidget(x,y, wgc);
+{
+      if wgc.WidgetClass = TOtherWidget then
+      begin
+        cfrm := TInsertCustomForm.Create(nil);
+        if cfrm.ShowModal = 1 then
+        begin
+          newname := cfrm.edName.Text8;
+          if newname = '' then newname := GenerateNewName(cfrm.edClass.Text8);
+          wg := TOtherWidget.Create(FForm);
+          TOtherWidget(wg).wgClassName := cfrm.edClass.Text8;
+          wg.SetDimensions(x,y,200,24);
+        end;
+        cfrm.Free;
+      end;
+
+
+      x := msg.Param1;
+      y := msg.Param2;
+
+      if GridResolution > 1 then
+      begin
+        x := x - x mod GridResolution;
+        y := y - y mod GridResolution;
+      end;
+
       wg := wgc.CreateWidget(FForm);
       if wg <> nil then
       begin
@@ -344,14 +370,12 @@ begin
         wgd.Selected := true;
         UpdatePropWin;
       end;
-
-      //PutControlByName(x,y,PaletteForm.clist.Text8);
+}
 
       if not shift then
       begin
         FForm.MouseCursor := CUR_DEFAULT;
         frmMain.SelectedWidget := nil;
-        //PaletteForm.clist.FocusItem := 1;
       end;
     end;
   end
@@ -1344,7 +1368,7 @@ begin
 
   for n:=1 to wgc.PropertyCount do
   begin
-    s := s + ident + wgc.GetProperty(n).GetPropertySource(wg) + #10;
+    s := s + wgc.GetProperty(n).GetPropertySource(wg, ident);
   end;
   
 {
@@ -1441,6 +1465,48 @@ begin
   end;
 end;
 
+procedure TFormDesigner.InsertWidget(x,y : integer; wgc : TVFDWidgetClass);
+var
+  cfrm : TInsertCustomForm;
+  newname, newclassname : string;
+  wg : TWidget;
+  wgd : TWidgetDesigner;
+begin
+  if wgc = nil then Exit;
+
+  newname := '';
+
+  if wgc.WidgetClass = TOtherWidget then
+  begin
+    newclassname := '';
+    cfrm := TInsertCustomForm.Create(nil);
+    cfrm.edName.Text8 := GenerateNewName(wgc.NameBase);
+    cfrm.edClass.Text8 := 'Twg';
+    if cfrm.ShowModal = 1 then
+    begin
+      newname := cfrm.edName.Text8;
+      newClassName := cfrm.edClass.Text8;
+    end;
+    cfrm.Free;
+    if (newname = '') or (newclassname = '') then Exit;
+  end;
+
+  wg := wgc.CreateWidget(FForm);
+  if wg <> nil then
+  begin
+    wg.Left := x;
+    wg.Top  := y;
+    if newname = '' then newname := GenerateNewName(wgc.NameBase);
+    wg.name := newname;
+    if wgc.WidgetClass = TOtherWidget then TOtherWidget(wg).wgClassName := newclassname;
+    wgd := AddWidget(wg, wgc);
+    wg.ShowWidget;
+    DeSelectAll;
+    wgd.Selected := true;
+    UpdatePropWin;
+  end;
+end;
+
 { TDesignedForm }
 
 procedure TDesignedForm.AfterCreate;
@@ -1469,6 +1535,8 @@ begin
   wgClassName := 'TWidget';
   FBackgroundColor := $C0E0C0;
   FFont := guistyle.DefaultFont;
+  FWidth := 120;
+  FHeight := 32;
 end;
 
 procedure TOtherWidget.RePaint;

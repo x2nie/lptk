@@ -13,9 +13,12 @@ function VFDWidget(ind : integer) : TVFDWidgetClass;
 
 function VFDFormWidget : TVFDWidgetClass;
 
+var
+  VFDOtherWidget : TVFDWidgetClass;
+
 implementation
 
-uses gfxform,
+uses vfddesigner, gfxform,
   wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox
   ;
 
@@ -100,6 +103,14 @@ begin
             @stdimg_vfd_panel,
       sizeof(stdimg_vfd_panel),
             0,0 );
+
+
+  GfxLibAddMaskedBMP(
+                   'vfd.other',
+            @stdimg_vfd_other,
+      sizeof(stdimg_vfd_other),
+            0,0 );
+
 {
   GfxLibAddMaskedBMP(
                    'vfd.',
@@ -179,6 +190,23 @@ begin
   wc.WidgetIconName := 'vfd.choicelist';
   RegisterVFDWidget(wc);
 
+  // TextListBoct
+  wc := TVFDWidgetClass.Create(TwgTextListBox);
+  wc.NameBase := 'lst';
+  //wc.AddProperty('Text',TPropertyString16,'');
+  wc.AddProperty('Items',TPropertyStringList,'');
+  wc.AddProperty('FontName',TPropertyString8,'The font used displaying the text');
+  wc.WidgetIconName := 'vfd.listbox';
+  RegisterVFDWidget(wc);
+
+
+
+  // Other - do not delete!!! this should be the last...
+  wc := TVFDWidgetClass.Create(TOtherWidget);
+  wc.NameBase := 'wg';
+  wc.WidgetIconName := 'vfd.other';
+  RegisterVFDWidget(wc);
+  VFDOtherWidget := wc;
 
 end;
 
