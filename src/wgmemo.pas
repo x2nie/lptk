@@ -2,6 +2,7 @@
   File maintainer: nvitya@freemail.hu
 
 History:
+    13.01.2004  buffer-support in repaint added (Erik Grohnwaldt)
     17.07.2003	read only property Cursorline added (Erik Grohnwaldt)
 }
 unit wgmemo;
@@ -584,7 +585,7 @@ begin
   //inherited RePaint;
 
   //writeln('edit onpaint event...');
-
+  Canvas.DrawOnBuffer := True;
   Canvas.Clear(FBackgroundColor);
   if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
   Canvas.DrawRectangle(0,0,width,height);
@@ -638,7 +639,7 @@ begin
   end;
 
   //RepaintChildren;
-
+  Canvas.SwapBuffer;
 end;
 
 procedure TwgMemo.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean);
