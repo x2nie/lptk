@@ -89,6 +89,7 @@ begin
   rowselect := true;
   AddColumn8('Image ID',80);
   AddColumn8('Pic.',30);
+  FRowHeight := 20;
 end;
 
 function TstdImageList.GetRowCount: integer;
