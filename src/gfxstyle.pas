@@ -53,7 +53,7 @@ const
   
   clUnset		 = $80000018;
   
-  LastColorIndex         = $00000017;
+  LastColorIndex         = $00000018;
 
 type
 {$ifdef Win32}{$else}
@@ -169,7 +169,8 @@ begin
     clTextCursor:           result := $000000;
 
     clChoiceListBox:        result := $E8E8E8;
-    clUnset:		    result := clUnset;
+    
+    clUnset:		    result := $D0D0FF;
   else
     result := 0;
   end;
