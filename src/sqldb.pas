@@ -4,6 +4,10 @@
 History:
 }
 
+{$ifdef FPC}
+{$mode objfpc}{$H+}
+{$endif}
+
 unit sqldb;
 
 interface
