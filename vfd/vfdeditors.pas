@@ -1,5 +1,7 @@
 { Copyright (c) 2003, Nagy Viktor
 
+ $Id$
+ 
  Some property editors
 }
 
@@ -13,7 +15,7 @@ interface
 
 uses
   Classes, SysUtils, gfxbase, messagequeue, schar16, gfxwidget, gfxform, gfxstyle,
-  wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wggrid, wgdbgrid, wgcheckbox, vfdforms;
+  wglabel, wgedit, wgbutton, wglistbox, wgmemo, wgchoicelist, wgcustomgrid, wgdbgrid, wgcheckbox, vfdforms;
 
 type
   TItemEditorForm = class(TVFDDialog)
@@ -30,17 +32,11 @@ type
 
   end;
 
-  TColumnsGrid = class(TwgGrid)
-  protected
-    function GetColumnWidth(col : integer) : TgfxCoord; override;
+  TColumnsGrid = class(TwgCustomGrid)
   public
-    function ColumnCount : integer; override;
-    function RowCount : integer; override;
-
-    //procedure ResizeCol(col, cwidth : integer); override;
+    function GetRowCount : integer; override;
 
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
-    procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
 
   public
     dbgrid : TwgDBGrid;
@@ -381,27 +377,9 @@ end;
 
 { TColumnsGrid }
 
-function TColumnsGrid.ColumnCount: integer;
-begin
-  Result:=5;
-end;
-
-function TColumnsGrid.RowCount: integer;
+function TColumnsGrid.GetRowCount: integer;
 begin
   Result := dbgrid.ColumnCount;
-end;
-
-function TColumnsGrid.GetColumnWidth(col: integer): TGfxCoord;
-begin
-  case col of
-    1 : result := 30;
-    2 : result := 80;
-    3 : result := 80;
-    4 : result := 40;
-    5 : result := 50;
-  else
-    result := 80;
-  end;
 end;
 
 procedure TColumnsGrid.DrawCell(row, col: integer; rect: TGfxRect; flags: integer);
@@ -435,33 +413,24 @@ begin
   canvas.DrawString16(x, rect.top+1,  s );
 end;
 
-procedure TColumnsGrid.DrawHeader(col: integer; rect: TGfxRect; flags: integer);
-var
-  s : string16;
-  x : integer;
-begin
-  case col of
-    1 : s := 'Col.';
-    2 : s := 'Title';
-    3 : s := 'Field';
-    4 : s := 'Width';
-    5 : s := 'Align';
-  else
-    s := 'xxx';
-  end;
-
-  s := u8(s);
-
-  x := (rect.width div 2) - (FHeaderFont.TextWidth16(s) div 2);
-  if x < 1 then x := 1;
-  canvas.DrawString16(rect.left + x, rect.top+1, s);
-
-end;
-
 constructor TColumnsGrid.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
   RowSelect := true;
+  
+  AddColumn8('Col.',30);
+  AddColumn8('Title',80);
+  AddColumn8('Field',80);
+  AddColumn8('Width',40);
+  AddColumn8('Align',50);
 end;
+
+{
+  $Log$
+  Revision 1.5  2003/11/10 00:01:50  nvitya
+  using wgCustomGrid
+
+}
 
 end.

@@ -15,25 +15,18 @@ uses
   Classes, SysUtils, gfxbase, wgedit, unitkeys, schar16, gfxstyle,
   messagequeue, gfxwidget, gfxform, wglabel, wgbutton, popupwindow,
   wgscrollbar, wglistbox, gfxclipboard, wgmemo, wgchoicelist, wggrid, gfxdialogs,
-  wgcheckbox, sqldb, wgdbgrid, testsql;
+  wgcheckbox, sqldb, wgdbgrid, wgcustomgrid, testsql;
   //, wgmenu,
 
 type
 
-  TstdImageList = class(TwgGrid)
+  TstdImageList = class(TwgCustomGrid)
   public
-    firstcolwidth : integer;
-
     constructor Create(AOwner : TComponent); override;
 
-    function ColumnCount : integer; override;
-    function RowCount : integer; override;
-
-    function GetColumnWidth(col : integer) : TGfxCoord; override;
-    procedure SetColumnWidth(col, cwidth : integer); override;
+    function GetRowCount : integer; override;
 
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
-    procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
   end;
 
   TMyForm = class(TGfxForm)
@@ -93,32 +86,14 @@ type
 constructor TstdImageList.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  firstcolwidth := 80;
   rowselect := true;
+  AddColumn8('Image ID',80);
+  AddColumn8('Pic.',30);
 end;
 
-function TstdImageList.ColumnCount: integer;
-begin
-  Result:=2;
-end;
-
-function TstdImageList.RowCount: integer;
+function TstdImageList.GetRowCount: integer;
 begin
   Result:=GfxImageLibrary.Count;
-end;
-
-function TstdImageList.GetColumnWidth(col: integer): TGfxCoord;
-begin
-  if col=1 then result := firstcolwidth else result := 30;
-end;
-
-procedure TstdImageList.SetColumnWidth(col, cwidth: integer);
-begin
-  if col=1 then
-  begin
-    firstcolwidth := cwidth;
-    repaint;
-  end;
 end;
 
 procedure TstdImageList.DrawCell(row, col: integer; rect: TGfxRect; flags: integer);
@@ -131,15 +106,6 @@ begin
   begin
     Canvas.DrawImage(rect.Left+1,rect.Top+1,GfxLibGetImage(GfxImageLibrary.Strings[row-1]));
   end;
-end;
-
-procedure TstdImageList.DrawHeader(col: integer; rect: TGfxRect; flags: integer );
-var
-  s : string;
-begin
-  if col=1 then s := 'Image ID' else s := 'Pic';
-
-  Canvas.DrawString16(rect.Left+1,rect.Top+1,u8(s));
 end;
 
 { TMyForm }

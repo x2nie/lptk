@@ -17,9 +17,12 @@ uses
   vfdresizer, vfdforms, vfddesigner, vfdfile;
 
 const
-  program_version = '0.57';
+  program_version = '0.58';
 
 {version description:
+0.58
+  - wgGrid interface change
+  
 0.57
   - WindowTitle8 correction
 
