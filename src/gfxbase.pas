@@ -1662,6 +1662,8 @@ begin
 
     ConfigureNotify:
     begin
+      repeat until not XCheckTypedWindowEvent(display, ev.xany.window, ConfigureNotify, @ev);
+      
       wg := FindWidget(ev.xconfigure.window);
       if (wg <> nil) and (wg is TGfxForm) then
       begin
@@ -2721,19 +2723,14 @@ begin
 end;
 {$else}
 var
-   ACol : TgfxColor;
-   AWinRect : TgfxRect;
+  ACol : TgfxColor;
+  AWinRect : TgfxRect;
 begin
-  if DrawOnBuffer then
-  begin
-       ACol := FColor;
-       SetColor(FBackgroundColor);
-       GetWinRect(AWinRect);
-       FillRectangle(0,0,AWinRect.Width,AWinRect.Height);
-       SetColor(ACol);
-  end
-  else
-      XClearWindow(display, FWin);
+  ACol := FColor;
+  SetColor(col);
+  GetWinRect(AWinRect);
+  FillRectangle(0,0,AWinRect.Width,AWinRect.Height);
+  SetColor(ACol);
 end;
 {$endif}
 

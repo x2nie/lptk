@@ -488,11 +488,7 @@ end;
 
 procedure TWidget.RePaint;
 begin
-{$ifdef Win32}
   canvas.Clear(FBackgroundColor);
-{$else}
-  // X handles automatically the child repaintings
-{$endif}
 end;
 
 procedure TWidget.RePaintChildren;
@@ -737,7 +733,7 @@ begin
 
     attr.Override_Redirect := longbool(1);
     attr.background_pixel := bColor;
-    mask := CWOverrideRedirect or CWBackPixel;
+    mask := CWOverrideRedirect; // or CWBackPixel;
 
     wh := XCreateWindow(Display, pwh,
           Left, Top, Width, Height, 0,
@@ -749,11 +745,23 @@ begin
   end
   else
   begin
+    //attr.Override_Redirect := longbool(1);
+    //attr.background_pixel := bColor;
+    mask := 0; //CWOverrideRedirect; // or CWBackPixel;
+
+    wh := XCreateWindow(Display, pwh,
+          Left, Top, Width, Height, 0,
+          CopyFromParent,
+          InputOutput,
+           gfxDefaultVisual,
+           mask,
+           @attr);
+{
     wh := XCreateSimpleWindow(Display, pwh,
                                 Left, Top, Width, Height, 0,
   			      0,   // border color !
   			      bColor );
-           
+}
     XMoveWindow(Display, wh, Left, Top);
   end;
 

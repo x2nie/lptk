@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.6  2004/04/24 13:21:24  nvitya
+// flicker corrections
+//
 // Revision 1.5  2003/12/20 15:13:01  aegluke
 // wgFileGrid-Changes
 //
@@ -16,7 +19,7 @@
 unit wgcustomgrid;
 
 {$ifdef FPC}
-{$mode objfpc}{$H+}
+{$mode OBJFPC}{$H+}
 {$endif}
 
 interface
