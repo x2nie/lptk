@@ -43,8 +43,8 @@ type
     MaxColWidth : integer;
     MinColWidth : integer;
 
-    function ColumnCount : integer; override;
-    function RowCount : integer; override;
+    function GetColumnCount : integer; override;
+    function GetRowCount : integer; override;
 
 
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
@@ -185,12 +185,12 @@ begin
   else result := nil;
 end;
 
-function TwgDBGrid.ColumnCount: integer;
+function TwgDBGrid.GetColumnCount: integer;
 begin
   Result := FColumns.Count;
 end;
 
-function TwgDBGrid.RowCount: integer;
+function TwgDBGrid.GetRowCount: integer;
 begin
   if FResultSet <> nil then result := FResultSet.RowCount
                        else result := 0;

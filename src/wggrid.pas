@@ -65,8 +65,11 @@ type
 
     property ColumnWidth[aCol : integer] : TgfxCoord read GetColumnWidth write SetColumnWidth;
 
-    function ColumnCount : integer; virtual;
-    function RowCount : integer; virtual;
+    function GetColumnCount : integer; virtual;
+    function GetRowCount : integer; virtual;
+    
+    property ColumnCount : integer read GetColumnCount;
+    property RowCount : integer read GetRowCount;
 
     procedure FollowFocus;
 
@@ -118,12 +121,12 @@ uses gfxstyle; //, xlib, x, xutil;
 
 { TwgGrid }
 
-function TwgGrid.ColumnCount: integer;
+function TwgGrid.GetColumnCount: integer;
 begin
   result := 7;
 end;
 
-function TwgGrid.RowCount: integer;
+function TwgGrid.GetRowCount: integer;
 begin
   result := 24;
 end;

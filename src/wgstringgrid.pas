@@ -1,6 +1,9 @@
 unit wgstringgrid;
 
 // $Log$
+// Revision 1.3  2003/11/10 00:00:41  nvitya
+// GetRowCount, RowCount, GetColumnCount, ColumnCount changes
+//
 // Revision 1.2  2003/11/09 17:24:48  aegluke
 // dynamic memory freeing, freeing row/column memory on destroy
 //
@@ -37,10 +40,11 @@ type
 	protected
 	    function GetColumnWidth(aCol : Integer) : integer; override;	    
 	    procedure SetColumnWidth(aCol : Integer; aWidth : Integer); override;
+     
 	    function GetColumnCount : integer; override;
+
 	    function GetRowCount : integer; override;	    
-	    procedure SetColumnCount(aValue : integer); override;
-	    procedure SetRowCount(aValue : integer); override;
+
 	    procedure DrawCell(aRow, aCol : Integer; aRect : TgfxRect; aFlags : integer); override;
 	    procedure DrawHeader(aCol : integer; aRect : TgfxRect; aFlags : integer); override;
 	    
@@ -57,6 +61,12 @@ type
 	    property Cells[aColumn, aRow : Longword] : string16 read GetCell write SetCell;
 	    property Cells8[aColumn, aRow : Longword] : string read GetCell8 write SetCell8;
 	    property DefaultColumnWidth : TgfxCoord read FDefaultColumnWidth write FDefaultColumnWidth;
+
+	    procedure SetRowCount(aValue : integer);
+            property RowCount : integer read GetRowCount write SetRowCount;
+
+	    procedure SetColumnCount(aValue : integer);
+            property ColumnCount : integer read GetColumnCount write SetColumnCount;
     end;
 
 implementation
@@ -238,7 +248,7 @@ begin
 	result := ''
     else
     begin
-	diff := (TStringColumn(FColumns[aColumn]).Cells.Count - 1) - aRow;
+	diff := (TStringColumn(FColumns[aColumn]).Cells.Count - 1) - integer(aRow);
 	if diff < 0 then
 	    result := ''
 	else

@@ -33,11 +33,15 @@ type
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
     
-    function RowCount : integer; override;
+    function GetRowCount : integer; override;
     procedure SetRowCount(value : integer);
     
-    function ColumnCount : integer; override;
+    property RowCount : integer read GetRowCount write SetRowCount;
+    
+    function GetColumnCount : integer; override;
     procedure SetColumnCount(value : integer);
+    
+    property ColumnCount : integer read GetColumnCount write SetColumnCount;
     
     procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
     
@@ -94,7 +98,7 @@ begin
   inherited Destroy;
 end;
 
-function TwgCustomGrid.RowCount: integer;
+function TwgCustomGrid.GetRowCount: integer;
 begin
   Result := FRowCount;
 end;
@@ -110,7 +114,7 @@ begin
   if FWinHandle > 0 then Update;
 end;
 
-function TwgCustomGrid.ColumnCount: integer;
+function TwgCustomGrid.GetColumnCount: integer;
 begin
   Result := FColumns.Count;
 end;
