@@ -13,7 +13,7 @@ unit gfxform;
 interface
 
 uses
-  Classes, SysUtils, messagequeue, GfxBase, GfxWidget;
+  Classes, SysUtils, messagequeue, GfxBase, GfxWidget, schar16;
   
 type
   TWindowPosition = (wpUser, wpAuto, wpScreenCenter);
@@ -27,6 +27,8 @@ type
 
     FResizeable: boolean;
     procedure SetWindowTitle(const AValue: string);
+    function GetWindowTitle8: string;
+    procedure SetWindowTitle8(const Value: string);
   protected
     FModalResult : integer;
 
@@ -68,10 +70,10 @@ type
     property WMOptions : TWMOptions read FWMOptions write FWMOptions;
     
     property ModalResult : integer read FModalResult write FModalResult;
-    
+
     property WindowTitle : string read FWindowTitle write SetWindowTitle;
-    // read FWindowTitle; // write SetFWindowTitle;
-    
+    property WindowTitle8 : string read GetWindowTitle8 write SetWindowTitle8;
+
     property ParentForm : TGfxForm read FParentForm write FParentForm;
 
     procedure HandleResize(dwidth, dheight : integer); override;
@@ -93,18 +95,21 @@ uses
 procedure TGfxForm.SetWindowTitle(const AValue: string);
 var
   p : PByte;
+  s8 : string;
 begin
   if FWindowTitle=AValue then exit;
   FWindowTitle:=AValue;
   
   if FWinHandle <= 0 then Exit;
 
+  s8 := u16noesc(FWindowTitle);
+  
 {$ifdef Win32}
-  SetWindowText(FWinHandle, PChar(AValue));
+  SetWindowText(FWinHandle, PChar(s8));
 {$else}
-  if length(FWindowTitle) > 0 then p := @FWindowTitle[1] else p := nil;
-  XChangeProperty(display, FWinHandle, 39, 31, 8, 0, p, length(FWindowTitle));
-  XChangeProperty(display, FWinHandle, 37, 31, 8, 0, p, length(FWindowTitle));
+  if length(s8) > 0 then p := @s8[1] else p := nil;
+  XChangeProperty(display, FWinHandle, 39, 31, 8, 0, p, length(s8));
+  XChangeProperty(display, FWinHandle, 37, 31, 8, 0, p, length(s8));
 {$endif}
 end;
 
@@ -180,7 +185,8 @@ end;
 var
   hints : TXSizeHints;
 //  wnprop : TXTextProperty;
-//  p : PChar;
+  p : PByte;
+  s8 : string;
   pf : TGfxForm;
 begin
   inherited SetWindowParameters;
@@ -234,8 +240,12 @@ begin
 //  XSetWMName(display, FWinHandle, @wnprop);
 //  XSetWMIconName(display, FWinHandle, @wnprop);
 
-  XChangeProperty(display, FWinHandle, 39, 31, 8, 0, PByte(@FWindowTitle[1]), length(FWindowTitle));
-  XChangeProperty(display, FWinHandle, 37, 31, 8, 0, PByte(@FWindowTitle[1]), length(FWindowTitle));
+  s8 := u16noesc(FWindowTitle);
+  
+  if length(s8) > 0 then p := @s8[1] else p := nil;
+
+  XChangeProperty(display, FWinHandle, 39, 31, 8, 0, p, length(s8));
+  XChangeProperty(display, FWinHandle, 37, 31, 8, 0, p, length(s8));
 
   // send close event instead of quitting the whole application...
   XSetWMProtocols(display, FWinHandle, @xia_wm_delete_window, 1);
@@ -403,6 +413,16 @@ end;
 function TGfxForm.GetWindowName: string;
 begin
   result := FWindowTitle;
+end;
+
+function TGfxForm.GetWindowTitle8: string;
+begin
+  result := u16u8(WindowTitle);
+end;
+
+procedure TGfxForm.SetWindowTitle8(const Value: string);
+begin
+  WindowTitle := u8(Value);
 end;
 
 initialization
