@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.5  2003/12/22 13:07:32  aegluke
+// Linux changes
+//
 // Revision 1.4  2003/12/21 19:16:07  aegluke
 // SetFileName
 // onFileDoubleClick change onFileChose
@@ -62,7 +65,6 @@ type
     FDirectoryColor : TgfxColor;
     FFileColor : TgfxColor;
   protected
-    OnDoubleClick: TMouseNotifyEvent;
 
     procedure ReadDirectory;
     procedure SetDirectory(aValue: string);
@@ -581,7 +583,7 @@ var
     SearchStr: string;
   begin
     SearchStr := Directory + DirSeparator + '*';
-    FileAttr := faDirectory;
+    FileAttr := faAnyFile;
     if FindFirst(SearchStr, FileAttr, rec) = 0 then
     begin
       repeat
@@ -645,7 +647,11 @@ begin
     else
   {$ENDIF}
     begin
+      while pos(DirSeparator+DirSeparator,AValue) <> 0 do
+        Delete(AValue,pos(DirSeparator+DirSeparator,AValue),1);
       AValue := ExpandFileName(AValue+DirSeparator);
+      while pos(DirSeparator+DirSeparator,AValue) <> 0 do
+        Delete(AValue,1,1);
       if DirectoryExists(AValue) and (AValue <> FDirectory) then
       begin
         FDirectory := aValue;
