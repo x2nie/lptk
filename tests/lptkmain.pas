@@ -20,11 +20,27 @@ uses
 
 type
 
+  TstdImageList = class(TwgGrid)
+  public
+    firstcolwidth : integer;
+    
+    constructor Create(AOwner : TComponent); override;
+  
+    function ColumnCount : integer; override;
+    function RowCount : integer; override;
+
+    function ColumnWidth(col : integer) : TGfxCoord; override;
+    procedure ResizeCol(col, cwidth : integer); override;
+
+    procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
+    procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
+  end;
+
   TMyForm = class(TGfxForm)
   public
     ed,e2, e3   : TwgEdit;
 
-    l1,l2,l3,l4,l5,l6 : TwgLabel;
+    l1,l2,l3,l4,l5,l6,l7 : TwgLabel;
 
     //menu : TwgMenuBar;
 
@@ -39,6 +55,8 @@ type
     cb : TwgCheckBox;
 
     choicel : TwgChoiceList;
+    
+    imglist : TstdImageList;
 
     procedure AfterCreate; override;
 
@@ -70,6 +88,60 @@ type
 
   end;
 
+{ TstdImageList }
+
+constructor TstdImageList.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  firstcolwidth := 80;
+  rowselect := true;
+end;
+
+function TstdImageList.ColumnCount: integer;
+begin
+  Result:=2;
+end;
+
+function TstdImageList.RowCount: integer;
+begin
+  Result:=GfxImageLibrary.Count;
+end;
+
+function TstdImageList.ColumnWidth(col: integer): TGfxCoord;
+begin
+  if col=1 then result := firstcolwidth else result := 30;
+end;
+
+procedure TstdImageList.ResizeCol(col, cwidth: integer);
+begin
+  if col=1 then
+  begin
+    firstcolwidth := cwidth;
+    repaint;
+  end;
+end;
+
+procedure TstdImageList.DrawCell(row, col: integer; rect: TGfxRect; flags: integer);
+begin
+  if col = 1 then
+  begin
+    Canvas.DrawString16(rect.Left+1,rect.Top+1+Font.Ascent,u8(lowercase(GfxImageLibrary.Strings[row-1])));
+  end
+  else
+  begin
+    Canvas.DrawImage(rect.Left+1,rect.Top+1,GfxLibGetImage(GfxImageLibrary.Strings[row-1]));
+  end;
+end;
+
+procedure TstdImageList.DrawHeader(col: integer; rect: TGfxRect; flags: integer );
+var
+  s : string;
+begin
+  if col=1 then s := 'Image ID' else s := 'Pic';
+
+  Canvas.DrawString16(rect.Left+1,rect.Top+1+Font.Ascent,u8(s));
+end;
+
 { TMyForm }
 
 procedure TMyForm.AfterCreate;
@@ -80,7 +152,7 @@ begin
 
   WindowTitle8 := 'LPTK test form';
 
-  SetDimensions(30,10,400,340);
+  SetDimensions(30,10,550,340);
 
   WindowPosition := wpAuto;
 
@@ -152,7 +224,11 @@ begin
   cb.Top := 300;
   cb.Width := 150; //(200,300,150,20);
   cb.Text := str8to16('CheckBox Widget');
+  
+  l7 := CreateLabel(self, 380, 10, 'Std Images:');
 
+  imglist := TstdImageList.Create(self);
+  imglist.SetDimensions(380,30,160,200);
 {
   menu := TwgMenuBar.Create(frm);
   menu.left := 10;

@@ -7,7 +7,7 @@ program imgtest;
 {$APPTYPE CONSOLE}
 {$ENDIF}
 
-uses gfxbase, gfxform, gfxbmpimage, schar16, gfxstyle;
+uses gfxbase, gfxform, gfxbmpimage, schar16, gfxstyle, gfxstdimg;
 
 type
   TMainForm = class(TGfxForm)
@@ -33,22 +33,30 @@ begin
 
   img := CreateBMPImage(@bmp_wtest, sizeof(bmp_wtest));
   img.Invert;
+  
+  GfxLibAddImage('my.wtest', img);
 
 //  flower := CreateBMPImage(@bmp_testimg, sizeof(bmp_testimg));
 
-  fpy := CreateBMPImage(@bmp_floppy, sizeof(bmp_floppy));
-  fpy.CreateMaskFromSample(0,0);
+//  fpy := CreateBMPImage(@bmp_floppy, sizeof(bmp_floppy));
+//  fpy.CreateMaskFromSample(0,0);
+  
+  fpy := GfxLibAddMaskedBMP('my.floppy',@bmp_floppy, sizeof(bmp_floppy), 0,0);
 
   inherited AfterCreate;
 end;
 
 procedure TMainForm.RePaint;
+var
+  im : TGfxImage;
 begin
   inherited RePaint;
 //  Canvas.Clear(clWindowBackground);
 //  Canvas.DrawString16(10,20,u8('qqcska'));
 
-  Canvas.DrawImage(10,20, fpy);
+  im := GfxLibGetImage('my.floppy');
+
+  Canvas.DrawImage(10,20, im);
   Canvas.DrawImagePart(50,20, fpy,0,0,fpy.height,fpy.height);
 
   Canvas.DrawImagePart(75,20, fpy,fpy.height,0,fpy.height,fpy.height);
