@@ -129,6 +129,18 @@ begin
       sizeof(stdimg_yes),
             0,0 );
 
+  img := GfxLibAddMaskedBMP(
+            'stdimg.edit',
+            @stdimg_edit,
+      sizeof(stdimg_edit),
+            0,0 );
+
+  img := GfxLibAddMaskedBMP(
+            'stdimg.delete',
+            @stdimg_delete,
+      sizeof(stdimg_delete),
+            0,0 );
+
 {
   img := GfxLibAddMaskedBMP(
             'stdimg.',

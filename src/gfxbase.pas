@@ -826,23 +826,6 @@ begin
   end;
 end;
 
-function WidgetParentForm(wg : TWidget) : TGfxForm;
-var
-  w : TWidget;
-begin
-  w := wg;
-  while w <> nil do
-  begin
-    if w is TGfxForm then
-    begin
-      Result := TGfxForm(w);
-      Exit;
-    end;
-    w := w.Parent;
-  end;
-  result := nil;
-end;
-
 function GfxColorToRGB(col : TGfxColor) : TGfxColor;
 begin
   if (col and $80000000) <> 0 then

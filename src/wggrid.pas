@@ -5,6 +5,9 @@ History:
 }
 
 // $Log$
+// Revision 1.17  2004/04/22 10:12:21  nvitya
+// multiple updates
+//
 // Revision 1.16  2003/12/23 17:14:15  aegluke
 // DrawGrid-changes
 //
@@ -372,7 +375,7 @@ begin
   if (ColumnCount > 0) and HeadersOn then
   begin
     // Drawing headers
-    r.Height := RowHeight;
+    r.Height := FHeaderHeight;
 
     Canvas.SetFont(FHeaderFont);
     for col := FFirstCol to ColumnCount do
@@ -673,7 +676,7 @@ begin
 
   // searching the appropriate character position
 
-  if HeadersOn then hh := FHeaderHeight else hh := 0;
+  if HeadersOn then hh := FHeaderHeight+1 else hh := 0;
 
   if HeadersOn and (y <= FMargin + hh) then
   begin

@@ -152,9 +152,22 @@ procedure ShowMessage8(msg : string); overload;
 function SelectFontDialog(var fontdesc : string) : boolean;
 function SelectColorDialog(var color : TGfxColor) : boolean;
 
+function StrToHex(hnum : string) : longword;
+
 implementation
 
 {@VFD_NEWFORM_IMPL}
+
+function StrToHex(hnum : string) : longword;
+var
+  n : integer;
+begin
+  result := 0;
+  for n:=1 to length(hnum) do
+  begin
+    result := (result shl 4) + longword(pos(upcase(hnum[n]),'123456789ABCDEF'));
+  end;
+end;
 
 function SelectColorDialog(var color : TGfxColor) : boolean;
 var
@@ -440,6 +453,7 @@ begin
   begin
     SetDimensions(8,348,105,24);
     Text := u8('OK');
+    ImageName := 'stdimg.ok';
     OnClick := OkClick;
   end;
 
@@ -448,6 +462,7 @@ begin
   begin
     SetDimensions(316,348,105,24);
     Text := u8('Cancel');
+    ImageName := 'stdimg.cancel';
     OnClick := CancelClick;
   end;
 
@@ -763,6 +778,7 @@ begin
     SetDimensions(8,228,105,24);
     Text := u8('OK');
     OnClick := ButtonClick;
+    ImageName := 'stdimg.ok';
   end;
 
   btnCancel := TWGBUTTON.Create(self);
@@ -771,6 +787,7 @@ begin
     SetDimensions(212,228,105,24);
     Text := u8('Cancel');
     OnClick := ButtonClick;
+    ImageName := 'stdimg.cancel';
   end;
 
   {@VFD_BODY_END: frmSelectColor}
@@ -834,17 +851,6 @@ begin
   if showcolor.WinHandle > 0 then showcolor.RePaint;
 
   edHex.Text8 := IntToHex(col,6);
-end;
-
-function StrToHex(hnum : string) : longword;
-var
-  n : integer;
-begin
-  result := 0;
-  for n:=1 to length(hnum) do
-  begin
-    result := (result shl 4) + longword(pos(upcase(hnum[n]),'123456789ABCDEF'));
-  end;
 end;
 
 procedure TfrmSelectColor.HexChange(sender: TObject);

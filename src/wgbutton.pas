@@ -43,6 +43,8 @@ type
     OnClick : TNotifyEvent;
 
   public
+    ModalResult : integer;
+    
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
 
@@ -82,7 +84,7 @@ function CreateButton(AOwner : TComponent; x, y, w : TGfxCoord; txt : String; on
 
 implementation
 
-uses gfxstyle;
+uses gfxstyle, gfxform;
 
 function CreateButton(AOwner : TComponent; x, y, w : TGfxCoord; txt : String; onclk : TNotifyEvent) : TwgButton;
 begin
@@ -158,6 +160,7 @@ begin
   FShowImage := true;
   FImageMargin := 3;
   FImageSpacing := -1;
+  ModalResult := 0;
 end;
 
 destructor TwgButton.Destroy;
@@ -377,7 +380,12 @@ begin
 end;
 
 procedure TwgButton.Click;
+var
+  pform : TGfxForm;
 begin
+  pform := WidgetParentForm(self);
+  if pform <> nil then pform.ModalResult := self.ModalResult;
+  
   if Assigned(OnClick) then OnClick(self);
 end;
 

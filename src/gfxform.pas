@@ -85,10 +85,30 @@ var
 
   GfxTopModalForm : TGfxForm;
 
+function WidgetParentForm(wg : TWidget) : TGfxForm;
+
 implementation
 
 uses
 {$ifdef Win32}windows{$else}Xutil, Xlib{$endif};
+
+function WidgetParentForm(wg : TWidget) : TGfxForm;
+var
+  w : TWidget;
+begin
+  w := wg;
+  while w <> nil do
+  begin
+    if w is TGfxForm then
+    begin
+      Result := TGfxForm(w);
+      Exit;
+    end;
+    w := w.Parent;
+  end;
+  result := nil;
+end;
+
 
 { TGfxForm }
 

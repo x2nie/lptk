@@ -2,7 +2,9 @@
 
 unit wgmenu;
 
+{$ifdef FPC}
 {$mode objfpc}{$H+}
+{$endif}
 
 interface
 
