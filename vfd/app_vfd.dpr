@@ -82,9 +82,9 @@ begin
   maindsgn := TMainDesigner.Create;
   maindsgn.CreateWindows;
 
-  if ParamStr(1) <> '' then maindsgn.EditedFileName := ParamStr(1);
+  maindsgn.EditedFileName := ParamStr(1);
 
-  maindsgn.OnLoadFile(maindsgn);
+  if FileExists(maindsgn.EditedFileName) then maindsgn.OnLoadFile(maindsgn);
 
 
   //maindsgn.Show;
