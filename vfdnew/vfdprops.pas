@@ -5,7 +5,7 @@ unit vfdprops;
 interface
 
 uses Classes, SysUtils, gfxbase, gfxwidget, schar16, gfxstyle, vfdwidgetclass,
-  wgLabel, wgEdit, wgButton;
+  wgLabel, wgEdit, wgButton, wgChoiceList;
 
 type
 
@@ -30,6 +30,16 @@ type
   end;
 
   TPropertyInteger = class(TVFDWidgetProperty)
+  public
+    function ParseSourceLine(wg : TWidget; const line : string) : boolean; override;
+    function GetPropertySource(wg : TWidget; const ident : string) : string; override;
+
+    function GetValueText(wg : TWidget) : string; override;
+
+    function CreateEditor(AOwner : TComponent) : TVFDPropertyEditor; override;
+  end;
+
+  TPropertyEnum = class(TVFDWidgetProperty)
   public
     function ParseSourceLine(wg : TWidget; const line : string) : boolean; override;
     function GetPropertySource(wg : TWidget; const ident : string) : string; override;
@@ -73,6 +83,16 @@ type
     procedure StoreStrValue(wg : TWidget);
   end;
 
+  TChoicePropertyEditor = class(TVFDPropertyEditor)
+  public
+    chl : TwgChoiceList;
+
+    procedure CreateLayout; override;
+
+    procedure LoadValue(wg : TWidget); override;
+    procedure StoreValue(wg : TWidget); override;
+  end;
+
   TExternalPropertyEditor = class(TVFDPropertyEditor)
   public
     btnEdit : TwgButton;
@@ -89,6 +109,8 @@ type
   end;
 
 procedure EditStringList(sl : TStringList);
+
+procedure GetEnumPropValueList(wg : TObject; const propname : string; sl : TStringList);
 
 implementation
 
@@ -111,6 +133,23 @@ begin
   frmie.Free;
 end;
 
+procedure GetEnumPropValueList(wg : TObject; const propname : string; sl : TStringList);
+var
+  pi : PPropInfo;
+  P: ^ShortString;
+  T: PTypeData;
+  n : integer;
+begin
+  pi := GetPropInfo(wg, propname);
+  T := GetTypeData(pi^.PropType^);
+  P := @T^.NameList;
+
+  for n := 0 to T^.MaxValue do
+  begin
+    sl.Add(P^);
+    Inc(Integer(P), Length(P^) + 1);
+  end;
+end;
 
 { TPropertyString16 }
 
@@ -409,6 +448,84 @@ end;
 procedure TExternalPropertyEditor.StoreValue(wg: TWidget);
 begin
   // nothing
+end;
+
+{ TPropertyEnum }
+
+function TPropertyEnum.CreateEditor(AOwner: TComponent): TVFDPropertyEditor;
+begin
+  result := TChoicePropertyEditor.Create(AOwner, self);
+end;
+
+function TPropertyEnum.GetValueText(wg: TWidget): string;
+begin
+  result := u8(GetEnumProp(wg,Name));
+end;
+
+function TPropertyEnum.GetPropertySource(wg: TWidget; const ident: string): string;
+begin
+  result := ident + Name+' := '+GetEnumProp(wg,Name)+';'#10;
+end;
+
+function TPropertyEnum.ParseSourceLine(wg: TWidget; const line: string): boolean;
+var
+  s, sval : string;
+begin
+  s := line;
+  result := false;
+  if UpperCase(GetIdentifier(s)) <> UpperCase(Name) then Exit;
+
+  result := CheckSymbol(s, ':=');
+  if result then
+  begin
+    sval := GetIdentifier(s);
+    result := CheckSymbol(s, ';');
+  end;
+
+  if result then
+  begin
+    try
+      SetEnumProp(wg,Name,sval);
+    except
+      Writeln('invalid enum value: "'+sval+'" for '+Name); 
+      result := false;
+    end;
+  end;
+end;
+
+{ TChoicePropertyEditor }
+
+procedure TChoicePropertyEditor.CreateLayout;
+begin
+  self.Anchors := [anTop,anLeft,anRight];
+  chl := TwgChoicelist.Create(self);
+  chl.SetDimensions(0,0,width,Height);
+  chl.Anchors := self.Anchors;
+  chl.OnChange := UpdateProperty;
+end;
+
+procedure TChoicePropertyEditor.LoadValue(wg: TWidget);
+var
+  sv : string;
+  i, fi : integer;
+  sl : TStringList;
+begin
+  sv := GetEnumProp(wg, prop.Name);
+  sl := TStringList.Create;
+  GetEnumPropValueList(wg,prop.Name,sl);
+  fi := 1;
+  for i:=0 to sl.Count-1 do
+  begin
+    chl.Items.Add(u8(sl.Strings[i]));
+    if UpperCase(sv) = UpperCase(sl.Strings[i]) then fi := i+1;
+  end;
+  chl.FocusItem := fi;
+  sl.Free;
+end;
+
+procedure TChoicePropertyEditor.StoreValue(wg: TWidget);
+begin
+  SetEnumProp(wg,prop.Name,chl.Text8);
 end;
 
 end.

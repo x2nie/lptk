@@ -4,7 +4,7 @@ unit vfdwidgets;
 
 interface
 
-uses SysUtils, Classes, gfxbase, vfdwidgetclass, vfdprops;
+uses SysUtils, Classes, gfxbase, vfdwidgetclass, vfdprops, typinfo;
 
 procedure RegisterWidgets;
 
@@ -221,6 +221,8 @@ begin
   // Panel
   wc := TVFDWidgetClass.Create(TwgBevel);
   wc.NameBase := 'panel';
+  wc.AddProperty('shape',TPropertyEnum,'');
+  wc.AddProperty('style',TPropertyEnum,'');
   wc.WidgetIconName := 'vfd.panel';
   wc.Container := true;
   RegisterVFDWidget(wc);
