@@ -3,9 +3,12 @@
 
 History:
 }
-//$Log$
-//Revision 1.10  2003/12/10 19:06:54  aegluke
-//*** empty log message ***
+// $Log$
+// Revision 1.11  2003/12/11 11:57:50  aegluke
+// Scrollbar-Changes
+//
+// Revision 1.10  2003/12/10 19:06:54  aegluke
+// *** empty log message ***
 //
 
 unit wggrid;
@@ -150,6 +153,7 @@ begin
   if (col = 2) and (cwidth <> FTemp) then
   begin
     FTemp := cwidth;
+    UpdateScrollBar;
     Repaint;
   end;
 end;
@@ -234,8 +238,6 @@ begin
     FHScrollBar.SliderSize := 0.2;
     FHScrollBar.Max := ColumnCount;
     FHScrollBar.Position := FFocusCol;
-    if FHScrollBar.WinHandle > 0 then
-      FHScrollBar.RepaintSlider;
   end;
 
   FVScrollBar.Visible := (RowCount > VisibleLines);
@@ -250,13 +252,24 @@ begin
     if FVScrollBar.WinHandle > 0 then
       FVScrollBar.RePaintSlider;
   end;
-
+  if FHScrollBar.Visible then
+  begin
+       if FVScrollBar.Visible then
+          FHScrollBar.SetDimensions(1,height - 18,width - FVScrollbar.width - 1, 18)
+       else
+           FHScrollBar.SetDimensions(1,height - 18,width - 1, 18);
+       if FHScrollBar.WinHandle > 0 then
+          FHScrollBar.RepaintSlider;
+  end;
 end;
 
 procedure TwgGrid.DoShow;
 begin
   FVScrollBar.SetDimensions(width-18,0,18,height);
-  FHScrollBar.SetDimensions(1,height - 18,width - FVScrollbar.width - 1, 18);
+  if FVScrollBar.Visible then
+     FHScrollBar.SetDimensions(1,height - 18,width - FVScrollbar.width - 1, 18)
+  else
+      FHScrollBar.SetDimensions(1,height - 18,width - 1, 18);
   inherited DoShow;
   UpdateScrollBar;
   CheckFocusChange;
@@ -266,6 +279,7 @@ procedure TwgGrid.HScrollBarMove(Sender : TObject; position : integer);
 begin
   if FFirstCol <> position then
   begin
+    if Position < 1 then Position := 1;
     FFirstCol := position;
     RePaint;
   end;

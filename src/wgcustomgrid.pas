@@ -2,9 +2,12 @@
   File maintainer: Erik@Grohnwaldt.de
 
   History: }
-//$Log$
-//Revision 1.3  2003/12/10 19:11:08  aegluke
-//Design and Visibility-Changes
+// $Log$
+// Revision 1.4  2003/12/11 11:58:17  aegluke
+// Scrollbar-Changes
+//
+// Revision 1.3  2003/12/10 19:11:08  aegluke
+// Design and Visibility-Changes
 //
 
 unit wgcustomgrid;
@@ -87,6 +90,7 @@ begin
     begin
       width := cwidth;
       if width < 1 then width := 1;
+      UpdateScrollBar;
       self.repaint;
     end;
   end;
