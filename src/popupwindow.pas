@@ -236,7 +236,7 @@ begin
   PopupListRemove(self);
 {$ifdef Win32}
   ReleaseCapture;
-  if GfxFirstPopup <> nil then SetCapture(GfxFirstPopup.wg.WinHandle);
+  if GfxFirstPopup <> nil then SetCapture(GfxFirstPopup^.wg.WinHandle);
 {$else}
   if GfxFirstPopup = nil then XUngrabPointer(display, 0);
 {$endif}

@@ -45,8 +45,6 @@ type
     FMargin : TGfxCoord;
     FTextMargin : TGfxCoord;
   protected
-    FFocused : boolean;
-
     FMenuFont   : TGfxFont;
     FMenuAccelFont  : TGfxFont;
     FMenuDisabledFont : TGfxFont;
@@ -86,8 +84,7 @@ type
     procedure DoSelect;
     procedure Close; virtual;
 
-    //property Focused : boolean read FFocused;
-    function Focused : boolean;
+    function MenuFocused : boolean;
 
     procedure CloseSubmenus;
 
@@ -259,7 +256,6 @@ begin
   BeforeShow := nil;
   FFocusItem := 1;
   OpenerPopup := nil;
-  FFocused := false;
 end;
 
 destructor TPopupMenu.Destroy;
@@ -377,7 +373,7 @@ var
 begin
   inherited HandleMouseMove(x, y, btnstate, shiftstate);
 
-  if not Focused then Exit;
+  if not MenuFocused then Exit;
 
   newf := CalcMouseRow(y);
 
@@ -411,7 +407,7 @@ begin
   if button <> 1 then Exit;
 
   mi := VisibleItem(FFocusItem);
-  if (mi <> nil) and (not Focused) and (mi.SubMenu <> nil) and mi.SubMenu.Windowed
+  if (mi <> nil) and (not MenuFocused) and (mi.SubMenu <> nil) and mi.SubMenu.Windowed
     then mi.SubMenu.Close
     else DoSelect;
     
@@ -664,7 +660,7 @@ begin
     begin
       if focus and (not mi.Separator) then
       begin
-        if Focused then
+        if MenuFocused then
         begin
           canvas.SetColor(clSelection);
           canvas.SetTextColor(clSelectionText);
@@ -720,7 +716,7 @@ begin
   end;
 end;
 
-function TPopupMenu.Focused: boolean;
+function TPopupMenu.MenuFocused: boolean;
 begin
   result := (FocusedPopupMenu = self);
 end;
