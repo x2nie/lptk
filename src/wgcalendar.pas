@@ -50,6 +50,7 @@ type
 	procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
 	procedure HandleKeyPress(var KeyCode : word; var Shiftstate : word; var consumed : boolean); override;
 	procedure HandleReSize(dwidth, dheight : integer); override;
+        procedure CalcButtonLabel;
       public
 	onDrawDay : TCalendarHilight;  // to select holy days.... returns true: day hilited
 	onChange : TCalendarChange;
@@ -81,7 +82,7 @@ end;
 procedure TwgCalendar.HandleResize(dwidth, dheight : integer);
 begin
     inherited HandleResize(dwidth, dheight);
-    DoShow;
+    calcButtonLabel;
     RePaint;
 end;
 
@@ -113,6 +114,8 @@ begin
 	else Consumed := false;
     end;
     if OldDate <> Date then DoChange(date);
+  if not Consumed then inherited HandleKeyPress(KeyCode, ShiftState, consumed);
+  RePaint;
 end;
 
 procedure TwgCalendar.HandleMouseUp(x,y : integer; button : word; shiftstate : word);
@@ -157,9 +160,10 @@ begin
 		start := start + 1;
 	    end;
     end;
+    RePaint;
 end;
 
-procedure TwgCalendar.DoShow;
+procedure TwgCalendar.calcButtonLabel;
 var
     i : integer;
     i1 : integer;
@@ -171,7 +175,12 @@ begin
     i := DateLabel.Font.TextWidth16(DateLabel.Text);
     i1 := DateLabel.Font.Ascent + Datelabel.Font.Descent;
     DateLabel.SetDimensions(Width div 2 - i div 2,ButtonL.Height div 2 - i1 div 2, i,i1);
+end;
+
+procedure TwgCalendar.DoShow;
+begin
     inherited DoShow;
+    calcButtonLabel;
 end;
 
 procedure TwgCalendar.ButtonLClick(Sender : TObject);
@@ -236,8 +245,9 @@ var
     hilite : boolean;
     rh : integer;
 begin
+    writeln('RePaint');
     if not Windowed then exit;
-    inherited RePaint;
+//    inherited RePaint;
     Canvas.ClearClipRect;
     Canvas.Clear(FBackgroundColor);
     Canvas.SetColor(clInactiveWgFrame);
@@ -253,7 +263,7 @@ begin
     r.SetRect(FMargin,ButtonL.Height + FMargin, Width - 2*FMargin, Height - ButtonL.Height - 2 * FMargin);
     Canvas.SetClipRect(r);
     if DayOfWeek(encodeDate(Year, Month, 1)) = 1 then
-	start := encodeDate(Year, Month, 1) - 6
+	      start := encodeDate(Year, Month, 1) - 6
     else start := EncodeDate(Year, Month, 1) - DayOfWeek(encodeDate(Year, Month, 1)) + 2;
 
     decodedate(start,y,m,d);
@@ -266,41 +276,41 @@ begin
     for i := 1 to 7 do
 	// kopfzeilen und spalten zeichnen
     begin
-	Canvas.DrawString16(cw * i - cw div 2 - FFont.TextWidth16(Str8To16(DayName[i])) div 2,ButtonL.Height + ButtonL.Top,Str8To16(DayName[i]));
+	    Canvas.DrawString16(cw * i - cw div 2 - FFont.TextWidth16(Str8To16(DayName[i])) div 2,ButtonL.Height + ButtonL.Top,Str8To16(DayName[i]));
     end;
     for i := 1 to 6 do	// 6 zeilen a 7 spalten
     begin		// beginnt mit spalte
-	for i1 := 1 to 7 do
-	begin
-	    decodedate(start,y,m,d);
+	    for i1 := 1 to 7 do
+	    begin
+	      decodedate(start,y,m,d);
 
-	    if Assigned(onDrawDay) then OnDrawDay(self, start, hilite)
-	    else Hilite := false;  // check if day should be hilited
-	    if d = 1 then black := not Black;
-	    if black then Canvas.SetTextColor(clText1) else Canvas.SetTextColor(clInactiveWgFrame);
-	    if hilite then
-	    begin
-		Canvas.SetColor(clInactiveSel);
-		Canvas.FillRectangle(cw * (i1 - 1),  ButtonL.Height + ButtonL.Top + (rh) * (i) , cw - 1, rh);
-		Canvas.SetTextColor(clInactiveSelText);
+	      if Assigned(onDrawDay) then OnDrawDay(self, start, hilite)
+	      else Hilite := false;  // check if day should be hilited
+        if d = 1 then black := not Black;
+	      if black then Canvas.SetTextColor(clText1) else Canvas.SetTextColor(clInactiveWgFrame);
+	      if hilite then
+	      begin
+		      Canvas.SetColor(clInactiveSel);
+		      Canvas.FillRectangle(cw * (i1 - 1),  ButtonL.Height + ButtonL.Top + (rh) * (i) , cw - 1, rh);
+		      Canvas.SetTextColor(clInactiveSelText);
+	      end;
+	      if date = start then
+	      begin
+		      if Focused then
+		      begin
+		        Canvas.SetColor(clSelection);
+		        Canvas.SetTextColor(clSelectionText);
+		      end
+		      else
+		      begin
+		        Canvas.SetColor(clInactiveSel);
+		        Canvas.SetTextColor(clInactiveSelText);
+		      end;
+		      Canvas.FillRectangle(cw * (i1 - 1),  ButtonL.Height + ButtonL.Top + (rh) * (i) , cw - 1, rh);
+	      end;
+	      Canvas.DrawString16(cw * i1 - cw div 2 - FFont.TextWidth16(Str8To16(IntToStr(d))) div 2, ButtonL.Height + ButtonL.Top + rh * (i) + rh div 2 - FFont.Height div 2, Str8To16(IntToStr(d)));
+	      start := start + 1;
 	    end;
-	    if date = start then
-	    begin
-		if Focused then
-		begin
-		    Canvas.SetColor(clSelection);
-		    Canvas.SetTextColor(clSelectionText);
-		end
-		else
-		begin
-		    Canvas.SetColor(clInactiveSel);
-		    Canvas.SetTextColor(clInactiveSelText);
-		end;
-		Canvas.FillRectangle(cw * (i1 - 1),  ButtonL.Height + ButtonL.Top + (rh) * (i) , cw - 1, rh);
-	    end;
-	    Canvas.DrawString16(cw * i1 - cw div 2 - FFont.TextWidth16(Str8To16(IntToStr(d))) div 2, ButtonL.Height + ButtonL.Top + rh * (i) + rh div 2 - FFont.Height div 2, Str8To16(IntToStr(d)));
-	    start := start + 1;
-	end;
     end;
 end;
 
@@ -381,7 +391,7 @@ begin
     DateLabel.Text := Str8To16(MonthName[m]+' '+IntToStr(y));
     DateLabel.BackgroundColor := clInactiveWgFrame;
     FFont := guistyle.LabelFont1;
-    FFocusable := true;
+    Focusable := true;
 end;
 
 function TwgCalendar.GetDay : byte;

@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.13  2003/12/08 07:41:21  aegluke
+// Windows-Fixes - GUI not responding
+//
 // Revision 1.12  2003/11/04 09:19:47  aegluke
 // DrawString16 changes
 //
@@ -149,6 +152,7 @@ type
 	    procedure UpdateScrollbars;
 	    function NodeIsVisible(node : TwgTreeNode) : boolean;
 	    function GetAbsoluteNodeTop(aNode : TwgTreeNode) : integer; // returns the node-top in pixels
+      procedure ReSetScrollbar;
 	protected
 	    function StepToRoot(aNode : TwgTreeNode) : integer; 
 	    function NextVisualNode(aNode : TwgTreeNode) : TwgTreeNode;
@@ -232,11 +236,10 @@ begin
     writeln('GetAbsoluteNodeTop');
     {$ENDIF}
     i := 0;
-    result := 0;
     while (aNode <> nil) and (aNode <> RootNode) do
     begin
-	aNode := PrevVisualNode(aNode);
-	inc(i);
+	    aNode := PrevVisualNode(aNode);
+	    inc(i);
     end;
     result := (i - 1) * FFont.Height;
 end;
@@ -271,22 +274,23 @@ begin
     if button <> 1 then exit;	// only left click allowed
     if ShowColumns then
     begin
-	x := x + FXOffset;
-	xpos := 0;
-	i := 0;
-	while xpos + 2 < x do
-	begin
-	    inc(i);
-	    xpos := xpos + GetColumnWidth(i);
-	end;
-	if (x > xpos - 2) and (x < xpos + 2) then
-	begin
-	    FMoving := true;
-	    FMovingPos := xpos;
-	    FMovingCol := i;
-	    SetColumnWidth(i,GetColumnWidth(i));
-	end;
+	    x := x + FXOffset;
+	    xpos := 0;
+	    i := 0;
+	    while xpos + 2 < x do
+	    begin
+	      inc(i);
+	      xpos := xpos + GetColumnWidth(i);
+	    end;
+	    if (x > xpos - 2) and (x < xpos + 2) then
+	    begin
+	      FMoving := true;
+	      FMovingPos := xpos;
+	      FMovingCol := i;
+	      SetColumnWidth(i,GetColumnWidth(i));
+	    end;
     end;
+    RePaint;
 end;
 
 procedure TwgTree.HandleDoubleClick(x,y : integer; button : word; shiftstate : word);
@@ -295,11 +299,11 @@ begin
     inherited HandleDoubleClick(x,y,button,shiftstate);
     if Selection.Collapsed then 
     begin
-	Selection.Expand;
-	DoExpand(Selection);
+	    Selection.Expand;
+	    DoExpand(Selection);
     end
     else
-	Selection.Collapse;
+	    Selection.Collapse;
     RePaint;
 end;
 
@@ -319,67 +323,67 @@ begin
     OldSel := Selection;
     if FMoving then	// column resize
     begin
-	FMoving := false;
-	x := x + FXOffset;
-	SetColumnWidth(FMovingCol,GetColumnWidth(FMovingCol) + x - FMovingPos);
-	FMoving := false;
-	{$IFDEF DEBUG}
-	writeln('New Column Size: ',GetColumnWidth(FMovingCol) + x - FMovingPos,' for Column: ',FMovingCol);
-	writeln(GetColumnWidth(FMovingCol));
-	{$ENDIF}
+	    FMoving := false;
+	    x := x + FXOffset;
+	    SetColumnWidth(FMovingCol,GetColumnWidth(FMovingCol) + x - FMovingPos);
+	    FMoving := false;
+	    {$IFDEF DEBUG}
+	    writeln('New Column Size: ',GetColumnWidth(FMovingCol) + x - FMovingPos,' for Column: ',FMovingCol);
+	    writeln(GetColumnWidth(FMovingCol));
+      {$ENDIF}
     end
     else
     begin
-	if ShowColumns then col := FColumnHeight else col := 0;
-	{$IFDEF DEBUG}
-	writeln('X=',x,'; Y=',y);
-	{$ENDIF}
-	y := y - col - 1 + FYOffset;
-	i := 0;
-	x := x + FXOffset;
-	cancel := false;
-	last := RootNode;
-	while not (((i-1) * FFont.Height-2 <= y) and ((i) * FFont.Height+2 >= y)) do
-	begin
-	    node := NextVisualNode(last);
-	    if node = nil then exit;	    
-	    if node = last then
+	    if ShowColumns then col := FColumnHeight else col := 0;
+	    {$IFDEF DEBUG}
+	    writeln('X=',x,'; Y=',y);
+	    {$ENDIF}
+	    y := y - col - 1 + FYOffset;
+	    i := 0;
+	    x := x + FXOffset;
+	    cancel := false;
+	    last := RootNode;
+	    while not (((i-1) * FFont.Height-2 <= y) and ((i) * FFont.Height+2 >= y)) do
 	    begin
-		Cancel := true;
-		break;
+	      node := NextVisualNode(last);
+	      if node = nil then exit;
+	      if node = last then
+	      begin
+		      Cancel := true;
+		      break;
+	      end;
+	      inc(i);
+	      last := node;
 	    end;
-	    inc(i);
-	    last := node;
-	end;
-	if not cancel then
-	begin
+	    if not cancel then
+	    begin
 	    // +/- or node-selection?
     	    w := 0;
     	    i1 := StepToRoot(node);
     	    for i := 1 to i1 do w := w + GetColumnWidth(i);	// left position of the node
-	    if (x >= w - GetColumnWidth(i1) div 2 - 3) and (x <=  w - GetColumnWidth(i1) div 2 + 6) then	// collapse or expand? 
-	    begin 										// yes
-		if node.count > 0 then
-		begin
-		    if node.collapsed then 
-		    begin
-			node.expand;
-			DoExpand(node);
-		    end
-		    else 
-			node.collapse;
-		    RePaint;
-		end;
-	    end
-	    else	    
-	    begin
-		if x > w - GetColumnWidth(i1) div 2 + 6 then
-		    Selection := node;
+	        if (x >= w - GetColumnWidth(i1) div 2 - 3) and (x <=  w - GetColumnWidth(i1) div 2 + 6) then	// collapse or expand?
+	        begin 										// yes
+		        if node.count > 0 then
+		        begin
+		          if node.collapsed then
+		          begin
+			          node.expand;
+			          DoExpand(node);
+		          end
+		          else
+			          node.collapse;
+		          RePaint;
+          end;
+	      end
+	      else
+	      begin
+		      if x > w - GetColumnWidth(i1) div 2 + 6 then
+		        Selection := node;
+	      end;
 	    end;
-	end;
     end;
     if OldSel <> Selection then
-	DoChange;
+	  DoChange;
 end;
 
 procedure TwgTree.HandleKeyPress(var KeyCode : word; var shiftstate : word; var consumed : boolean);
@@ -430,7 +434,7 @@ begin
 	else Consumed := false;
     end;
     if Selection <> OldSelection then DoChange;
-    inherited HandleKeyPress(keycode, shiftstate, consumed);
+    if Consumed then inherited HandleKeyPress(keycode, shiftstate, consumed);
 end;
 
 function TwgTree.MaxNodeWidth : integer;
@@ -441,42 +445,43 @@ var
     i : integer;
     r : integer;
 begin
-    h := RootNode.FirstSubNode;    
+    result := 0;
+    h := RootNode.FirstSubNode;
     r := 0;
     while h <> nil do
     begin
-	w := 0;
-	i1 := StepToRoot(h);
-	for i := 1 to i1 do
-	    w := w + GetColumnWidth(i);
-	if r < w + FFont.TextWidth16(h.text) then
-	    r := w + FFont.TextWidth16(h.text);
-	if (not h.collapsed) and (h.count > 0) then
-	    h := h.FirstSubNode
-	else
-	begin
-	    if h.next <> nil then h := h.next
+	    w := 0;
+	    i1 := StepToRoot(h);
+	    for i := 1 to i1 do
+	      w := w + GetColumnWidth(i);
+	    if r < w + FFont.TextWidth16(h.text) then
+	      r := w + FFont.TextWidth16(h.text);
+	    if (not h.collapsed) and (h.count > 0) then
+	      h := h.FirstSubNode
+	  else
+	  begin
+      if h.next <> nil then h := h.next
 	    else
 	    begin
-		while h.next = nil do
-		begin
-		    h := h.parent;
-		    if h = nil then
+		    while h.next = nil do
 		    begin
-			result := r;
-			exit;
+		      h := h.parent;
+		      if h = nil then
+		      begin
+			      result := r;
+			      exit;
+		      end;
 		    end;
-		end;
-		h := h.next;
-	    end;
-	end;
-    end;
+		    h := h.next;
+      end;
+	  end;
+  end;
 end;
 
 procedure TwgTree.HandleResize(dWidth, dHeight : integer);
 begin
     inherited HandleResize(dwidth,dheight);
-    DoShow;
+    ReSetScrollbar;
     RePaint;
 end;
 
@@ -502,25 +507,30 @@ begin
     FHScrollbar.Visible := MaxNodeWidth > Width - 2;
     if not FVScrollbar.Visible then 
     begin
-	FVScrollbar.Position := 0;
-	FYOffset := 0;	
-    end;    
+	    FVScrollbar.Position := 0;
+	    FYOffset := 0;
+    end;
     if not FHScrollbar.Visible then
     begin
-	FHScrollbar.Position := 0;
-	FXOffset := 0;
+	    FHScrollbar.Position := 0;
+	    FXOffset := 0;
     end;
+end;
+
+procedure TwgTree.ReSetScrollbar;
+begin
+    UpdateScrollBars;
+    if FHScrollbar.Visible then
+	    FVScrollbar.SetDimensions(Width - 19, 1, 18, Height - 2 - 18)
+    else
+	    FVScrollbar.SetDimensions(Width - 19,1,18,Height - 2);
+    FHScrollbar.SetDimensions(1, Height - 19, Width - 2, 18);
 end;
 
 procedure TwgTree.DoShow;
 begin
     inherited DoShow;
-    UpdateScrollBars;
-    if FHScrollbar.Visible then
-	FVScrollbar.SetDimensions(Width - 19, 1, 18, Height - 2 - 18)
-    else
-	FVScrollbar.SetDimensions(Width - 19,1,18,Height - 2);
-    FHScrollbar.SetDimensions(1, Height - 19, Width - 2, 18);
+    ReSetScrollbar;
 end;
 
 function TwgTree.SpaceToVisibleNext(aNode : TwgTreeNode) : integer;
@@ -560,9 +570,9 @@ var
     col : integer;
 label label_next;
 begin
-    if FWinHandle = 0 then exit;
+    if FWinHandle <= 0 then exit;
     UpdateScrollbars;
-    inherited RePaint;
+//    inherited RePaint;
     Canvas.ClearClipRect;
     Canvas.Clear(BackgroundColor);
     if FFocused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWGFrame);    
@@ -653,7 +663,7 @@ begin
 //	Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) + 2, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 - 3,YPos - FYOffset + col - FFont.Height + FFont.Ascent);
         if h.Collapsed then	// draw a "+"
 	begin
-	    Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 - 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 + 3, YPos - FYOffset + col - FFont.Height + FFont.Ascent);	
+	    Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 - 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 + 3, YPos - FYOffset + col - FFont.Height + FFont.Ascent);
 	    Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent - 2, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent + 2);
 	end
 	else	
@@ -676,7 +686,7 @@ begin
 	    if h.count > 0 then
 		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent - 4, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - SpaceToVisibleNext(h.prev) * FFont.Height - FFont.Height + FFont.Ascent + 4)
 	    else
-		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - SpaceToVisibleNext(h.prev) * FFont.Height - FFont.Height + FFont.Ascent + 4)	    
+		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - SpaceToVisibleNext(h.prev) * FFont.Height - FFont.Height + FFont.Ascent + 4)
 	else
 	    if h.count > 0 then
 		Canvas.DrawLine(w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - FFont.Height + FFont.Ascent - 4, w - FXOffset - GetColumnWidth(i1) div 2 + 1, YPos - FYOffset + col - SpaceToVisibleNext(h.prev) * FFont.Height - FFont.Height + FFont.Ascent)
