@@ -3,6 +3,8 @@ unit wgtree;
 { 
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
+    19.06.2003	0.5	nodecolor can set for every node - if not set color setting of the parent is used
+			- feature-request from gunter burchard
     15.06.2003	0.4	functions GetFirst/LastSubNode changed to properties First/LastSubNode
 			fixed FindSubNode-Bug
 			columns for resizing space between each sub-level
@@ -17,7 +19,7 @@ unit wgtree;
     {$H+}
 {$ENDIF}
 
-// {$DEFINE DEBUG}
+{$DEFINE DEBUG}
 
 interface
 
@@ -41,6 +43,13 @@ type
 	    FPrev : TwgTreeNode;
 	    FCollapsed : boolean;
 	    
+	    FSelColor : TgfxColor;
+	    FSelColorB : boolean;
+	    FTextColor : TgfxColor;
+	    FTextColorB : boolean;
+	    FSelTextColor : TgfxColor;
+	    FSelTextColorB : boolean;
+	    
 	    procedure SetText(aValue : string16);
 	    procedure SetParent(aValue : TwgTreeNode);
 	    procedure SetText8(aValue : string);
@@ -48,6 +57,9 @@ type
 	    procedure DoRePaint;
 	    
 	    function GetText8 : string;
+	    procedure SetSelTextColor(aValue : TgfxColor);
+	    procedure SetSelColor(aValue : TgfxColor);
+	    procedure SetTextColor(aValue : TgfxColor);
 	public
 	    constructor Create;
 	    destructor Destroy; override;
@@ -66,7 +78,11 @@ type
 	    function Count : integer;
 	    function CountRecurse : integer;
 	    procedure Remove(aNode : TwgTreeNode);
-	
+	    
+	    function ParentTextColor : TgfxColor;
+	    function ParentSelTextColor : TgfxColor;
+	    function ParentSelColor : TgfxColor;
+	    
 	    property Collapsed : boolean read FCollapsed write SetCollapsed;	    
 	    property Next : TwgTreeNode read FNext write FNext;
 	    property Prev : TwgTreeNode read FPrev write FPrev;
@@ -75,6 +91,15 @@ type
 	    property Parent : TwgTreeNode read FParent write SetParent;
 	    property FirstSubNode : TwgTreeNode read FFirstSubNode;
 	    property LastSubNode : TwgTreeNode read FLastSubNode;
+	    
+	    // color-settings
+	    property TextColor : TgfxColor read FTextColor write SetTextColor;
+	    property SelColor : TgfxColor read FSelColor write SetSelColor;
+	    property SelTextColor : TgfxColor read FSelTextColor write SetSelTextColor;
+	    
+	    property TextColorSet : boolean read FTextColorB write FTextColorB;
+	    property SelColorSet : boolean read FSelColorB write FSelColorB;
+	    property SelTextColorSet : boolean read FSelTextColorB write FSelTextColorB;
     end;
 
     TwgTree = class(TWidget)
@@ -471,10 +496,11 @@ begin
 
     // draw the nodes with lines
     h := RootNode.FirstSubNode;
-    Canvas.SetTextColor(clText1);
+    Canvas.SetTextColor(RootNode.ParentTextColor);
     YPos := 0;
     while h <> nil do
     begin
+      Canvas.SetTextColor(h.ParentTextColor);
       // lines with + or -
       i1 := StepToRoot(h);
       w := 0;
@@ -482,11 +508,11 @@ begin
 	YPos := YPos + FFont.Height;
       if h = Selection then	// draw the selection rectangle and text
       begin
-        Canvas.SetColor(clSelection);
+        Canvas.SetColor(h.ParentSelColor);
         Canvas.FillRectangle(w-FXOffset+1-1,YPos-FYOffset+col-FFont.Height + FFont.Ascent div 2,FFont.TextWidth16(h.text)+2,FFont.Height);
-	Canvas.SetTextColor(clSelectionText);
+	Canvas.SetTextColor(h.ParentSelTextColor);
         Canvas.DrawString16(w-FXOffset+1,YPos-FYOffset+col,h.text);
-	Canvas.SetTextColor(clText1);	
+	Canvas.SetTextColor(h.ParentTextColor);	
       end
       else
         Canvas.DrawString16(w-FXOffset+1,YPos-FYOffset+col,h.text);
@@ -822,6 +848,9 @@ begin
     writeln('GetRootNode');
     {$ENDIF}
     if FRootNode = nil then FRootNode := TwgTreeNode.Create;
+    FRootNode.TextColor := clText1;
+    FRootnode.SelTextColor := clSelectionText;
+    FRootnode.SelColor := clSelection;
     result := FRootNode;
 end;
 
@@ -978,6 +1007,9 @@ begin
     FParent := nil;
     FNext := nil;
     FPrev := nil;
+    FSelColorB := false;
+    FSelTextColorB := false;
+    FTextColorB := false;
 end;
 
 procedure TwgTreeNode.DoRePaint;
@@ -1078,6 +1110,57 @@ begin
     aNode.prev := nil;
     aNode.next := nil;
     aNode.parent := nil;
+end;
+
+procedure TwgTreeNode.SetSelTextColor(aValue : TgfxColor);
+begin
+    FSelTextColorB := true;
+    FSelTextColor := aValue;
+    DoRePaint;
+end;
+
+procedure TwgTreeNode.SetSelColor(aValue : TgfxColor);
+begin
+    FSelColorB := true;
+    FSelColor := aValue;
+    DoRePaint;
+end;
+
+procedure TwgTreeNode.SetTextColor(aValue : TgfxColor);
+begin
+    FTextColorB := true;
+    FTextColor := aValue;
+    DoRePaint;
+end;
+
+function TwgTreenode.ParentTextColor : TgfxColor;
+begin
+    if TextColorSet then result := TextColor
+    else
+    begin
+	if parent <> nil then result := parent.ParentTextColor
+	else result := clText1;
+    end;
+end;
+
+function TwgTreeNode.ParentSelTextColor : TgfxColor;
+begin
+    if SelTextColorSet then result := SelTextColor
+    else
+    begin
+	if parent <> nil then result := parent.ParentSelTextColor
+	else result := clSelectionText;
+    end;
+end;
+
+function TwgTreeNode.ParentSelColor : TgfxColor;
+begin
+    if SelColorSet then result := SelColor
+    else
+    begin
+	if parent <> nil then result := parent.ParentSelColor
+	else result := clSelection;
+    end;
 end;
 
 end.
