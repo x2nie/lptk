@@ -1071,6 +1071,8 @@ begin
     WM_LBUTTONDOWN:  SendMouseMessage(wg, MSG_MOUSEDOWN, 1, wParam, lParam);
     WM_LBUTTONUP:    SendMouseMessage(wg, MSG_MOUSEUP, 1, wParam, lParam);
 
+    WM_LBUTTONDBLCLK: SendMouseMessage(wg, MSG_DOUBLECLICK, 1, wParam, lParam);
+
     WM_RBUTTONDOWN:  SendMouseMessage(wg, MSG_MOUSEDOWN, 2, wParam, lParam);
     WM_RBUTTONUP:    SendMouseMessage(wg, MSG_MOUSEUP, 2, wParam, lParam);
 
@@ -1190,7 +1192,7 @@ begin
 
   with WindowClass do
   begin
-    style := CS_HREDRAW or CS_VREDRAW or CS_OWNDC;
+    style := CS_HREDRAW or CS_VREDRAW or CS_OWNDC or CS_DBLCLKS;
     lpfnWndProc := WndProc(@GfxWindowProc);
     hInstance := MainInstance;
     hIcon := LoadIcon(0, IDI_APPLICATION);
@@ -1202,7 +1204,7 @@ begin
 
   with WidgetClass do
   begin
-    style := CS_OWNDC;
+    style := CS_OWNDC or CS_DBLCLKS;
     lpfnWndProc := WndProc(@GfxWindowProc);
     hInstance := MainInstance;
     hIcon := 0;
@@ -1828,7 +1830,7 @@ begin
     if prop = 'BOLD' then
     begin
       lf.lfWeight := FW_BOLD;
-      Writeln('bold!');
+      //Writeln('bold!');
     end
     else if prop = 'ITALIC' then
     begin
@@ -2617,8 +2619,6 @@ var
 {$ifdef Win32}
   tmpdc, srcdc : HDC;
   tmpbmp : HBITMAP;
-  xc,yc : integer;
-  c, smp : longword;
 {$else}
   p : ^Byte;
   n : integer;
@@ -2682,7 +2682,7 @@ var
 {$ifdef Win32}
   tmpdc, srcdc : HDC;
   xc,yc : integer;
-  c, smp : longword;
+  c : longword;
 {$else}
   p : ^longword;
   pmsk : ^byte;
@@ -2709,7 +2709,7 @@ begin
   SelectObject(srcdc, FBMPHandle);
 
   c := GetPixel(srcdc, x,y);
-  Writeln('Sample color: ',IntToHex(c,8));
+  //Writeln('Sample color: ',IntToHex(c,8));
 
   for yc := 0 to FHeight-1 do
   begin
@@ -2782,16 +2782,12 @@ end;
 {$ifdef Win32}
 
 procedure TGfxImage.SetWindowsBitmap(pdata, pinfoheader: pointer; startscan, scanlines : longword);
-var
-  r : integer;
 begin
-  r := SetDIBits(display, FBMPHandle, startscan, scanlines, pdata, TBitmapInfo(pinfoheader^), DIB_RGB_COLORS);
+  SetDIBits(display, FBMPHandle, startscan, scanlines, pdata, TBitmapInfo(pinfoheader^), DIB_RGB_COLORS);
   if FColorDepth = 1 then
   begin
-    r := SetDIBits(display, FMaskHandle, startscan, scanlines, pdata, TBitmapInfo(pinfoheader^), DIB_RGB_COLORS);
-    writeln('Mask SetDIBits: ',r);
+    SetDIBits(display, FMaskHandle, startscan, scanlines, pdata, TBitmapInfo(pinfoheader^), DIB_RGB_COLORS);
   end;
-//  writeln('SetDIBits: ',r);
 
 //  FBMPHandle := CreateDIBitmap(display, TBitmapInfoHeader(pinfoheader^), CBM_INIT, pdata, TBitmapInfo(pinfoheader^), DIB_RGB_COLORS);
 //  Writeln('bmp handle: ',FBMPHandle);
