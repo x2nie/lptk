@@ -476,7 +476,7 @@ type
     procedure DrawImage(x,y : TGfxCoord; img : TGfxImage);
     procedure DrawImagePart(x,y : TGfxCoord; img : TGfxImage; xi,yi,w,h : integer);
   public
-  
+
     property Font : TGfxFont read FCurFont write SetFont;
     property TextColor : TGfxColor read FColorText;
     property Color : TGfxColor read FColor;
@@ -511,7 +511,7 @@ var
 
   DefaultBackground : TGfxColor;
   DefaultForeground : TGfxColor;
-  
+
   GfxDefaultScreen : integer;
   GfxDefaultVisual : PVisual;
   GfxDefaultColorMap : TColorMap;
@@ -538,6 +538,7 @@ procedure GfxCloseDisplay;
 function GfxColorToRGB(col : TGfxColor) : TGfxColor;
 
 function GfxGetFont(desc : string) : TGfxFont;
+function GfxGetFontFaceList : TStringList;
 
 procedure GfxProcessMessages;
 
@@ -1863,6 +1864,23 @@ begin
 
   FillChar(lf,sizeof(lf),0);
 
+  with lf do
+  begin
+    lfWidth := 0; { have font mapper choose }
+    lfEscapement := 0; { only straight fonts }
+    lfOrientation := 0; { no rotation }
+    lfWeight := FW_NORMAL;
+    lfItalic := 0;
+    lfUnderline := 0;
+    lfStrikeOut := 0;
+    lfCharSet := DEFAULT_CHARSET; //0; //Byte(Font.Charset);
+    lfQuality := ANTIALIASED_QUALITY;
+    { Everything else as default }
+    lfOutPrecision := OUT_DEFAULT_PRECIS;
+    lfClipPrecision := CLIP_DEFAULT_PRECIS;
+    lfPitchAndFamily := DEFAULT_PITCH;
+  end;
+
   cp := 1;
   c := desc[1];
 
@@ -1904,12 +1922,15 @@ begin
     begin
       lf.lfItalic := 1;
     end
+    else if prop = 'ANTIALIAS' then
+    begin
+      if propval = 'FALSE' then lf.lfQuality := DEFAULT_QUALITY;
+    end
     ;
 
   end;
 
   result := CreateFontIndirectA({$ifdef FPC}@{$endif}lf);
-
 end;
 
 {$endif}
@@ -1933,6 +1954,75 @@ begin
                 end;
 end;
 
+
+{$ifdef Win32}
+
+function MyFontEnumerator(var LogFont: TLogFont; var TextMetric: TTextMetric;
+  FontType: Integer; data: Pointer): Integer; stdcall;
+var
+  sl : TStringList;
+  s : string;
+begin
+  sl := TStringList(data);
+  s := LogFont.lfFaceName;
+  if ((sl.Count = 0) or (sl.Strings[sl.Count-1] <> s)) then sl.Add(s);
+  Result := 1;
+end;
+
+function GfxGetFontFaceList : TStringList;
+var
+  LFont: TLogFont;
+begin
+  result := TStringList.Create;
+  FillChar(LFont, sizeof(LFont), 0);
+  LFont.lfCharset := DEFAULT_CHARSET;
+  EnumFontFamiliesEx(display, LFont, @MyFontEnumerator, LongInt(result), 0);
+  result.Sort;
+end;
+
+{$else}
+
+function GfxGetFontFaceList : TStringList;
+var
+  pfs : PFcFontSet;
+  ppat : PPFcPattern;
+  n : integer;
+  s : string;
+  pc : PChar;
+  fl : TStringList;
+begin
+  pfs := XftListFonts(display, GfxDefaultScreen,
+    [FC_SCALABLE, FcTypeBool, 1, 0,
+    FC_FAMILY,0
+    ]);
+
+  if pfs = nil then Exit;
+
+  result := TStringList.Create;
+
+  GetMem(pc,128);
+
+  n := 0;
+  ppat := pfs^.fonts;
+
+  while n < pfs^.nfont do
+  begin
+    XftNameUnparse(ppat^,pc,127);  //FtNameUnparse does not free the name string!
+    s := pc;
+    result.Add(s);
+    inc(PChar(ppat),sizeof(pointer));
+    inc(n);
+  end;
+
+  FreeMem(pc);
+  FcFontSetDestroy(pfs);
+
+  result.Sort;
+end;
+
+{$endif}
+
+
 { TGfxCanvas }
 
 constructor TGfxCanvas.Create(winhandle : TWinHandle);
@@ -1943,9 +2033,9 @@ begin
   FWin := winhandle;
   FDrawOnBuffer := False;
   Fgc := windows.GetDC(FWin);
-  SetTextAlign(Fgc, TA_BASELINE);
+  SetTextAlign(Fgc, TA_TOP); //TA_BASELINE);
   SetBkMode(Fgc, TRANSPARENT);
-  SetFont(guistyle.DefaultFont);  
+  SetFont(guistyle.DefaultFont);
   {$IFDEF BUFFERING}
   FBufferGC := 0;
   FBufferBitmap := 0;
@@ -1963,7 +2053,7 @@ begin
   FPen := CreatePen(PS_SOLID, 0, 0);
   SetColor(clText1);
   SetTextColor(clText1);
-  
+
   FClipRegion := CreateRectRgn(0,0,1,1);
 end;
 {$else}
@@ -2036,7 +2126,7 @@ begin
     begin
       FBufferBitmap := windows.CreateCompatibleBitmap(Fgc,AWidth, AHeight);
       SelectObject(FBufferGC,FBufferBitmap);
-      SetTextAlign(FBufferGC, TA_BASELINE);
+      SetTextAlign(FBufferGC, TA_TOP);
       SetBkMode(FBufferGC, TRANSPARENT);
 
       FBufferBrush := CreateSolidBrush(0);
@@ -2159,7 +2249,7 @@ end;
 
 procedure TGfxCanvas.SetFont(fnt : TGfxFont);
 begin
-  if (FCurFont = fnt) or (fnt = nil) then Exit;
+  if fnt = nil then Exit;
   FCurFont := fnt;
 {$ifdef Win32}
   Windows.SelectObject(Fgc, FCurFont.Handle);
@@ -2234,9 +2324,9 @@ begin
   if length(txt) < 1 then exit;
 {$ifdef Win32}
   if DrawOnBuffer then
-    windows.TextOutW(FBufferGC, x,y+FCurFont.Ascent, @txt[1], length16(txt))
+    windows.TextOutW(FBufferGC, x,y{+FCurFont.Ascent}, @txt[1], length16(txt))
   else
-    windows.TextOutW(Fgc, x,y+FCurFont.Ascent, @txt[1], length16(txt));
+    windows.TextOutW(Fgc, x,y{+FCurFont.Ascent}, @txt[1], length16(txt));
 {$else}
   if DrawOnBuffer then
      XftDrawString16(FXftDrawBuffer, FColorTextXft, FCurFont.Handle, x,y+FCurFont.Ascent, @txt[1], Length16(txt) )
@@ -2775,6 +2865,7 @@ constructor TGfxFont.Create(afont : TGfxFontData);
 begin
   FFont := afont;
 {$ifdef Win32}
+  SelectObject(display, afont);
   GetTextMetrics(display, FMetrics);
 {$else}{$endif}
 end;
