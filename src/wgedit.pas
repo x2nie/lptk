@@ -249,12 +249,16 @@ begin
   r.width := width - 4;
   r.height := height - 4;
   canvas.SetClipRect(r);
-  
-  Canvas.SetColor(FBackgroundColor);
+
+  if Enabled
+    then Canvas.SetColor(FBackgroundColor)
+    else Canvas.SetColor(clWindowBackground);
+    
   Canvas.FillRectAngle(2,2,width-4,height-4);
 
   dtext := GetDrawText;
 
+  Canvas.SetTextColor(clText1);
   Canvas.SetFont(FFont);
   Canvas.DrawString16(- FDrawOffset + FSideMargin, 3, dtext);
 
