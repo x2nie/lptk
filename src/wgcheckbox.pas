@@ -13,7 +13,7 @@ interface
 
 uses
   Classes, SysUtils, schar16, gfxbase, messagequeue, gfxwidget;
-  
+
 type
   TwgCheckBox = class(TWidget)
   private
@@ -144,7 +144,7 @@ begin
   ty := (Height div 2) - (Font.Height div 2);
   if ty < 0 then ty := 0;
 
-  Canvas.DrawString16(tx,ty + Font.Ascent,FText);
+  Canvas.DrawString16(tx,ty,FText);
 
 end;
 

@@ -27,20 +27,20 @@ type
 	    procedure SetPosition(aValue : longint);
 	    procedure SetMin(aValue : longint);
 	    procedure SetMax(aValue : longint);
-	    procedure SetDisplayPercent(aValue : boolean);	    
+	    procedure SetDisplayPercent(aValue : boolean);
 	    procedure SetStep(aValue : longint);
 	protected
 	    procedure HandleResize(aWidth, aHeight : integer); override;
 	public
 	    constructor Create(aOwner : TComponent); override;
-	    
+
 	    procedure RePaint; override;
-	    
+
 	    procedure StepIt;
 	    procedure StepBy(aStep : longint);
-	    
+
 	    property DisplayPercent : boolean read FDisplayPercent write SetDisplayPercent;
-	    property Max : longint read FMax write SetMax;	    
+	    property Max : longint read FMax write SetMax;
 	    property Min : longint read FMin write SetMin;
 	    property Position : longint read FPosition write SetPosition;
 	    property Step : longint read FStep write SetStep;
@@ -88,7 +88,7 @@ begin
     if FDisplayPercent then
     begin
 	i := width - 2 - p - 1;
-	y := Height div 2 - FFont.Height div 2 + FFont.Ascent;
+	y := Height div 2 - FFont.Height div 2;
 	r.SetRect(p+1,1,width - 2 - p - 1, height - 2);
 	Canvas.SetTextColor(clSelectionText);
 	Canvas.DrawString16(Width div 2 - FFont.TextWidth16(t) div 2, y,t);

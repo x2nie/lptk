@@ -60,12 +60,12 @@ type
     function AddColumn(ATitle : string16; AFieldName8 : string; Awidth : integer; Align : TAlignment) : TDBColumn;
     function AddColumn8(ATitle : string; AFieldName8 : string; Awidth : integer; Align : TAlignment) : TDBColumn;
     procedure FreeColumns;
-    
+
     procedure DeleteColumn(index : integer);
     procedure MoveColumn(oldindex, newindex : integer);
 
     property Columns[index : integer] : TDBColumn read GetColumns;
-    
+
     function FocusField(fname : string) : TSqlField;
 
   public
@@ -122,7 +122,7 @@ begin
         end;
       end;
   end;
-  
+
   //searching column indexes
   for n := 0 to FColumns.Count-1 do
   begin
@@ -130,7 +130,7 @@ begin
     if (FResultSet <> nil) then i := FResultSet.GetFieldIndex(c.FieldName8) else i := 0;
     c.FieldIndex := i;
   end;
-  
+
   if WinHandle > 0 then
   begin
     UpdateScrollBar;
@@ -225,7 +225,7 @@ var
   cont : boolean;
 begin
   FResultSet.RecNo := row;
-  
+
   if Assigned(OnDrawCell) then
   begin
     cont := true;
@@ -238,7 +238,7 @@ begin
   if c.FieldIndex < 1 then Exit;
 
   s16 := Str8to16(FResultSet.GetFieldS(c.FieldIndex));
-  
+
   case TDBColumn(FColumns[col-1]).Alignment of
     alRight :  begin
                  cw := FFont.TextWidth16(s16);
@@ -254,7 +254,7 @@ begin
   else
     x := rect.Left + 1;
   end;
-  canvas.DrawString16(x,FFont.Ascent+rect.top+1,  s16 );
+  canvas.DrawString16(x,rect.top+1,  s16 );
 end;
 
 procedure TwgDBGrid.DrawHeader(col: integer; rect: TGfxRect; flags: integer);
@@ -265,7 +265,7 @@ begin
   s := TDBColumn(FColumns[col-1]).Title;
   x := (rect.width div 2) - (FHeaderFont.TextWidth16(s) div 2);
   if x < 1 then x := 1;
-  canvas.DrawString16(rect.left + x,  FHeaderFont.Ascent+rect.top+1, s);
+  canvas.DrawString16(rect.left + x, rect.top+1, s);
 end;
 
 constructor TwgDBGrid.Create(AOwner: TComponent);

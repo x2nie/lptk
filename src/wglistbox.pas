@@ -21,17 +21,17 @@ type
     procedure SetFocusItem(const AValue: integer);
   protected
     FFont : TGfxFont;
-    
+
     FScrollBar : TwgScrollBar;
     FFocusItem : integer;
-    
+
     FMouseDragging : boolean;
-    
+
     FFirstItem : integer;
     FMargin    : integer;
 
     procedure DoShow; override;
-    
+
     procedure SetFirstItem(item : integer);
     procedure UpdateScrollBar;
     procedure FollowFocus;
@@ -39,37 +39,37 @@ type
     function ListHeight : TGfxCoord;
     function ScrollBarWidth : TGfxCoord;
     function PageLength : integer;
-    
+
     procedure ScrollBarMove(Sender: TObject; position : integer);
-    
+
     procedure DoChange;
     procedure DoSelect;
 
   public
     HotTrack : boolean;
-  
+
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
 
     procedure RePaint; override;
-    
+
     procedure Update;
-    
+
     function ItemCount : integer; virtual;
     function RowHeight : integer; virtual;
-    
+
     procedure DrawItem(num : integer; rect : TGfxRect; flags : integer); virtual;
-    
+
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
-    
+
     procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
     procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
-    
+
     procedure HandleWindowScroll(direction, amount : integer); override;
-    
+
     procedure HandleResize(dwidth, dheight : integer); override;
-    
+
     property FocusItem : integer read FFocusItem write SetFocusItem;
 
   public
@@ -78,7 +78,7 @@ type
     OnSelect : TNotifyEvent;
 
   end;
-  
+
   TwgTextListBox = class(TwgListBox)
   protected
     FItems : TStringList;
@@ -86,11 +86,11 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
-    
+
     procedure SetItemRef(itemref : TStringList);
 
     function ItemCount : integer; override;
-    
+
     property Items : TStringList read FItems;
 
     procedure DrawItem(num : integer; rect : TGfxRect; flags : integer); override;
@@ -136,7 +136,7 @@ begin
   pn := PageLength;
 
   FScrollBar.Visible := PageLength < ItemCount;
-  
+
   if FScrollBar.Visible then
   begin
 
@@ -218,7 +218,7 @@ begin
   FFirstItem := 1;
   FMargin := 2;
   FMouseDragging := false;
-  
+
   HotTrack := false;
 
   OnChange := nil;
@@ -240,15 +240,15 @@ begin
   canvas.ClearClipRect;
   canvas.Clear(FBackgroundColor);
   canvas.SetFont(FFont);
-  
+
   if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
   Canvas.DrawRectangle(0,0,width,height);
-  
+
   r.SetRect(FMargin,FMargin, width-ScrollBarWidth-FMargin-2, height-(2*FMargin));
   canvas.SetClipRect(r);
-  
+
   r.Height := RowHeight;
-  
+
   for n:=FFirstItem to ItemCount do
   begin
     if n = FFocusItem then
@@ -273,7 +273,7 @@ begin
 
     DrawItem(n,r,0);
     r.Top := r.Top + r.Height;
-    
+
     if r.Top >= self.Height then break;
   end;
 
@@ -310,14 +310,14 @@ var
   s : string16;
 begin
   s := Str8To16('Item'+IntToStr(num));
-  canvas.DrawString16(rect.left+4,FFont.Ascent+rect.top+1,s);
+  canvas.DrawString16(rect.left+4, rect.top+1,s);
   //Canvas.DrawRectangle(rect.left+1,rect.top+1,rect.width-1,rect.height-1);
 end;
 
 procedure TwgListBox.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
 begin
   inherited HandleKeyPress(keycode, shiftstate, consumed);
-  
+
   consumed := true;
   case keycode of
     KEY_UP:
@@ -391,9 +391,9 @@ begin
   if FFocusItem > ItemCount then FFocusItem := ItemCount;
 
   FollowFocus;
-  
+
   FMouseDragging := true;
-  
+
   repaint;
 
   DoChange;
@@ -407,7 +407,7 @@ begin
   if ItemCount < 1 then Exit;
 
   FMouseDragging := False;
-  
+
   FFocusItem := FFirstItem + trunc((y - FMargin) / RowHeight);
   if FFocusItem > ItemCount then FFocusItem := ItemCount;
 
@@ -428,9 +428,9 @@ begin
   if ItemCount < 1 then Exit;
 
   if ((not FMouseDragging) or (btnstate and 1 = 0)) and (not HotTrack) then Exit;
-  
+
   oldf := FFocusItem;
-  
+
   FFocusItem := FFirstItem + trunc((y - FMargin) / RowHeight);
   if FFocusItem > ItemCount then FFocusItem := ItemCount;
 
@@ -507,7 +507,7 @@ end;
 
 procedure TwgTextListBox.DrawItem(num: integer; rect: TGfxRect; flags: integer);
 begin
-  canvas.DrawString16(rect.left+2,FFont.Ascent+rect.top+1,FItems.Strings[num-1]);
+  canvas.DrawString16(rect.left+2,rect.top+1,FItems.Strings[num-1]);
 end;
 
 function TwgTextListBox.Text: string16;

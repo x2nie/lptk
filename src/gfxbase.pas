@@ -1999,10 +1999,10 @@ procedure TGfxCanvas.DrawString16(x, y : TGfxCoord; txt : String16);
 begin
   if length(txt) < 1 then exit;
 {$ifdef Win32}
-  windows.TextOutW(Fgc, x,y, @txt[1], length16(txt));
+  windows.TextOutW(Fgc, x,y+FCurFont.Ascent, @txt[1], length16(txt));
 {$else}
   //XDrawString16(display, FWin, Fgc, x, y, PXChar2b(txt), Length16(txt) );
-  XftDrawString16(FXftDraw, FColorTextXft, FCurFont.Handle, x,y, @txt[1], Length16(txt) );
+  XftDrawString16(FXftDraw, FColorTextXft, FCurFont.Handle, x,y+FCurFont.Ascent, @txt[1], Length16(txt) );
 {$endif}
 end;
 

@@ -76,7 +76,7 @@ type
     procedure SetText8(const AValue : String);
     function GetText : string16;
     function GetText8 : string;
-    
+
     procedure SetFont(const Value: TGfxFont);
 
     procedure SetCursorLine(aValue : integer);
@@ -139,22 +139,22 @@ begin
 	FFirstLine := aValue; // moves the selected line to the top of the displayed rectangle
 	FCursorLine := aValue;
 	FCursorPos := 0;
-	RePaint;	
+	RePaint;
 	exit;
     end;
     yp := 2;
     MaxLine := 0;
     for i := FFirstLine to LineCount do
     begin
-	yp := yp + LineHeight;	
-	if yp > Height then 
+	yp := yp + LineHeight;
+	if yp > Height then
 	begin
 	    MaxLine := i - 1;
 	    break;
 	end;
     end;
     if MaxLine < aValue then
-    begin	
+    begin
 	FFirstLine := aValue;
 	FCursorLine := aValue;
 	FCursorPos := 0;
@@ -194,17 +194,17 @@ begin
   FSelEndPos   := 0;
   FSelStartLine := 0;
   FSelEndLine   := 0;
-  
+
   FDrawOffset := 0;
   FMouseDragging := false;
-  
+
   FVScrollBar := TwgScrollBar.Create(self);
   FVScrollBar.Orientation := orVertical;
   FVScrollBar.OnScroll := {$ifdef FPC}@{$endif}VScrollBarMove;
   FHScrollBar := TwgScrollBar.Create(self);
   FHScrollBar.Orientation := orHorizontal;
   FHScrollBar.OnScroll := {$ifdef FPC}@{$endif}HScrollBarMove;
-  
+
   FMouseCursor := CUR_EDIT;
 
   FWrapping := false;
@@ -291,7 +291,7 @@ var
   ls  : string16;
   len : integer;
   st  : integer;
-  
+
   s : string;
 begin
 
@@ -314,7 +314,7 @@ begin
   begin
 
     if n > selsl then s := s + LINEFEEDSTRING;
-    
+
     ls := GetLineText(n);
 
     if selsl < n then st := 0 else st := selsp;
@@ -331,7 +331,7 @@ var
   s, si, si8, lineend : string16;
   n, l : integer;
   lcnt : integer;
-  
+
 begin
   DeleteSelection;
   s := GetClipboardText;
@@ -363,7 +363,7 @@ begin
     end;
     inc(n);
   end;
-  
+
   si := si + u8(si8);
 
   FCursorPos := length16(si);
@@ -391,7 +391,7 @@ begin
   // horizontal adjust
   RecalcLongestLine;
   tw := FFont.TextWidth16(copy16(CurrentLine,1,FCursorPos));
-  
+
   if tw - FDrawOffset > VisibleWidth - 2 then
   begin
     FDrawOffset := tw - VisibleWidth + 2;
@@ -432,7 +432,7 @@ begin
   if FVScrollBar.Visible then vsbw := FVScrollBar.width else vsbw := 0;
 
   FHScrollBar.Visible := FLongestLineWidth > (Width - vsbw - FSideMargin*2) - 1;
-  
+
   if FHScrollBar.Visible and not FVScrollBar.Visible then
   begin
     // recheck vertical scrollbar
@@ -577,7 +577,7 @@ var
   tw, tw2, st, len : integer;
   yp : integer;
   ls : string16;
-  
+
   selsl, selsp, selel, selep : integer;
 begin
   if WinHandle <= 0 then Exit;
@@ -607,7 +607,7 @@ begin
   for n := FFirstline to LineCount do
   begin
     ls := GetLineText(n);
-    Canvas.DrawString16(- FDrawOffset + FSideMargin, FFont.Ascent + yp, ls);
+    Canvas.DrawString16(- FDrawOffset + FSideMargin, yp, ls);
 
     if Focused then
     begin
@@ -633,7 +633,7 @@ begin
     end;
 
     yp := yp + LineHeight;
-    
+
     if yp > Height then Break;
   end;
 
@@ -900,11 +900,11 @@ begin
   inherited HandleMouseDown(x, y, button, shiftstate);
 
   // searching the appropriate character position
-  
+
   lnum := FFirstLine + (y - FSideMargin) div LineHeight;
   if lnum > LineCount then lnum := LineCount;
   ls := GetLineText(lnum);
-  
+
   cpx := FFont.TextWidth16(copy16(ls,1,FCursorPos)) - FDrawOffset + FSideMargin;
   cp := FCursorPos;
 
@@ -925,7 +925,7 @@ begin
 
   FCursorPos  := cp;
   FCursorLine := lnum;
-  
+
   if (shiftstate and ss_shift) <> 0 then
   begin
     FSelEndLine := lnum;
@@ -990,7 +990,7 @@ begin
     FCursorPos := cp;
     Repaint;
   end;
-    
+
 
   // searching the appropriate character position
 {
@@ -1038,7 +1038,7 @@ begin
   end;
   if FFirstLine > LineCount - VisibleLines + 1 then FFirstLine := LineCount - VisibleLines + 1;
   if FFirstLine < 1 then FFirstLine := 1;
-  
+
   if FHScrollBar.Visible then
   begin
     if Direction = 2 then

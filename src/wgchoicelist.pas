@@ -27,7 +27,7 @@ type
 
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
-    
+
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
 
   end;
@@ -41,41 +41,41 @@ type
 
     FItems : TStringList;
     FMargin : integer;
-    
+
     FListPopup : TChoiceListPopup;
-    
+
     DropDownRows : integer;
-    
+
     FDroppedDown : boolean;
     FBlockDrop   : boolean;
-    
+
     procedure ListSelect(sender : TObject);
-    
+
     procedure MsgPopupClose(var msg : TMessageRec); message MSG_POPUPCLOSE;
 
     procedure DoSetFocus; override;
 
   public
-  
+
     property FocusItem : integer read FFocusItem write SetFocusItem;
 
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
-    
+
     procedure RePaint; override;
-    
+
     procedure DropDown;
-    
+
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
     procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
-    
+
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
-    
+
     property Items : TStringList read FItems;
-    
+
     function Text : string16;
     function Text8 : string;
-    
+
   public
 
     OnChange : TNotifyEvent;
@@ -172,10 +172,10 @@ begin
 
   if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
   Canvas.DrawRectangle(0,0,width,height);
-  
+
   DrawButtonFace(canvas, width - height + 1, 1, height-2, height-2);
   DrawDirectionArrow(canvas, width - height + 1, 1, height-2, height-2, 1);
-  
+
   if FFocused then
   begin
     canvas.SetColor(clSelection);
@@ -186,12 +186,12 @@ begin
     canvas.SetColor(BackgroundColor);
     canvas.SetTextColor(clText1);
   end;
-  
+
   r.SetRect(2,2,width-height-2,height-4);
   canvas.FillRect(r); //2,2,width-height-2,height-4);
   canvas.SetClipRect(r);
-  
-  if FocusItem > 0 then canvas.DrawString16(FMargin+1,FFont.Ascent+FMargin, Text);
+
+  if FocusItem > 0 then canvas.DrawString16(FMargin+1,FMargin, Text);
 
 end;
 
@@ -213,7 +213,7 @@ end;
 procedure TwgChoiceList.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
 begin
   inherited HandleMouseUp(x, y, button, shiftstate);
-  
+
   if not FBlockDrop then DropDown;
   FBlockDrop := false;
   FDroppedDown := (FListPopup.WinHandle > 0);
@@ -228,7 +228,7 @@ end;
 procedure TwgChoiceList.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
 begin
   inherited HandleKeyPress(keycode, shiftstate, consumed);
-  
+
   consumed := true;
   case keycode of
     KEY_ENTER: begin // enter

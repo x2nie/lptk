@@ -27,30 +27,30 @@ type
   TwgMenuBar = class(TWidget)
   protected
     FFont : TGfxFont;
-    
+
     FFocusItem : integer;
-    
+
   public
-  
+
     PopupWin : TPopupMenu;
-  
+
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
 
     procedure RePaint; override;
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
-    
+
     // New functions
-    
+
     function ItemCount : integer; virtual;
     function ItemWidth(num : integer) : integer; virtual;
     procedure DrawItem(num : integer; rect : TGfxRect; flags : integer); virtual;
-    
+
     // Properties
 
     property Font : TGfxFont read FFont;
   end;
-  
+
 implementation
 
 uses X, Xlib, Xutil;
@@ -80,12 +80,12 @@ begin
   inherited RePaint;
   Canvas.Clear;
   Canvas.SetFont(Font);
-  
+
   if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
   Canvas.DrawRectangle(0,0,width-1,height-1);
-  
+
   r.SetRect(2,2, width-4, height-4);
-  
+
   for n := 1 to ItemCount do
   begin
     r.width := ItemWidth(n);
@@ -111,7 +111,7 @@ procedure TwgMenuBar.HandleKeyPress(var keycode : word; var shiftstate : word; v
 var
   dx,dy : integer;
   cw : TWinHandle;
-  
+
   wh  : TWinHandle;
   attr : TXSetWindowAttributes;
   mask : longword;
@@ -147,7 +147,7 @@ var
   s : string16;
 begin
   s := Str8To16('Menu'+IntToStr(num));
-  canvas.DrawString16(rect.left+4,Font.Ascent+rect.top+1,s);
+  canvas.DrawString16(rect.left+4, rect.top+1,s);
   //Canvas.DrawRectangle(rect.left+1,rect.top+1,rect.width-1,rect.height-1);
 end;
 
@@ -169,7 +169,7 @@ begin
   Canvas.SetFont(FFont);
 
   s := Str8To16('PopupMenu');
-  canvas.DrawString16(2,2 + FFont.Ascent, s);
+  canvas.DrawString16(2,2, s);
 
 end;
 

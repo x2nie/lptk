@@ -13,7 +13,7 @@ interface
 
 uses
   Classes, SysUtils, schar16, gfxbase, messagequeue, gfxwidget;
-  
+
 type
   TwgLabel = class(TWidget)
   private
@@ -32,10 +32,10 @@ type
 
     property Text : String16 read FText write SetText;
     property Text8 : string read GetText8 write SetText8;
-    
+
     property Font : TGfxFont read FFont write SetFont;
   end;
-  
+
   TLabelClass = class of TwgLabel;
 
 function CreateLabel(AOwner : TComponent; x, y : TGfxCoord; txt : String) : TwgLabel;
@@ -101,7 +101,7 @@ begin
   //writeln('label paint');
   Canvas.Clear(FBackgroundColor);
   Canvas.SetFont(Font);
-  Canvas.DrawString16(0,Font.Ascent,FText);
+  Canvas.DrawString16(0,0, FText);
 
 //  r.SetRect(0,0,width,height);
 

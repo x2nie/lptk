@@ -12,7 +12,7 @@ unit
     {$mode objfpc}{$H+}
 {$ENDIF}
 
-// {$DEFINE DEBUG}    
+// {$DEFINE DEBUG}
 interface
 
 uses classes, sysutils, gfxbase, gfxwidget, schar16, wgbutton, wglabel;
@@ -22,7 +22,7 @@ const DayName : array[1..7] of string = ('Mo','Di','Mi','Do','Fr','Sa','So');
 type
     TCalendarHilight = procedure(Sender : TObject; Date : TDateTime; var hilite : boolean);
     TCalendarChange = procedure(Sender : TObject; NewDate : TDateTime);
-    
+
     TwgCalendar = class(TWidget)
       private
 	FFont : TgfxFont;
@@ -34,8 +34,8 @@ type
 	ButtonL : TwgButton;
 	ButtonR : TwgButton;
 	DateLabel : TwgLabel;
-	
-	procedure SetFont(aValue : TgfxFont);	
+
+	procedure SetFont(aValue : TgfxFont);
 	procedure SetDate(aValue : TDateTime);
 	procedure SetDay(aValue : byte);
 	function GetDay : byte;
@@ -46,25 +46,25 @@ type
 	procedure ButtonLClick(Sender : TObject);
 	procedure ButtonRClick(Sender : TObject);
 	procedure DoChange(NewDate : TDateTime);
-		
+
 	procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
 	procedure HandleKeyPress(var KeyCode : word; var Shiftstate : word; var consumed : boolean); override;
-	procedure HandleReSize(dwidth, dheight : integer); override;	
+	procedure HandleReSize(dwidth, dheight : integer); override;
       public
 	onDrawDay : TCalendarHilight;  // to select holy days.... returns true: day hilited
 	onChange : TCalendarChange;
-	
+
         constructor Create(aOwner : TComponent); override;
-      
+
         procedure RePaint; override;
         procedure DoShow; override;
         property Font : TgfxFont read FFont write SetFont;
-	
+
 	property Date : TDateTime read FDate write SetDate;
 	property Day : byte read GetDay write SetDay;
 	property Month : byte read GetMonth write SetMonth;
 	property Year : word read GetYear write SetYear;
-	
+
     end;
 
 implementation
@@ -99,7 +99,7 @@ begin
 	    Date := Date + 7;
 	end;
 	KEY_LEFT: begin
-	    Date := Date - 1;	    
+	    Date := Date - 1;
 	end;
 	KEY_RIGHT : begin
 	    Date := Date + 1;
@@ -135,10 +135,10 @@ begin
     y := y - ButtonL.Height - ButtonL.Top - FMargin;
     y := y div yp;
     x := x div xp;
-    {$IFDEF DEBUG}writeln('X: ',x); writeln('Y: ',y);{$ENDIF}    
+    {$IFDEF DEBUG}writeln('X: ',x); writeln('Y: ',y);{$ENDIF}
     if DayOfWeek(encodeDate(Year, Month, 1)) = 1 then
 	start := encodeDate(Year, Month, 1) - 6
-    else start := EncodeDate(Year, Month, 1) - DayOfWeek(encodeDate(Year, Month, 1)) + 2;    
+    else start := EncodeDate(Year, Month, 1) - DayOfWeek(encodeDate(Year, Month, 1)) + 2;
     if y >= 1 then	// die tagesnamen
     begin
 	for i := 1 to 6 do
@@ -147,7 +147,7 @@ begin
 		if (i = y) and (i1 = x + 1) then
 		begin
 		    FDate := start;
-		    if OldDate <> Date then 
+		    if OldDate <> Date then
 		    begin
 			RePaint;
 			DoChange(Date);
@@ -171,7 +171,7 @@ begin
     i := DateLabel.Font.TextWidth16(DateLabel.Text);
     i1 := DateLabel.Font.Ascent + Datelabel.Font.Descent;
     DateLabel.SetDimensions(Width div 2 - i div 2,ButtonL.Height div 2 - i1 div 2, i,i1);
-    inherited DoShow;    
+    inherited DoShow;
 end;
 
 procedure TwgCalendar.ButtonLClick(Sender : TObject);
@@ -192,7 +192,7 @@ begin
     repeat
       try
 	date := EncodeDate(y,m,d);
-	done := true;	
+	done := true;
       except
 	dec(d);
 	done := false;
@@ -247,7 +247,7 @@ begin
     i := DateLabel.Font.TextWidth16(DateLabel.Text);
     i1 := DateLabel.Font.Ascent + Datelabel.Font.Descent;
     DateLabel.SetDimensions(Width div 2 - i div 2,ButtonL.Height div 2 - i1 div 2, i,i1);
-    
+
     if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
     Canvas.DrawRectangle(0,0,Width,Height);
     r.SetRect(FMargin,ButtonL.Height + FMargin, Width - 2*FMargin, Height - ButtonL.Height - 2 * FMargin);
@@ -255,25 +255,25 @@ begin
     if DayOfWeek(encodeDate(Year, Month, 1)) = 1 then
 	start := encodeDate(Year, Month, 1) - 6
     else start := EncodeDate(Year, Month, 1) - DayOfWeek(encodeDate(Year, Month, 1)) + 2;
-    
+
     decodedate(start,y,m,d);
     if m <> month then black := false;
     cw := (Width - 2 * FMargin) div 7; // column width
     rh := Height - ButtonL.Height - ButtonL.Top - FMargin;
     rh := rh div 7;
     Canvas.SetTextColor(clText1);
-    
+
     for i := 1 to 7 do
 	// kopfzeilen und spalten zeichnen
     begin
-	Canvas.DrawString16(cw * i - cw div 2 - FFont.TextWidth16(Str8To16(DayName[i])) div 2,ButtonL.Height + ButtonL.Top + (Font.Ascent + Font.Descent),Str8To16(DayName[i]));
+	Canvas.DrawString16(cw * i - cw div 2 - FFont.TextWidth16(Str8To16(DayName[i])) div 2,ButtonL.Height + ButtonL.Top + (Font.Descent),Str8To16(DayName[i]));
     end;
     for i := 1 to 6 do	// 6 zeilen a 7 spalten
     begin		// beginnt mit spalte
 	for i1 := 1 to 7 do
 	begin
 	    decodedate(start,y,m,d);
-	    
+
 	    if Assigned(onDrawDay) then OnDrawDay(self, start, hilite)
 	    else Hilite := false;  // check if day should be hilited
 	    if d = 1 then black := not Black;
@@ -297,7 +297,7 @@ begin
 		    Canvas.SetTextColor(clInactiveSelText);
 		end;
 		Canvas.FillRectangle(cw * (i1 - 1),  ButtonL.Height + ButtonL.Top + (rh) * (i) , cw - 1, rh);
-	    end;	    
+	    end;
 	    Canvas.DrawString16(cw * i1 - cw div 2 - FFont.TextWidth16(Str8To16(IntToStr(d))) div 2, ButtonL.Height + ButtonL.Top + rh * (i+1) - FFont.Descent, Str8To16(IntToStr(d)));
 	    start := start + 1;
 	end;

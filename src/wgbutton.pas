@@ -134,7 +134,7 @@ begin
 
   Canvas.SetFont(Font);
 
-  canvas.DrawString16((width div 2) - (FFont.TextWidth16(FText) div 2), Font.Ascent+4,FText);
+  canvas.DrawString16((width div 2) - (FFont.TextWidth16(FText) div 2), 4, FText);
 
 end;
 

@@ -59,7 +59,7 @@ type
     property FocusRow : integer read FFocusRow write SetFocusRow;
 
     property RowHeight : TGfxCoord read FRowHeight;
-    
+
     property HeaderFont : TGfxFont read FHeaderFont;
     property Font : TGfxFont read FFont;
 
@@ -85,7 +85,7 @@ type
     constructor Create(AOwner : TComponent); override;
 
     procedure RePaint; override;
-    
+
     procedure Update;
 
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); virtual;
@@ -98,7 +98,7 @@ type
     procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
     procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
-    
+
     procedure HandleDoubleClick(x,y : integer; btnstate, shiftstate : word); override;
 
     procedure HandleResize(dwidth, dheight : integer); override;
@@ -107,7 +107,7 @@ type
 
     OnFocusChange : TFocusChangeNotify;
     OnRowChange   : TRowChangeNotify;
-    
+
     OnDoubleClick : TMouseNotifyEvent;
 
   end;
@@ -167,7 +167,7 @@ begin
       FFirstRow := FFocusRow - VisibleLines + 1;
     end;
   end;
-  
+
   if FFocusCol < FFirstCol then
   begin
     FFirstCol := FFocusCol;
@@ -185,7 +185,7 @@ begin
       end;
     end;
   end;
-  
+
   UpdateScrollBar;
 end;
 
@@ -255,14 +255,14 @@ begin
   FHeaderFont := guistyle.GridHeaderFont;
   HeadersOn := true;
   RowSelect := false;
-  
+
   FRowHeight := FFont.Height + 2;
   FHeaderHeight := FHeaderFont.Height + 2;
 
   FBackgroundColor := clBoxColor;
-  
+
   FColResizing := false;
-  
+
   FVScrollBar := TwgScrollBar.Create(self);
   FVScrollBar.Orientation := orVertical;
   FVScrollBar.OnScroll := {$ifdef FPC}@{$endif}VScrollBarMove;
@@ -290,7 +290,7 @@ begin
 
   clr.SetRect(FMargin,FMargin, VisibleWidth, height-2*FMargin);
   r := clr;
-  
+
   if (ColumnCount > 0) and HeadersOn then
   begin
     // Drawing headers
@@ -319,7 +319,7 @@ begin
 
       if r.Left >= clr.Right then break;
     end;
-    
+
     r.Top := r.Top + r.Height + 1;
   end;
 
@@ -379,7 +379,7 @@ begin
       if r.Top >= clr.Bottom then break;
 
     end;
-  end; // item drawing 
+  end; // item drawing
 
   canvas.SetClipRect(clr);
   canvas.SetColor(BackgroundColor);
@@ -417,7 +417,7 @@ var
   s : string16;
 begin
   s := Str8To16('Cellg('+IntToStr(row)+','+IntToStr(col)+')');
-  canvas.DrawString16(rect.left+1,FFont.Ascent+rect.top+1,s);
+  canvas.DrawString16(rect.left+1, rect.top+1, s);
   //Canvas.DrawRectangle(rect.left+1,rect.top+1,rect.width-1,rect.height-1);
 end;
 
@@ -427,7 +427,7 @@ var
 begin
   s := Str8To16('Head '+IntToStr(col));
   canvas.DrawString16(rect.left + (rect.width div 2) - (FHeaderFont.TextWidth16(s) div 2),
-                     FHeaderFont.Ascent+rect.top+1, s);
+                     rect.top+1, s);
   //Canvas.DrawRectangle(rect.left+1,rect.top+1,rect.width-1,rect.height-1);
 end;
 
@@ -534,7 +534,7 @@ begin
   else
     consumed := false;
   end;
-  
+
   CheckFocusChange;
 end;
 
@@ -557,7 +557,7 @@ begin
   end;
   if FFirstRow > RowCount - VisibleLines + 1 then FFirstRow := RowCount - VisibleLines + 1;
   if FFirstRow < 1 then FFirstRow := 1;
-  
+
   if Direction = 2 then
   begin
     if FFirstCol > 1 then dec(FFirstCol);
@@ -584,7 +584,7 @@ var
   prow, pcol : integer;
 begin
   inherited HandleMouseDown(x, y, button, shiftstate);
-  
+
   if (ColumnCount < 0) or (RowCount < 1) then Exit;
 
   pcol := FFocusCol;
@@ -593,11 +593,11 @@ begin
   // searching the appropriate character position
 
   if HeadersOn then hh := FHeaderHeight else hh := 0;
-  
+
   if HeadersOn and (y <= FMargin + hh) then
   begin
     //Writeln('header click...');
-    
+
     cw := 0;
     for n:=FFirstCol to ColumnCount do
     begin
@@ -606,7 +606,7 @@ begin
       begin
         Writeln('column resize...');
         //FFocusCol := n;
-        
+
         FColResizing := true;
         FResizedCol := n;
         FDragPos := x;
@@ -623,16 +623,16 @@ begin
         break;
 
       end;
-      
+
       if cw > VisibleWidth then Break;
     end;
-    
+
   end
   else
   begin
     FFocusRow := FFirstRow + (y - FMargin - hh) div (FRowHeight+1);
     if FFocusRow > RowCount then FFocusRow := RowCount;
-    
+
     cw := 0;
     for n:=FFirstCol to ColumnCount do
     begin
@@ -650,7 +650,7 @@ begin
     FollowFocus;
     Repaint;
   end;
-  
+
   if FColResizing then
   begin
     MouseCursor := CUR_DIR_EW;
@@ -720,7 +720,7 @@ end;
 procedure TwgGrid.HandleDoubleClick(x, y: integer; btnstate, shiftstate: word);
 begin
   inherited HandleDoubleClick(x, y, btnstate, shiftstate);
-  
+
   if Assigned(OnDoubleClick) then OnDoubleClick(self, x,y, btnstate, shiftstate);
 end;
 

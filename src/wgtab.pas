@@ -1,5 +1,5 @@
 { 	feature-requests or bugs? - mail to: erik@grohnwaldt.de
-	History 
+	History
 	19.06.2003	0.4	property Text8 for TwgTabSheet
 	16.05.2003	0.3	new property: FixedTabWidth
 	15.05.2003		nvitya: components focusing at page activation
@@ -25,7 +25,7 @@ uses gfxbase, gfxstyle, classes, gfxwidget, schar16, wgbutton;
 
 type
     TWinPosition = (wpTop, wpBottom);
-    
+
     TwgTabSheet = class(TWidget)
 	private
 	    FText : string16;
@@ -37,14 +37,14 @@ type
 	public
 	    constructor Create(aOwner : TComponent); override;
 	    destructor Destroy; override;
-	    
+
 	    property Text : string16 read FText write SetText;
 	    property Text8 : string read GetText8 write SetText8;
 	    property Index : word read FIndex write FIndex;
     end;
 
     PTabSheetList = ^TwgTabSheetList;
-    
+
     TwgTabSheetList = record
 	next : PTabSheetList;
 	prev : PTabSheetList;
@@ -57,16 +57,16 @@ type
 	private
 	    FActiveSheet : TwgTabSheet;
 	    FNavBar : TWinPosition;
-	    
+
 	    FFirstTabSheet : PTabSheetList;
 	    FFont : TgfxFont;
 	    FMargin : integer;
 	    FFirstTabButton : PTabSheetList;
-	    
-	    FLeftButton : TwgButton;	    
+
+	    FLeftButton : TwgButton;
 	    FRightButton : TwgButton;
 	    FFixedTabWidth : integer;
-	    
+
 	    procedure LeftButtonClick(Sender : TObject);
 	    procedure RightButtonClick(Sender : TObject);
 	    procedure SetActiveSheet(aValue : TwgTabSheet);
@@ -88,13 +88,13 @@ type
 	    procedure DoChange(NewActive : TwgTabSheet);
 	public
 	    onChange : TTabSheetChange;
-	
+
 	    constructor Create(aOwner : TComponent); override;
-	
+
 	    procedure DoShow; override;
 	    procedure UnregisterTabSheet(TabSheet : TwgTabSheet);
-	    procedure RegisterTabSheet(TabSheet : TwgTabSheet);	    
-	    
+	    procedure RegisterTabSheet(TabSheet : TwgTabSheet);
+
 	    property ActiveTabSheet : TwgTabSheet read FActiveSheet write SetActiveSheet;
 	    property Navbar : TWinPosition read FNavBar write SetNavBar;
 	    property FixedTabWidth : integer read FFixedTabWidth write SetFixedTabWidth;
@@ -103,9 +103,9 @@ type
 	    function TabSheetCount : integer;
 	    function MaxTabIndex : word;
 	    function AppendTabSheet(Title : string16) : TwgTabSheet;
-	    
+
     end;
-        
+
 implementation
 
 { TwgTabSheet }
@@ -137,7 +137,7 @@ begin
     FFocusable := true;
     if Owner is TwgTabControl then
     begin
-	TwgTabControl(Owner).RegisterTabSheet(self);	
+	TwgTabControl(Owner).RegisterTabSheet(self);
 	FIndex := TwgTabControl(Owner).MaxTabIndex + 1;
     end;
 end;
@@ -190,7 +190,7 @@ begin
 end;
 
 function TwgTabControl.ButtonWidth(aText : string16) : integer;
-begin    
+begin
     if FFixedTabWidth > 0 then
     begin
 	result := FFixedTabWidth;
@@ -242,7 +242,7 @@ begin
 		    end;
 		    h := h^.next;
 		end;
-		if h^.prev <> nil then 
+		if h^.prev <> nil then
 		    ActiveTabSheet := h^.prev^.TabSheet;
 	    end;
 	    KEY_RIGHT:begin
@@ -265,7 +265,7 @@ begin
     {$IFDEF DEBUG}writeln('TabControl.LeftButtonClick');{$ENDIF}
     if FFirstTabButton <> nil then
     begin
-	if FFirstTabButton^.Prev <> nil then 
+	if FFirstTabButton^.Prev <> nil then
 	begin
 	    FFirstTabButton := FFirstTabButton^.Prev;
 	    RePaint;
@@ -308,18 +308,18 @@ begin
 	if h^.next <> nil then
 	begin
 	    if h^.Tabsheet.index > h^.next^.Tabsheet.Index then // change?
-	    begin	    
+	    begin
 		changed := true;
 		next := h^.next;
 		prev := h^.prev;
-						
+
 		if prev <> nil then prev^.next := next;
 		next^.prev := prev;
 		h^.next := next^.next;
-				
+
 		if next^.next <> nil then next^.next^.prev := h;
 		next^.next := h;
-				
+
 		h^.prev := next;
 	    end;
 	end;
@@ -342,11 +342,11 @@ begin
     h := FFirstTabSheet;
     if h = nil then exit;
     lp := FMargin;
-    while h^.prev <> nil do h := h^.prev; // first tabsheet    
+    while h^.prev <> nil do h := h^.prev; // first tabsheet
     if MaxButtonWidthSum > Width-FMargin * 2 then
     begin
 	h := FFirstTabButton;
-    end;    
+    end;
     case FNavBar of
 	wpTop : begin
     	   if (y > FMargin) and (y < buttonheight) then
@@ -441,7 +441,7 @@ begin
     begin
 	if h^.TabSheet.Index > result then result := h^.tabsheet.index;
 	h := h^.next;
-    end;    
+    end;
 end;
 
 procedure TwgTabControl.RegisterTabSheet(TabSheet : TwgTabSheet);
@@ -450,7 +450,7 @@ var
     nl : PTabSheetList;
 begin
     {$IFDEF DEBUG}writeln('TabControl.RegisterTabSheet');{$ENDIF}
-    if TabSheetIndex(TabSheet) > -1 then exit; // allready registered 
+    if TabSheetIndex(TabSheet) > -1 then exit; // allready registered
     new(nl);
     nl^.next := nil;
     nl^.prev := nil;
@@ -482,12 +482,12 @@ begin
 	h := h^.next;
     end;
     pl := h^.prev;
-    if pl = nil then 
+    if pl = nil then
     begin
 	FFirstTabSheet := h^.next;
 	if (h^.next <> nil) and (TabSheet = ActiveTabSheet) then FActiveSheet := h^.next^.TabSheet;
     end
-    else 
+    else
     begin
 	pl^.next := h^.next;
 	if (TabSheet = ActiveTabSheet)  then FActiveSheet := pl^.TabSheet;
@@ -566,7 +566,7 @@ begin
     h := FFirstTabSheet;
     if h = nil then exit;
     bh := ButtonHeight;
-    while h^.prev <> nil do h := h^.prev;    
+    while h^.prev <> nil do h := h^.prev;
     Canvas.SetTextColor(clText1);
     case FNavBar of
 	wpBottom : begin
@@ -589,7 +589,7 @@ begin
 	    end;
 	    Canvas.SetColor(clHilite1);
 	    Canvas.DrawLine(FMargin, FMargin, Width - FMargin * 2, FMargin);
-	    Canvas.DrawLine(FMargin, FMargin, FMargin, Height - ButtonHeight - FMargin + 1);	    
+	    Canvas.DrawLine(FMargin, FMargin, FMargin, Height - ButtonHeight - FMargin + 1);
 	    Canvas.SetColor(clHilite2);
 	    Canvas.DrawLine(FMargin, FMargin + 1, Width - FMargin * 2 - 1, FMargin + 1);
 	    Canvas.DrawLine(FMargin + 1, FMargin + 2, FMargin + 1, Height - Buttonheight - FMargin);
@@ -625,21 +625,21 @@ begin
 		    Canvas.SetColor(clWindowBackground);
 		    Canvas.DrawLine(lp + FMargin + 2, Height - ButtonHeight - FMargin + 1,  lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 3, Height - ButtonHeight - FMargin + 1);
 		    Canvas.DrawLine(lp + FMargin + 2, Height - ButtonHeight - FMargin + 2,  lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 3, Height - ButtonHeight - FMargin + 2);
-		end;		
-		Canvas.DrawString16(lp+ButtonWidth(h^.TabSheet.Text) div 2 - FFont.TextWidth16(GetTabText(h^.TabSheet.text)) div 2,Height - FMargin - ButtonHeight + FFont.Ascent + 2, GetTabText(h^.TabSheet.text));
+		end;
+		Canvas.DrawString16(lp+ButtonWidth(h^.TabSheet.Text) div 2 - FFont.TextWidth16(GetTabText(h^.TabSheet.text)) div 2,Height - FMargin - ButtonHeight + 2, GetTabText(h^.TabSheet.text));
 		lp := lp + ButtonWidth(h^.TabSheet.Text);
 		h := h^.next;
 	    end;
 	end;
 	wpTop : begin // draw in top of the control
-	    if MaxButtonWidthSum > Width - FMargin * 2 then	    
+	    if MaxButtonWidthSum > Width - FMargin * 2 then
 	    begin
 		if FFirstTabButton = nil then FFirstTabButton := h
 		else
 		    h := FFirstTabButton;
 		r.SetRect(FMargin,FMargin,Width - FMargin * 2 - FRightButton.Width * 2 - 1, FRightButton.Height);
 		FLeftButton.SetDimensions(Width - FMargin * 2 - FRightButton.Width * 2, FMargin, FRightButton.Height, FRightButton.Height);
-		FRightButton.SetDimensions(Width - FMargin * 2 - FrightButton.Width, FMargin, FRightButton.Height, FRightButton.Height);		    
+		FRightButton.SetDimensions(Width - FMargin * 2 - FrightButton.Width, FMargin, FRightButton.Height, FRightButton.Height);
 		FLeftButton.Visible := true;
 		FRightButton.Visible := true;
 	    end
@@ -675,7 +675,7 @@ begin
 		end
 		else
 		begin
-		    h^.tabSheet.Visible := true;		
+		    h^.tabSheet.Visible := true;
 		    h^.TabSheet.SetDimensions(FMargin+2, FMargin + ButtonHeight, Width - FMargin * 2 - 4, Height - FMargin * 2 - ButtonHeight - 2);
 		    Canvas.SetColor(clHilite1);
 		    Canvas.DrawLine(lp + FMargin, FMargin, lp + FMargin + ButtonWidth(h^.TabSheet.Text)-1, FMargin);
@@ -688,7 +688,7 @@ begin
 		    Canvas.SetColor(clShadow2);
 		    Canvas.DrawLine(lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 1,FMargin + 1, lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 1, FMargin + ButtonHeight - 2);
 		end;
-		Canvas.DrawString16(lp + (ButtonWidth(h^.TabSheet.Text) div 2) - FFont.TextWidth16(GetTabText(h^.TabSheet.text)) div 2, FMargin + FFont.Ascent, GetTabText(h^.TabSheet.Text));
+		Canvas.DrawString16(lp + (ButtonWidth(h^.TabSheet.Text) div 2) - FFont.TextWidth16(GetTabText(h^.TabSheet.text)) div 2, FMargin, GetTabText(h^.TabSheet.Text));
 		lp := lp + ButtonWidth(h^.TabSheet.Text);
 		h := h^.next;
 	    end;
@@ -697,7 +697,7 @@ begin
 	    Canvas.SetColor(clHilite2);
 	    Canvas.Drawline(lp + 1,FMargin + bh - 1, width, FMargin + bh - 1);
 	end;
-    end;    
+    end;
 end;
 
 procedure TwgTabControl.SetActiveSheet(aValue : TwgTabSheet);

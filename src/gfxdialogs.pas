@@ -95,7 +95,7 @@ var
   n : integer;
   s,s16 : string16;
   c : char;
-  
+
   procedure AddLine(all : boolean);
   var
     w : integer;
@@ -130,10 +130,10 @@ var
       FLines.Add(s16);
       s := '';
     end;
-    
+
     if w > maxw then maxw := w;
   end;
-  
+
 begin
   s := '';
   FLines.Clear;
@@ -181,7 +181,7 @@ begin
   for n:=0 to FLines.Count-1 do
   begin
     tw := FFont.TextWidth16(FLines[n]);
-    canvas.DrawString16(width div 2 - tw div 2, y + FFont.Ascent, FLines[n]);
+    canvas.DrawString16(width div 2 - tw div 2, y, FLines[n]);
     inc(y, FLineHeight);
   end;
 end;
