@@ -22,6 +22,7 @@ const
 {version description:
 0.83
   - New file dialog usage
+  - File Name in the WindowTitle
 
 0.82
   - Removed file dialogs due instability
@@ -162,6 +163,7 @@ begin
     FreeAndNil(aFileDialog);
   end;
 
+  frmMain.WindowTitle8 := 'LPTK VFD - v'+program_version;
 
   if fname = '' then Exit;
 
@@ -202,6 +204,9 @@ begin
       end;
     end;
   end;
+
+  frmMain.WindowTitle8 := fname+' - VFD v'+program_version;
+
 end;
 
 procedure TMainDesigner.OnSaveFile(sender: TObject);
@@ -256,6 +261,8 @@ begin
   FreeAndNil(aFileDialog);
 }
 
+  frmMain.WindowTitle8 := 'LPTK VFD - v'+program_version;
+  
   if fname = '' then Exit;
 
   EditedFileName := fname;
@@ -290,6 +297,9 @@ begin
       CloseFile(ff);
     end;
     writeln('Form saved.');
+
+    frmMain.WindowTitle8 := fname+' - VFD v'+program_version;
+    
   except
     Writeln('Form save I/O failure.');
   end;
