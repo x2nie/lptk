@@ -1,7 +1,7 @@
 // LPTK note:
 // this file was copied from FreePascal Linux source 
 // Minimally modified for compiling both with Delphi and FreePascal
-// The Delphi and the Windows version of FPC does not include this file,
+// The Delphi and the Windows version of FPC (installer) does not include this file,
 // so I added to the LPTK package
 
 unit odbcsql;
