@@ -4,10 +4,10 @@
 }
 program app_dic;
 
+{$APPTYPE GUI}
+
 {$ifdef FPC}
-{$mode objfpc}{$H+}
-{$else}
- {$APPTYPE CONSOLE}
+  {$mode objfpc}{$H+}
 {$endif}
 
 uses
@@ -168,9 +168,9 @@ var
   dicform : TDicForm;
 
 begin
-  Writeln('LPTK Dictionary');
-
   GfxOpenDisplay('');
+
+  Writeln('LPTK Dictionary');
 
   dicform := TDicForm.Create(nil);
   dicform.Show;

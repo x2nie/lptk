@@ -5,11 +5,11 @@
 
 program phonebook;
 
+{$APPTYPE GUI}
+
 {$IFDEF FPC}
     {$mode delphi}
     {$H+}
-{$ELSE}
-{$APPTYPE CONSOLE}
 {$ENDIF}
 
 { DB structure:
@@ -493,13 +493,14 @@ begin
 end;
 
 begin
+  gfxOpenDisplay('');
+  
   dbconn := TSqlDBConnection.Create;
   if not dbconn.ConnectByDriver('MySQL','192.168.1.1','phonebook','root','','') then
   begin
     Writeln('cannot connect to db.');
   end;
 
-  gfxOpenDisplay('');
   FormMain := TFormMain.Create(nil);
   FormMain.PopulateCat;
   FormMain.ReQuery(-1);

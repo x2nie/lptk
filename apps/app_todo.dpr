@@ -419,12 +419,12 @@ begin
       writeln('mentes');
       uis := TDBUIS.Create('feladat',dbconn,false);
 
-      uis.SetFieldS('TEMASZAM',u16noesc(edTemaszam.Text));
-      uis.SetFieldS('MEGNEV',u16noesc(edMegNev.Text));
+      uis.SetFieldS('TEMASZAM',u16u8trunc(edTemaszam.Text));
+      uis.SetFieldS('MEGNEV',u16u8trunc(edMegNev.Text));
       uis.SetFieldS('HATARIDO',edHatarido.Text8);
-      uis.SetFieldS('FELELOS',u16noesc(chlFelelos.Text));
-      uis.SetFieldS('JELZES',u16noesc(edJelzes.Text));
-      uis.SetFieldS('MEGJ',u16noesc(memo.Text));
+      uis.SetFieldS('FELELOS',u16u8trunc(chlFelelos.Text));
+      uis.SetFieldS('JELZES',u16u8trunc(edJelzes.Text));
+      uis.SetFieldS('MEGJ',u16u8trunc(memo.Text));
       uis.SetFieldI('PRIORITAS',chlPrioritas.FocusItem - 1);
 
       uis.SetFieldS('MEGOLDVA',iifs(cbMegoldva.Checked,'T','F'));
@@ -472,7 +472,7 @@ begin
 
   if chlFelelos.FocusItem > 1 then
   begin
-    s := s + s2 + 'felelos = '''+u16noesc(chlFelelos.Text)+''' ';
+    s := s + s2 + 'felelos = '''+u16u8trunc(chlFelelos.Text)+''' ';
     s2 := ' AND ';
   end;
 

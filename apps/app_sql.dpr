@@ -5,10 +5,11 @@
 
 program app_sql;
 
+{$APPTYPE GUI}
+{.$APPTYPE CONSOLE}
+
 {$ifdef FPC}
   {$mode objfpc}{$H+}
-{$else}
-  {$APPTYPE CONSOLE}
 {$endif}
 
 uses
@@ -354,9 +355,9 @@ var
   dbselform : TDBSelForm;
 
 begin
-  Writeln('LPTK SQL utility');
-
   GfxOpenDisplay('');
+
+  Writeln('LPTK SQL utility');
 
   dbselform := TDBSelForm.Create(nil);
   dbselform.Show;
