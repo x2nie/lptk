@@ -9,9 +9,6 @@ interface
 uses
   Classes, SysUtils, gfxbase;
 
-const
-     EItemExistsMessage = 'Image Index %i already exists in ImageList!';
-
 type
     EItemExists = class(Exception);
     
@@ -31,7 +28,7 @@ type
                    property Image : TgfxImage read FImage write SetImage;
                    property ImageList : TgfxImageList read FImageList write SetImageList;
                    procedure LoadFromFile(AFileName : String);
-                   destructor Destroy;
+                   destructor Destroy; override;
                    constructor Create(AImageList : TgfxImageList; AIndex : Word; AImage : TgfxImage); {$IFNDEF fpc}override;{$ENDIF}
                    constructor Create; {$IFNDEF fpc}override;{$ENDIF}
                    constructor Create(AFileName : string; AIndex : Word);
@@ -46,16 +43,29 @@ type
                     procedure SetItem(AIndex : integer; AItem : TgfxImageItem);
            public
                  property Item[AIndex : integer] : TgfxImageItem read GetItem write SetItem;
+		 procedure AddItemFromFile(AFileName : String; AIndex : Word);
                  procedure RemoveIndex(AIndex : integer);
                  function GetMaxItem : word;
                  constructor Create;
-                 destructor Destroy;
+                 destructor Destroy; override;
     end;
 
 implementation
 
 uses
     gfxbmpimage;
+
+procedure TgfxImageList.AddItemFromFile(AFileName : String; AIndex : Word);
+var
+    AImageItem : TgfxImageItem;
+begin
+    {$IFDEF DEBUG}
+    writeln('TgfxImageList.AddItemFromFile');
+    {$ENDIF}
+    AImageItem := TgfxImageItem.Create;
+    AImageItem.LoadFromFile(AFileName);
+    Item[AIndex] := AImageItem;
+end;
 
 function TgfxImageList.GetFListIndex(AIndex : Integer) : Integer;
 var
@@ -124,6 +134,7 @@ begin
      for ACounter := 0 to FList.Count - 1 do
          TgfxImageItem(FList[ACounter]).Destroy;  // frees images
      FList.Destroy;
+     inherited Destroy;
 end;
 
 constructor TgfxImageList.Create;
@@ -186,6 +197,7 @@ destructor TgfxImageItem.Destroy;
 begin
      if FImage <> nil then
         FImage.Destroy;
+     inherited Destroy;
 end;
 
 procedure TgfxImageItem.SetImageList(AImageList : TgfxImageList);
@@ -206,27 +218,13 @@ begin
 end;
 
 procedure TgfxImageItem.LoadFromFile(AFileName : String);
-var
-   AFile : File of Char;
-   AImageData : Pointer;
-   AImageDataSize : longint;
 begin
      {$IFDEF DEBUG}
      writeln('TgfxImageItem.LoadFromFile');
      {$ENDIF}
      if FImage <> nil then FImage.Destroy;
-     FImage := nil;
-     if not FileExists(AFileName) then exit;
-     // reserve memory for the image
-     AssignFile(AFile,AFileName);
-     reset(AFile);
-     AImageDataSize := FileSize(AFile);
-     GetMem(AImageData,AImageDataSize);
-     BlockRead(AFile,AImageData^,AImageDataSize);
-     CloseFile(AFile);
-     if AImageData = nil then exit; // memory not allocated
-     Image := CreateBMPImage(AImageData,AImageDataSize);
-     FreeMem(AImageData);
+     FImage := TgfxImage.Create;
+     FImage.LoadFromFile(AFileName);
 end;
 
 end.
