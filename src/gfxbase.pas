@@ -330,7 +330,7 @@ type
     FMetrics : Windows.TEXTMETRIC;
 {$else}{$endif}
   public
-    constructor Create(afont : TGfxFontData; FontDesc : string);
+    constructor Create(afont : TGfxFontData; aFontDesc : string);
     destructor Destroy; override;
 
     function Handle : TFontHandle;
@@ -1728,7 +1728,7 @@ begin
     // named color
     c := guistyle.GetNamedColorRGB(col);
   end
-  else c := col
+  else c := col;
 
   if DisplayDepth >= 24 then
   begin
@@ -2906,7 +2906,7 @@ begin
   begin
     for n := 0 to FFontResourceList.Count-1 do
     begin
-      if FFontResourceList[n] = FFontRes then
+      if FFontResourceList[n] = Pointer(FFontRes) then
       begin
         FFontRes.Free;
         FFontResourceList.Delete(n);
@@ -3463,10 +3463,10 @@ end;
 
 { TGfxFontResource }
 
-constructor TGfxFontResource.Create(afont: TGfxFontData; FontDesc: string);
+constructor TGfxFontResource.Create(afont: TGfxFontData; aFontDesc: string);
 begin
   FFont := afont;
-  FFontDesc := FontDesc;
+  FFontDesc := aFontDesc;
   FRefCount := 1;
 {$ifdef Win32}
   SelectObject(display, afont);
