@@ -122,15 +122,17 @@ begin
 
   canvas.SetColor(clBoxColor);
   canvas.FillRect(r);
+  DrawControlFrame(canvas,r.Left,r.Top,r.width,r.height);
+
   canvas.SetColor(clText1);
-  canvas.DrawRect(r);
+//  canvas.DrawRect(r);
 
-  tx := r.right + 6;
+  tx := r.right + 8;
 
-  inc(r.left,3);
-  inc(r.top,3);
-  dec(r.width,6);
-  dec(r.height,6);
+  inc(r.left,4);
+  inc(r.top,4);
+  dec(r.width,8);
+  dec(r.height,8);
 
   canvas.SetLineStyle(2,false);
   if FChecked then

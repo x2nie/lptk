@@ -421,24 +421,37 @@ end;
 procedure TwgMemo.UpdateScrollBar;
 var
   vlines : integer;
-  vsbw   : integer;
-  hsbwas, vsbwas : boolean;
+  vsbw,x   : integer;
+  hsbwas, vsbwas, vsbvis : boolean;
 begin
   hsbwas := FHScrollBar.Visible;
   vsbwas := FVScrollBar.Visible;
 
   vlines := (Height - (FSideMargin shl 1)) div Lineheight;
 
-  FVScrollBar.Visible := (LineCount > vlines);
-  if FVScrollBar.Visible then vsbw := FVScrollBar.width else vsbw := 0;
+  vsbvis := (LineCount > vlines);
+
+  if vsbvis then vsbw := FVScrollBar.width else vsbw := 0;
 
   FHScrollBar.Visible := FLongestLineWidth > (Width - vsbw - FSideMargin*2) - 1;
 
-  if FHScrollBar.Visible and not FVScrollBar.Visible then
+  if FHScrollBar.Visible and not vsbvis then
   begin
     // recheck vertical scrollbar
     vlines := (Height - (FSideMargin shl 1) - FHScrollBar.Height) div Lineheight;
-    FVScrollBar.Visible := (LineCount > vlines);
+    vsbvis := (LineCount > vlines);
+  end;
+  
+  FVScrollBar.Visible := vsbvis;
+  
+  if FHScrollBar.Visible then
+  begin
+    if not FVScrollBar.Visible then x := Width else x := Width - FVscrollBar.Width;
+    if x <> FHScrollBar.Width then
+    begin
+      FHScrollBar.Width := x;
+      FHScrollBar.UpdateWindowPosition;
+    end;
   end;
 
   if FHScrollBar.Visible then
@@ -578,19 +591,32 @@ var
   tw, tw2, st, len : integer;
   yp : integer;
   ls : string16;
-
+  r : TGfxRect;
   selsl, selsp, selel, selep : integer;
 begin
   if WinHandle <= 0 then Exit;
   //inherited RePaint;
 
-  //writeln('edit onpaint event...');
   Canvas.DrawOnBuffer := True;
-  Canvas.Clear(FBackgroundColor);
-  if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
-  Canvas.DrawRectangle(0,0,width,height);
+  
+  Canvas.ClearClipRect;
+  DrawControlFrame(canvas,0,0,width,height);
+{
+  if Focused then
+  begin
+    Canvas.SetColor(clWidgetFrame);
+    Canvas.DrawRectangle(0,0,width,height);
+  end;
+}
+  r.Left := 2;
+  r.Top  := 2;
+  r.width := width - 4;
+  r.height := height - 4;
+  canvas.SetClipRect(r);
 
-  //Canvas.SetTextColor($00004000);
+  Canvas.SetColor(FBackgroundColor);
+  Canvas.FillRectAngle(2,2,width-4,height-4);
+
   Canvas.SetFont(FFont);
 
   if (FSelStartLine shl 16) + FSelStartPos <= (FSelEndLine shl 16) + FSelEndPos then
@@ -604,7 +630,7 @@ begin
     selsl := FSelEndLine;   selsp := FSelEndPos;
   end;
 
-  yp := 2;
+  yp := 3;
   for n := FFirstline to LineCount do
   begin
     ls := GetLineText(n);

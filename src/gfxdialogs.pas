@@ -716,7 +716,7 @@ begin
   edRComp := TWGEDIT.Create(self);
   with edRComp do
   begin
-    SetDimensions(24,8,62,20);
+    SetDimensions(24,8,62,22);
     Text := u8('255');
     OnChange := RGBChange;
   end;
@@ -724,7 +724,7 @@ begin
   edGComp := TWGEDIT.Create(self);
   with edGComp do
   begin
-    SetDimensions(24,32,62,20);
+    SetDimensions(24,32,62,22);
     Text := u8('64');
     OnChange := RGBChange;
   end;
@@ -732,7 +732,7 @@ begin
   edBComp := TWGEDIT.Create(self);
   with edBComp do
   begin
-    SetDimensions(24,56,62,20);
+    SetDimensions(24,56,62,22);
     Text := u8('45');
     OnChange := RGBChange;
   end;
@@ -747,7 +747,7 @@ begin
   edHex := TWGEDIT.Create(self);
   with edHex do
   begin
-    SetDimensions(8,104,78,20);
+    SetDimensions(8,104,78,22);
     Text := u8('edHex');
     OnChange := HexChange;
   end;

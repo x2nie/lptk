@@ -97,7 +97,7 @@ begin
   inherited;
   Focusable := true;
   FFont := guistyle.EditFont1;
-  FHeight := FFont.Height + 4;
+  FHeight := FFont.Height + 6;
   FBackgroundColor := clBoxColor;
 
   FSelecting := false;
@@ -200,24 +200,37 @@ end;
 
 procedure TwgEdit.RePaint;
 var
+  r : TGfxRect;
   tw, tw2, st, len : integer;
   dtext : string16;
 begin
+  if WinHandle <= 0 then Exit;
   //inherited RePaint;
 
-  //writeln('edit onpaint event...');
-
   Canvas.DrawOnBuffer := true;
-
-  Canvas.Clear(FBackgroundColor);
-  if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
-  Canvas.DrawRectangle(0,0,width,height);
+  
+  Canvas.ClearClipRect;
+  DrawControlFrame(canvas,0,0,width,height);
+{
+  if Focused then
+  begin
+    Canvas.SetColor(clWidgetFrame);
+    Canvas.DrawRectangle(0,0,width,height);
+  end;
+}
+  r.Left := 2;
+  r.Top  := 2;
+  r.width := width - 4;
+  r.height := height - 4;
+  canvas.SetClipRect(r);
+  
+  Canvas.SetColor(FBackgroundColor);
+  Canvas.FillRectAngle(2,2,width-4,height-4);
 
   dtext := GetDrawText;
 
-  //Canvas.SetTextColor($00004000);
   Canvas.SetFont(FFont);
-  Canvas.DrawString16(- FDrawOffset + FSideMargin, 2, dtext);
+  Canvas.DrawString16(- FDrawOffset + FSideMargin, 3, dtext);
 
   if Focused then
   begin
@@ -233,13 +246,13 @@ begin
 
       tw := FFont.TextWidth16(copy16(dtext,1,st));
       tw2 := FFont.TextWidth16(copy16(dtext,1,st+len));
-      Canvas.DrawSelectionRectangle(- FDrawOffset + FSideMargin + tw, 2, tw2-tw, FFont.Height);
+      Canvas.DrawSelectionRectangle(- FDrawOffset + FSideMargin + tw, 3, tw2-tw, FFont.Height);
     end;
 
     // drawing cursor
     tw := FFont.TextWidth16(copy16(dtext,1,FCursorPos));
     Canvas.SetColor(clTextCursor);
-    Canvas.FillRectangle(- FDrawOffset + FSideMargin + tw, 2, 2, FFont.Height);
+    Canvas.FillRectangle(- FDrawOffset + FSideMargin + tw, 3, 2, FFont.Height);
   end;
 
   Canvas.SwapBuffer;
@@ -264,7 +277,7 @@ begin
 
   prevval := Text;
 
-  writeln('wgedit.keypress: ',IntToHex(keycode,4), ' shift: ',IntToHex(shiftstate,4));
+  //writeln('wgedit.keypress: ',IntToHex(keycode,4), ' shift: ',IntToHex(shiftstate,4));
 
   s := chr(keycode and $00FF) + chr((keycode and $FF00) shr 8);
 

@@ -5,6 +5,9 @@ History:
 }
 
 // $Log$
+// Revision 1.18  2004/04/24 12:53:43  nvitya
+// better control frames
+//
 // Revision 1.17  2004/04/22 10:12:21  nvitya
 // multiple updates
 //
@@ -129,8 +132,7 @@ type
 
     procedure HandleDoubleClick(x,y : integer; btnstate, shiftstate : word); override;
 
-    procedure HandleResize
-    (dwidth, dheight : integer); override;
+    procedure HandleResize(dwidth, dheight : integer); override;
   public
 
     OnFocusChange : TFocusChangeNotify;
@@ -272,17 +274,15 @@ begin
     FVScrollBar.Max := RowCount-VisibleLines+1;
     FVScrollBar.Position := FFirstRow;
 
-    if FVScrollBar.WinHandle > 0 then
-      FVScrollBar.RePaintSlider;
+    if FVScrollBar.WinHandle > 0 then FVScrollBar.RePaintSlider;
   end;
   if FHScrollBar.Visible then
   begin
-       if FVScrollBar.Visible then
-          FHScrollBar.SetDimensions(1,height - 18,width - FVScrollbar.width - 1, 18)
-       else
-           FHScrollBar.SetDimensions(1,height - 18,width - 1, 18);
-       if FHScrollBar.WinHandle > 0 then
-          FHScrollBar.RepaintSlider;
+    if FVScrollBar.Visible
+      then FHScrollBar.SetDimensions(1,height - 18,width - FVScrollbar.width - 1, 18)
+      else FHScrollBar.SetDimensions(1,height - 18,width - 1, 18);
+       
+    if FHScrollBar.WinHandle > 0 then FHScrollBar.RepaintSlider;
   end;
 end;
 
@@ -328,7 +328,7 @@ begin
   FPrevRow := 0; //FFocusRow;
   FFirstRow := 1;
   FFirstCol := 1;
-  FMargin := 1;
+  FMargin := 2;
   FFont := guistyle.GridFont;
   FHeaderFont := guistyle.GridHeaderFont;
   HeadersOn := true;
@@ -365,9 +365,14 @@ begin
   if WinHandle <= 0 then Exit;
 //  inherited RePaint;
 
-  canvas.ClearClipRect;
-  if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
-  Canvas.DrawRectangle(0,0,width,height);
+  Canvas.DrawOnBuffer := true;
+
+  Canvas.ClearClipRect;
+  DrawControlFrame(canvas,0,0,width,height);
+  r.SetRect(2, 2, width - 4, height - 4);
+  canvas.SetClipRect(r);
+  Canvas.SetColor(FBackgroundColor);
+  Canvas.FillRectAngle(2,2,width-4,height-4);
 
   clr.SetRect(FMargin,FMargin, VisibleWidth, height-2*FMargin);
   r := clr;
@@ -421,10 +426,9 @@ begin
         canvas.SetClipRect(clr);
 
         // drawing grid lines
-        if DrawGrid then
-	    Canvas.SetColor(clGridLines)
-	else
-	    Canvas.SetColor(BackgroundColor);
+        if DrawGrid then Canvas.SetColor(clGridLines)
+                  	else Canvas.SetColor(BackgroundColor);
+                   
         canvas.DrawLine(r.Left,r.Bottom+1,r.Right+1,r.Bottom+1);
         canvas.DrawLine(r.Right+1,r.Top,r.Right+1,r.Bottom+1);
         
@@ -487,6 +491,7 @@ begin
     canvas.FillRect(r);
   end;
 
+  Canvas.SwapBuffer;
 end;
 
 procedure TwgGrid.Update;

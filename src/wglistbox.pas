@@ -19,7 +19,9 @@ type
 
   TwgListBox = class(TWidget)
   private
+    FPopupFrame: boolean;
     procedure SetFocusItem(const AValue: integer);
+    procedure SetPopupFrame(const AValue: boolean);
   protected
     FFont : TGfxFont;
 
@@ -72,6 +74,8 @@ type
     procedure HandleResize(dwidth, dheight : integer); override;
 
     property FocusItem : integer read FFocusItem write SetFocusItem;
+    
+    property PopupFrame : boolean read FPopupFrame write SetPopupFrame;
 
   public
 
@@ -115,6 +119,13 @@ begin
   FollowFocus;
   UpdateScrollbar;
   if FWinHandle > 0 then RePaint;
+end;
+
+procedure TwgListBox.SetPopupFrame(const AValue: boolean);
+begin
+  if FPopupFrame=AValue then exit;
+  FPopupFrame:=AValue;
+  If Windowed then Repaint;
 end;
 
 procedure TwgListBox.DoShow;
@@ -219,6 +230,7 @@ begin
   FFirstItem := 1;
   FMargin := 2;
   FMouseDragging := false;
+  FPopupFrame := false;
 
   HotTrack := false;
 
@@ -240,12 +252,26 @@ begin
   //inherited RePaint;
   if not Windowed then Exit;
   Canvas.DrawOnBuffer := True;
-  canvas.ClearClipRect;
-  canvas.Clear(FBackgroundColor);
-  canvas.SetFont(FFont);
+  
+  Canvas.ClearClipRect;
+  
+  if popupframe then
+  begin
+    canvas.SetColor(clWidgetFrame);
+    Canvas.DrawRectangle(0,0,width,height);
+    r.SetRect(1,1, width - 2, height - 2);
+  end
+  else
+  begin
+    DrawControlFrame(canvas,0,0,width,height);
+    r.SetRect(2,2, width - 4, height - 4);
+  end;
 
-  if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
-  Canvas.DrawRectangle(0,0,width,height);
+  canvas.SetClipRect(r);
+  Canvas.SetColor(FBackgroundColor);
+  Canvas.FillRect(r);
+  
+  canvas.SetFont(FFont);
 
   r.SetRect(FMargin,FMargin, width-ScrollBarWidth-FMargin-2, height-(2*FMargin));
   canvas.SetClipRect(r);

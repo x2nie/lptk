@@ -122,6 +122,7 @@ begin
   FListPopup.ListBox.OnSelect := {$ifdef FPC}@{$endif}ListSelect;
   FListPopup.ListBox.HotTrack := true;
   FListPopup.ListBox.BackgroundColor := clChoicelistBox;
+  FListPopup.ListBox.PopupFrame := true;
 
   FListPopup.CallerWidget := self;
 
@@ -148,15 +149,28 @@ procedure TwgChoiceList.RePaint;
 var
   r : TGfxRect;
 begin
-  canvas.ClearClipRect;
-  canvas.Clear(FBackgroundColor);
-  canvas.SetFont(FFont);
+  if FWinHandle <= 0 then Exit;
 
-  if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
-  Canvas.DrawRectangle(0,0,width,height);
+  Canvas.ClearClipRect;
 
+  DrawControlFrame(canvas,0,0,width,height);
+
+  r.Left := 2;
+  r.Top  := 2;
+  r.width := width - 4;
+  r.height := height - 4;
+  canvas.SetClipRect(r);
+
+  Canvas.SetColor(FBackgroundColor);
+  Canvas.FillRectAngle(2,2,width-4,height-4);
+  
+  //if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
+  //Canvas.DrawRectangle(0,0,width,height);
+  
   DrawButtonFace(canvas, width - height + 1, 1, height-2, height-2);
   DrawDirectionArrow(canvas, width - height + 1, 1, height-2, height-2, 1);
+
+  canvas.SetFont(FFont);
 
   if FFocused then
   begin

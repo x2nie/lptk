@@ -95,6 +95,7 @@ type
 function guistyle : TGfxStyle;
 
 procedure DrawButtonFace(canvas : TGfxCanvas; x,y,w,h : TGfxCoord);
+procedure DrawControlFrame(canvas : TGfxCanvas; x, y, w, h : TGfxCoord);
 procedure DrawDirectionArrow(canvas : TGfxCanvas; x,y,w,h : TGfxCoord; direction : integer);
 
 implementation
@@ -216,6 +217,25 @@ begin
   canvas.SetColor(clShadow1);
   Canvas.DrawLine(x+w-2,y+2, x+w-2,y+h-2);
   Canvas.DrawLine(x+1,y+h-2, x+w-2,y+h-2);
+end;
+
+procedure DrawControlFrame(canvas : TGfxCanvas; x, y, w, h : TGfxCoord);
+begin
+  canvas.SetColor(clShadow1);
+  Canvas.DrawLine(x,y, x+w-1,y);
+  Canvas.DrawLine(x,y+h-1, x,y);
+
+  canvas.SetColor(clShadow2);
+  Canvas.DrawLine(x+1,y+1,  x+w-2,y+1);
+  Canvas.DrawLine(x+1,y+h-2, x+1,y+1);
+
+  canvas.SetColor(clHilite2);
+  Canvas.DrawLine(x+1,y+h-1, x+w-1,y+h-1);
+  Canvas.DrawLine(x+w-1,y+1, x+w-1,y+h-1);
+
+  canvas.SetColor(clHilite1);
+  Canvas.DrawLine(x+2,y+h-2, x+w-2,y+h-2);
+  Canvas.DrawLine(x+w-2,y+2, x+w-2,y+h-2);
 end;
 
 procedure DrawDirectionArrow(canvas : TGfxCanvas; x, y, w, h : TGfxCoord; direction : integer);
