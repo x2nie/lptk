@@ -23,7 +23,7 @@ end;
 procedure TMainForm.AfterCreate;
 begin
      SetDimensions(0,0,100,100);
-     FButton := CreateButton(self, 10,10,80, 'Filedialog',@OnClick);
+     FButton := CreateButton(self, 10,10,80, 'Filedialog',{$IFDEF FPC}@{$ENDIF}OnClick);
 end;
 
 var
