@@ -4,9 +4,12 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.11  2003/10/30 11:21:30  aegluke
+// DoExpand and onExpand-Event
+//
 // Revision 1.10  2003/10/29 18:01:06  aegluke
 // jump to selected node, expands up to selected node
-//    
+//  
     29.10.2003	0.9a	Doubleclick-Handling implemented
     28.10.2003	0.9	TwgTreeNode.Clear added - removes all subnodes - recourse
     20.07.2003	0.8a	bugfix for scrollbar-handling
@@ -108,6 +111,8 @@ type
 	    property SelTextColor : TgfxColor read FSelTextColor write SetSelTextColor;	    
     end;
 
+    TTreeExpandEvent = procedure(aSender : TObject; Node : TwgTreeNode) of object;
+
     TwgTree = class(TWidget)
 	private
 	    FRootNode : TwgTreeNode;
@@ -150,8 +155,10 @@ type
 	    procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
 	    procedure HandleDoubleClick(x,y : integer; button : word; shiftstate : word); override;
 	    procedure DoChange;	virtual;
+	    procedure DoExpand(aNode : TwgTreeNode); virtual;
 	public
 	    OnChange : TNotifyEvent;
+	    OnExpand : TTreeExpandEvent;
 	    constructor Create(aOwner : TComponent); override;
 	    procedure SetColumnWidth(aindex, awidth : word);
 	    function GetColumnWidth(aIndex : word) : word; // the width of a column - aIndex of the rootnode = 0
@@ -172,6 +179,12 @@ uses gfxstyle;
 
 { TwgTree }
 
+procedure TwgTree.DoExpand(aNode : TwgTreeNode);
+begin
+    if Assigned(onExpand) then 
+	onExpand(self, aNode);
+end;
+
 procedure TwgTree.SetSelection(aValue : TwgTreeNode);
 begin
     {$IFDEF DEBUG}
@@ -186,6 +199,7 @@ begin
 	    while aValue <> nil do	// expandiert rekursiv bis zur rootnode runter
 	    begin
 		aValue.Expand;
+		DoExpand(aValue);
 		aValue := aValue.parent;
 	    end;
 	end;
@@ -194,12 +208,14 @@ begin
 	    FVScrollbar.Position := GetAbsoluteNodeTop(Selection)+FFont.Height - VisibleHeight;
 	    FYOffset := FVScrollbar.Position;
 	    UpdateScrollBars;
+	    FVScrollbar.RePaint;
 	end;
 	if GetAbsoluteNodeTop(Selection) - FVScrollbar.Position < 0 then
 	begin
 	    FVScrollbar.Position := GetAbsoluteNodeTop(Selection);
 	    FYOffset := FVScrollbar.Position;
 	    UpdateScrollbars;
+	    FVScrollbar.RePaint;
 	end;
 	RePaint;
     end;
@@ -275,7 +291,10 @@ begin
     HandleMouseUp(x,y,button,shiftstate);
     inherited HandleDoubleClick(x,y,button,shiftstate);
     if Selection.Collapsed then 
-	Selection.Expand
+    begin
+	Selection.Expand;
+	DoExpand(Selection);
+    end
     else
 	Selection.Collapse;
     RePaint;
@@ -339,7 +358,13 @@ begin
 	    begin 										// yes
 		if node.count > 0 then
 		begin
-		    if node.collapsed then node.expand else node.collapse;
+		    if node.collapsed then 
+		    begin
+			node.expand;
+			DoExpand(node);
+		    end
+		    else 
+			node.collapse;
 		    RePaint;
 		end;
 	    end
@@ -363,6 +388,7 @@ begin
     case KeyCode of
 	KEY_RIGHT : begin
 	    Selection.Collapsed := false;
+	    DoExpand(Selection);
 	    RePaint;
 	end;
 	KEY_LEFT : begin
@@ -853,11 +879,13 @@ begin
     FHScrollbar.onScroll := {$IFDEF FPC}@{$ENDIF}FHScrollbarMove;
     FHScrollbar.Visible := false;
     FHScrollbar.Position := 0;
+    FHScrollbar.SliderSize := 0.2;
     FVScrollbar := TwgScrollbar.Create(self);
     FVScrollbar.Orientation := orVertical;
     FVScrollbar.onScroll := {$IFDEF FPC}@{$ENDIF}FVScrollbarMove;
     FVScrollbar.Visible := false;
     FVScrollbar.Position := 0;
+    FVScrollbar.SliderSize := 0.2;
     FBackgroundColor := clListBox;
     FFocusable := true;
     FMoving := false;
