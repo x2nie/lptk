@@ -2,6 +2,9 @@
 }
 
 // $Log$
+// Revision 1.5  2004/04/19 04:26:39  nvitya
+// compatibility fix
+//
 // Revision 1.4  2004/02/25 06:41:53  aegluke
 // Bugfix in SetFixedTabWidth with empty Tab-Caption
 //
@@ -730,7 +733,7 @@ begin
     FMargin := 1;
     FFixedTabWidth := 0;
     FFont := guistyle.LabelFont1;
-    FFirstTabButton := 0;
+    FFirstTabButton := nil;
     FLeftButton := TwgButton.Create(self);
     FLeftButton.Text := Str8To16('<');
     FLeftButton.Width := FLeftButton.Height;
