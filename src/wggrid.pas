@@ -5,6 +5,9 @@ History:
 }
 
 // $Log$
+// Revision 1.14  2003/12/20 15:13:01  aegluke
+// wgFileGrid-Changes
+//
 // Revision 1.13  2003/12/11 12:56:43  aegluke
 // Bugfix VisibleLines, FHScrollbar-Dependend by now
 //
@@ -30,6 +33,7 @@ type
 
   TwgGrid = class(TWidget)
   private
+    FDrawGrid : boolean;
     procedure SetFocusCol(const Value: integer);
     procedure SetFocusRow(const Value: integer);
   protected
@@ -42,7 +46,7 @@ type
 
     function GetColumnWidth(col : integer) : TGfxCoord; virtual;
     procedure SetColumnWidth(col : integer; cwidth : TgfxCoord); virtual;
-
+    procedure SetDrawGrid(AValue : Boolean);
   public
     FRowHeight : TGfxCoord;
     FHeaderHeight : TGfxCoord;
@@ -59,11 +63,12 @@ type
 
     FVScrollBar : TwgScrollBar;
     FHScrollBar : TwgScrollBar;
-    
+
     FColResizing : boolean;
     FResizedCol  : integer;
     FDragPos : integer;
 
+    property DrawGrid : boolean read FDrawGrid write SetDrawGrid;
     property FocusCol : integer read FFocusCol write SetFocusCol;
     property FocusRow : integer read FFocusRow write SetFocusRow;
 
@@ -76,11 +81,11 @@ type
 
     function GetColumnCount : integer; virtual;
     function GetRowCount : integer; virtual;
-    
+
     property ColumnCount : integer read GetColumnCount;
     property RowCount : integer read GetRowCount;
 
-    procedure FollowFocus;
+    procedure FollowFocus; virtual;
 
     function VisibleLines : integer;
     function VisibleWidth : integer;
@@ -117,7 +122,6 @@ type
 
     procedure HandleResize
     (dwidth, dheight : integer); override;
-
   public
 
     OnFocusChange : TFocusChangeNotify;
@@ -133,6 +137,14 @@ uses gfxstyle; //, xlib, x, xutil;
 
 { TwgGrid }
 
+procedure TwgGrid.SetDrawGrid(AValue : Boolean);
+begin
+  if AValue <> FDrawGrid then
+  begin
+    FDrawGrid := AValue;
+    RePaint;
+  end;
+end;
 
 function TwgGrid.GetColumnCount: integer;
 begin
@@ -299,6 +311,7 @@ end;
 constructor TwgGrid.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  DrawGrid := true;
   Focusable := true;
   FFocusCol := 1;
   FPrevCol := 0; //FFocusCol;
@@ -344,7 +357,8 @@ begin
 //  inherited RePaint;
 
 //  Canvas.Clear;
-  canvas.ClearClipRect;
+  Canvas.Clear(BackgroundColor); // problems with DrawGrid-Property without override with background-color
+//  canvas.ClearClipRect;
   if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
   Canvas.DrawRectangle(0,0,width,height);
 
@@ -400,10 +414,13 @@ begin
         canvas.SetClipRect(clr);
 
         // drawing grid lines
-        canvas.SetColor(clGridLines);
-        canvas.DrawLine(r.Left,r.Bottom+1,r.Right+1,r.Bottom+1);
-        canvas.DrawLine(r.Right+1,r.Top,r.Right+1,r.Bottom+1);
-
+        if DrawGrid then
+        begin
+          canvas.SetColor(clGridLines);
+          canvas.DrawLine(r.Left,r.Bottom+1,r.Right+1,r.Bottom+1);
+          canvas.DrawLine(r.Right+1,r.Top,r.Right+1,r.Bottom+1);
+        end;
+        
         canvas.AddClipRect(r);
 
         if (row = FFocusRow) and (RowSelect or (col = FFocusCol)) then

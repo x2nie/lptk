@@ -1,8 +1,11 @@
-{ wgfilegrid.pas: FileGrid widget
-  File maintainer: Erik@Grohnwaldt.de
+{ wgcustomgrid.pas: simple grid
+  File maintainer: nvitya@freemail.hu
 
   History: }
 // $Log$
+// Revision 1.5  2003/12/20 15:13:01  aegluke
+// wgFileGrid-Changes
+//
 // Revision 1.4  2003/12/11 11:58:17  aegluke
 // Scrollbar-Changes
 //
@@ -37,7 +40,7 @@ type
   protected
     FRowCount : integer;
     FColumns : TList;
-
+    
     function GetColumnCount : integer; override;
     procedure SetColumnCount(value : integer);
 
@@ -138,7 +141,7 @@ begin
   n := FColumns.Count;
   if (n = value) or (value < 0) then Exit;
   
-  if n > FColumns.Count then
+  if n < value then
   begin
     // adding columns
     while n < value do
