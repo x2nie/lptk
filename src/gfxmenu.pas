@@ -28,9 +28,16 @@ type
     constructor Create(AOwner : TComponent); override;
     
     procedure Click;
+    
+    function Selectable : boolean;
+    
+    function GetAccelChar : string16;
   end;
 
   TPopupMenu = class(TPopupWindow)
+  private
+    FMargin : TGfxCoord;
+    FTextMargin : TGfxCoord;
   protected
     FMenuFont   : TGfxFont;
     FMenuAccelFont  : TGfxFont;
@@ -64,6 +71,12 @@ type
     procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
 
+    procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
+    
+    procedure DoSelect;
+    
+    function SearchItemByAccel(s : string16) : integer;
+    
   public
 
     function AddMenuItem8(const menuname8 : string; const hotkeydef8 : string; HandlerProc : TNotifyEvent) : TMenuItem;
@@ -97,6 +110,23 @@ begin
   if Assigned(Handler) then Handler(self);
 end;
 
+function TMenuItem.Selectable: boolean;
+begin
+  result := Enabled and Visible and NOT Separator;
+end;
+
+function TMenuItem.GetAccelChar: string16;
+var
+  p : integer;
+begin
+  p := pos16(u8('&'),Text);
+  if p > 0 then
+  begin
+    result := copy16(Text,p+1,1);
+  end
+  else result := '';
+end;
+
 { TPopupMenu }
 
 function TPopupMenu.VisibleCount: integer;
@@ -115,11 +145,14 @@ constructor TPopupMenu.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  FMargin := 2;
+  FTextMargin := 3;
+
   FItems := TList.Create;
 
-  FMenuFont := guistyle.LabelFont1;
-  FMenuAccelFont := guistyle.LabelFont2;
-  FMenuDisabledFont := guistyle.LabelFont1;
+  FMenuFont := guistyle.MenuFont;
+  FMenuAccelFont := guistyle.MenuAccelFont;
+  FMenuDisabledFont := guistyle.MenuDisabledFont;
   
   FSymbolWidth := FMenuFont.Height+2;
 
@@ -156,6 +189,7 @@ begin
   // Measuring sizes
 
   h := 0; tw := 0; hkw := 0;
+  FSymbolWidth := 0;
 
   for n:=1 to VisibleCount do
   begin
@@ -170,8 +204,8 @@ begin
   
   if hkw > 0 then hkw := hkw + 5;
   
-  FHeight := 2+2+1 + h;
-  FWidth := 2+2+1 + FSymbolWidth + tw + hkw;
+  FHeight := FMargin*2 +1 + h;  // +1=the shadow
+  FWidth := (FMargin+FTextMargin)*2 +1 + FSymbolWidth + tw + hkw;
 
 end;
 
@@ -201,7 +235,6 @@ procedure TPopupMenu.Repaint;
 var
   n : integer;
   mi : TMenuItem;
-  r : TGfxRect;
 begin
   inherited Repaint;
 
@@ -211,29 +244,9 @@ begin
   Canvas.DrawLine(2,Height-1,width-1,Height-1);
   Canvas.DrawLine(Width-1,2,Width-1,Height-1);
 
-  r.SetRect(2,2, FWidth-1-2*2, FHeight-1-2*2);
-
   for n:=1 to VisibleCount do
   begin
-    mi := VisibleItem(n);
-    
-    r.height := ItemHeight(mi);
-    
-    if (n = 1) and (not mi.Separator) then
-    begin
-      canvas.SetColor(clSelection);
-      canvas.SetTextColor(clSelectionText);
-    end
-    else
-    begin
-      canvas.SetColor(BackgroundColor);
-      canvas.SetTextColor(clText1);
-    end;
-    canvas.FillRect(r);
-    
-    DrawItem(mi,r);
-
-    inc(r.Top, ItemHeight(mi) );
+    DrawRow(n,n = FFocusItem);
   end;
 end;
 
@@ -261,8 +274,8 @@ begin
   
   newf := CalcMouseRow(y);
   
-  if VisibleItem(newf).Separator then Exit;
-  
+  if NOT VisibleItem(newf).Selectable then Exit;
+
   if newf = FFocusItem then Exit;
   
   DrawRow(FFocusItem,false);
@@ -278,8 +291,8 @@ begin
 
   newf := CalcMouseRow(y);
 
-  if VisibleItem(newf).Separator then Exit;
-  
+  if NOT VisibleItem(newf).Selectable then Exit;
+
   if newf <> FFocusItem then
   begin
     DrawRow(FFocusItem,false);
@@ -289,31 +302,155 @@ begin
   
   if button <> 1 then Exit;
   
+  DoSelect;
+  
+end;
+
+procedure TPopupMenu.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
+var
+  oldf : integer;
+  i : integer;
+  s : string16;
+  
+  procedure FollowFocus;
+  begin
+    if oldf <> FFocusItem then
+    begin
+      DrawRow(oldf,false);
+      DrawRow(FFocusItem,true);
+    end;
+  end;
+  
+begin
+  inherited HandleKeyPress(keycode, shiftstate, consumed);
+
+  oldf := FFocusItem;
+
+  consumed := true;
+  case keycode of
+    KEY_UP:
+           begin // up
+             i := FFocusItem-1;
+             while (i >= 1) and not VisibleItem(i).Selectable do dec(i);
+             
+             if i >= 1 then FFocusItem := i;
+           end;
+    KEY_DOWN:
+           begin // down
+             if FFocusItem < VisibleCount then
+             begin
+               i := FFocusItem+1;
+               while (i <= VisibleCount) and not VisibleItem(i).Selectable do inc(i);
+
+               if i <= VisibleCount then FFocusItem := i;
+             end;
+           end;
+    KEY_ENTER:
+           begin // enter
+             DoSelect;
+           end;
+  else
+    consumed := false;
+  end;
+  
+  FollowFocus;
+  
+  if ((keycode and $8000) <> $8000) then
+  begin
+    // normal char
+    s := chr(keycode and $00FF) + chr((keycode and $FF00) shr 8);
+    i := SearchItemByAccel(s);
+    if i > 0 then
+    begin
+      FFocusItem := i;
+      FollowFocus;
+      
+      Consumed := true;
+      
+      DoSelect;
+    end;
+  end;
+
+end;
+
+procedure TPopupMenu.DoSelect;
+begin
   // Close this popup
   Close;
-  
+
   VisibleItem(FFocusItem).Click;
+end;
+
+function TPopupMenu.SearchItemByAccel(s: string16): integer;
+var
+  n : integer;
+begin
+  result := -1;
+  for n:=1 to VisibleCount do
+  begin
+    with VisibleItem(n) do
+    begin
+      if Enabled and (UpCase16(s) = UpCase16(GetAccelChar)) then
+      begin
+        result := n;
+        Exit;
+      end;
+    end;
+  end;
 end;
 
 procedure TPopupMenu.DrawItem(mi : TMenuItem; rect: TGfxRect);
 var
   s16 : string;
   x : integer;
+  p : integer;
+  achar, ch : string16;
 begin
   if mi.Separator then
   begin
-    Canvas.SetColor(clText1);
+    Canvas.SetColor(clMenuText);
     Canvas.DrawLine(rect.Left, rect.Top+2, rect.Right, rect.Top+2);
   end
   else
   begin
-    x := rect.Left + FSymbolWidth;
-    Canvas.DrawString16(x, rect.Top, mi.Text);
+    if not mi.Enabled
+      then Canvas.SetFont(FMenuDisabledFont)
+      else Canvas.SetFont(FMenuFont);
     
+    x := rect.Left + FSymbolWidth + FTextMargin;
+    achar := u8('&');
+    
+    s16 := mi.Text;
+    
+    repeat
+       p := Pos16(achar, s16);
+       if p > 0 then
+       begin
+         Canvas.DrawString16(x, rect.Top, copy16(s16,1,p-1));
+         inc(x, FMenuFont.TextWidth16(copy16(s16,1,p-1)) );
+         if copy16(s16,p+1,1) = achar then
+         begin
+           Canvas.DrawString16(x,rect.Top,achar);
+           inc(x, FMenuFont.TextWidth16(achar) );
+         end
+         else
+         begin
+           if mi.Enabled then Canvas.SetFont(FMenuAccelFont);
+           //Canvas.SetTextColor(clMenuAccel);
+           Canvas.DrawString16(x,rect.Top,copy16(s16,p+1,1));
+           inc(x, Canvas.Font.TextWidth16(copy16(s16,p+1,1)) );
+           if mi.Enabled then Canvas.SetFont(FMenuFont);
+         end;
+         s16 := copy16(s16,p+2,length16(s16));
+       end;
+    until p < 1;
+    
+    if Length16(s16) > 0 then Canvas.DrawString16(x, rect.Top, s16);
+
     if mi.HotKeyDef8 <> '' then
     begin
       s16 := u8(mi.HotKeyDef8);
-      Canvas.DrawString16(rect.Right-FMenuFont.TextWidth16(s16)-2, rect.Top, s16);
+      Canvas.DrawString16(rect.Right-FMenuFont.TextWidth16(s16)-FTextMargin, rect.Top, s16);
     end;
   end;
 end;
@@ -325,7 +462,7 @@ var
   r : TGfxRect;
   mi : TMenuItem;
 begin
-  r.SetRect(2,2, FWidth-1-2*2, FHeight-1-2*2);
+  r.SetRect(FMargin,FMargin, FWidth-2*FMargin-1, FHeight-2*FMargin-1);
 
   for n:=1 to VisibleCount do
   begin
@@ -335,15 +472,23 @@ begin
     
     if line = n then
     begin
-      if (focus) and (not mi.Separator) then
+      if focus and (not mi.Separator) then
       begin
         canvas.SetColor(clSelection);
         canvas.SetTextColor(clSelectionText);
       end
       else
       begin
-        canvas.SetColor(BackgroundColor);
-        canvas.SetTextColor(clText1);
+        if mi.Enabled then
+        begin
+          canvas.SetColor(BackgroundColor);
+          canvas.SetTextColor(clMenuText);
+        end
+        else
+        begin
+          canvas.SetColor(BackgroundColor);
+          canvas.SetTextColor(clMenuDisabled);
+        end;
       end;
       canvas.FillRect(r);
 

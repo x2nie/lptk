@@ -53,7 +53,10 @@ const
   
   clUnset		 = $80000018;
   
-  LastColorIndex         = $00000018;
+  clMenuText             = $80000019;
+  clMenuDisabled         = $8000001A;
+  
+  LastColorIndex         = $0000001A;
 
 type
 {$ifdef Win32}{$else}
@@ -74,6 +77,10 @@ type
 
     GridFont,
     GridHeaderFont   : TGfxFont;
+    
+    MenuFont,
+    MenuAccelFont,
+    MenuDisabledFont : TGfxFont;
 
     constructor Create;
     destructor Destroy; override;
@@ -126,7 +133,11 @@ begin
 
   GridFont       := GfxGetFont('arial-9:antialias=false');
   GridHeaderFont := GfxGetFont('arial-9:bold:antialias=false');
-  
+
+  MenuFont := GfxGetFont('arial-10');
+  MenuAccelFont := GfxGetFont('arial-10:bold');
+  MenuDisabledFont := GfxGetFont('arial-10:italic');
+
 {$ifdef Win32}{$else}
   AllocateNamedColors;
 {$endif}
@@ -171,6 +182,10 @@ begin
     clChoiceListBox:        result := $E8E8E8;
     
     clUnset:		    result := $D0D0FF;
+    
+    clMenuText:             result := $000000;
+    clMenuDisabled:         result := $909090;
+
   else
     result := 0;
   end;
