@@ -3,6 +3,7 @@ unit wgtree;
 { 
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
+    20.06.2003	0.6	use of the clUnset-Color, it replaces the ColorSet-properties in the treenodes
     19.06.2003	0.5	nodecolor can set for every node - if not set color setting of the parent is used
 			- feature-request from gunter burchard
     15.06.2003	0.4	functions GetFirst/LastSubNode changed to properties First/LastSubNode
@@ -44,11 +45,8 @@ type
 	    FCollapsed : boolean;
 	    
 	    FSelColor : TgfxColor;
-	    FSelColorB : boolean;
 	    FTextColor : TgfxColor;
-	    FTextColorB : boolean;
 	    FSelTextColor : TgfxColor;
-	    FSelTextColorB : boolean;
 	    
 	    procedure SetText(aValue : string16);
 	    procedure SetParent(aValue : TwgTreeNode);
@@ -95,11 +93,7 @@ type
 	    // color-settings
 	    property TextColor : TgfxColor read FTextColor write SetTextColor;
 	    property SelColor : TgfxColor read FSelColor write SetSelColor;
-	    property SelTextColor : TgfxColor read FSelTextColor write SetSelTextColor;
-	    
-	    property TextColorSet : boolean read FTextColorB write FTextColorB;
-	    property SelColorSet : boolean read FSelColorB write FSelColorB;
-	    property SelTextColorSet : boolean read FSelTextColorB write FSelTextColorB;
+	    property SelTextColor : TgfxColor read FSelTextColor write SetSelTextColor;	    
     end;
 
     TwgTree = class(TWidget)
@@ -1007,9 +1001,9 @@ begin
     FParent := nil;
     FNext := nil;
     FPrev := nil;
-    FSelColorB := false;
-    FSelTextColorB := false;
-    FTextColorB := false;
+    FSelColor := clUnset;
+    FSelTextColor := clUnset;
+    FTextColor := clUnset;
 end;
 
 procedure TwgTreeNode.DoRePaint;
@@ -1114,28 +1108,34 @@ end;
 
 procedure TwgTreeNode.SetSelTextColor(aValue : TgfxColor);
 begin
-    FSelTextColorB := true;
-    FSelTextColor := aValue;
-    DoRePaint;
+    if FTextColor <> aValue then
+    begin
+	FSelTextColor := aValue;
+	DoRePaint;
+    end;
 end;
 
 procedure TwgTreeNode.SetSelColor(aValue : TgfxColor);
 begin
-    FSelColorB := true;
-    FSelColor := aValue;
-    DoRePaint;
+    if FSelColor <> aValue then
+    begin
+	FSelColor := aValue;
+	DoRePaint;
+    end;
 end;
 
 procedure TwgTreeNode.SetTextColor(aValue : TgfxColor);
 begin
-    FTextColorB := true;
-    FTextColor := aValue;
-    DoRePaint;
+    if FTextColor <> aValue then
+    begin
+	FTextColor := aValue;
+	DoRePaint;
+    end;
 end;
 
 function TwgTreenode.ParentTextColor : TgfxColor;
 begin
-    if TextColorSet then result := TextColor
+    if TextColor <> clUnset then result := TextColor
     else
     begin
 	if parent <> nil then result := parent.ParentTextColor
@@ -1145,7 +1145,7 @@ end;
 
 function TwgTreeNode.ParentSelTextColor : TgfxColor;
 begin
-    if SelTextColorSet then result := SelTextColor
+    if SelTextColor <> clUnset then result := SelTextColor
     else
     begin
 	if parent <> nil then result := parent.ParentSelTextColor
@@ -1155,7 +1155,7 @@ end;
 
 function TwgTreeNode.ParentSelColor : TgfxColor;
 begin
-    if SelColorSet then result := SelColor
+    if SelColor<>clUnset then result := SelColor
     else
     begin
 	if parent <> nil then result := parent.ParentSelColor
