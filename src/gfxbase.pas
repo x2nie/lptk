@@ -309,7 +309,7 @@ type
     FFont : TGfxFontData;
 {$ifdef Win32}
     FMetrics : Windows.TEXTMETRIC;
-{$else}{$endif}    
+{$else}{$endif}
   public
     constructor Create(afont : TGfxFontData);
     destructor Destroy; override;
@@ -322,7 +322,7 @@ type
     function Descent : integer;
     Function Height  : integer;
   end;
-  
+
   TGfxImage = class
   private
 {$ifdef Win32}
@@ -434,7 +434,7 @@ type
     procedure GetWinRect(var r : TGfxRect);
 
     procedure Clear(col : TGfxColor);
-    
+
     procedure DrawImage(x,y : TGfxCoord; img : TGfxImage);
     procedure DrawImagePart(x,y : TGfxCoord; img : TGfxImage; xi,yi,w,h : integer);
   end;
@@ -2202,8 +2202,12 @@ end;
 
 procedure TGfxCanvas.DrawImagePart(x, y: TGfxCoord; img: TGfxImage; xi, yi, w,h: integer);
 {$ifdef Win32}
+const
+  DSTCOPY = $00AA0029;
+  ROP_DSPDxax = $00E20746;
 var
   tmpdc : HDC;
+  dstrop : longword;
 {$else}
 var
   msk : TPixmap;
@@ -2213,32 +2217,28 @@ var
 begin
 {$ifdef Win32}
   tmpdc := CreateCompatibleDC(display);
+
   SelectObject(tmpdc, img.BMPHandle);
+
+  dstrop := SRCCOPY;
+  if img.ColorDepth = 1 then
+  begin
+    dstrop := ROP_DSPDxax;
+  end;
 
   if img.Masked then
   begin
-    //MaskBlt(Fgc, x,y, w, h, tmpdc, xi, yi, img.MaskHandle, xi, yi, SRCCOPY);
-//    SelectObject(new_gc, (void*)mask);
-//    BitBlt(fl_gc, X, Y, W, H, new_gc, cx, cy, SRCAND);
-//    SelectObject(new_gc, (void*)id);
-//    BitBlt(fl_gc, X, Y, W, H, new_gc, cx, cy, SRCPAINT);
-
-    SelectObject(tmpdc, img.MaskHandle);
-    BitBlt(Fgc, x,y, w, h, tmpdc, xi, yi, SRCAND);
-//    SelectObject(tmpdc, img.BMPHandle);
-//    BitBlt(Fgc, x,y, w, h, tmpdc, xi, yi, SRCPAINT);
+    MaskBlt(Fgc, x,y, w, h, tmpdc, xi, yi, img.MaskHandle, xi, yi, MakeRop4(dstrop, DSTCOPY));
   end
-  else BitBlt(Fgc, x,y, w, h, tmpdc, xi, yi, SRCCOPY);
+  else BitBlt(Fgc, x,y, w, h, tmpdc, xi, yi, dstrop);
 
   DeleteDC(tmpdc);
 {$else}
   if img.Masked then
   begin
 
-    XSetForeground(display, Fgc, 0); // $FFFFFF);
-    XSetBackground(display, Fgc, $FF0000);
-
-//    XPutImage(display, FWin, Fgc, img.XImage, 0,0, x,y, img.width, img.height);
+    //XSetForeground(display, Fgc, 0); // $FFFFFF);
+    //XSetBackground(display, Fgc, $FF0000);
 
     // rendering the mask
 
@@ -2532,15 +2532,16 @@ var
 begin
   if (FWidth < 1) or (FHeight < 1) then Exit;
 
-  if FMaskData <> nil then FreeMem(FMaskData);
-
   FMasked := true;
-  
+
 {$ifdef Win32}
+  if FMaskHandle > 0 then DeleteObject(FMaskHandle);
 
   FMaskHandle := CreateBitmap(FWidth, FHeight, 1, 1, nil);
 
 {$else}
+
+  if FMaskData <> nil then FreeMem(FMaskData);
 
   dww := FWidth div 32;
   if (FWidth and $1F) > 0 then inc(dww);
@@ -2581,18 +2582,57 @@ end;
 
 procedure TGfxImage.Invert;
 var
+{$ifdef Win32}
+  tmpdc, srcdc : HDC;
+  tmpbmp : HBITMAP;
+  xc,yc : integer;
+  c, smp : longword;
+{$else}
   p : ^Byte;
   n : integer;
+{$endif}
 begin
-  if FImageData = nil then Exit;
+{$ifdef Win32}
+  if FBMPHandle = 0 then Exit;
+
+  writeln('inverting...');
+
+  srcdc := CreateCompatibleDC(display);
+  SelectObject(srcdc, FBMPHandle);
+
+  tmpdc := CreateCompatibleDC(srcdc);
+  tmpbmp := CreateCompatibleBitmap(srcdc,FWidth,FHeight);
+  SelectObject(tmpdc, tmpbmp);
+
+  BitBlt(tmpdc, 0,0, FWidth, FHeight, srcdc, 0, 0, NOTSRCCOPY);
+  BitBlt(srcdc, 0,0, FWidth, FHeight, tmpdc, 0, 0, SRCCOPY);
+  DeleteObject(tmpbmp);
+
+  if FMaskHandle > 0 then
+  begin
+    SelectObject(srcdc, FMaskHandle);
+
+    tmpbmp := CreateCompatibleBitmap(srcdc,FWidth,FHeight);
+    SelectObject(tmpdc, tmpbmp);
+
+    BitBlt(tmpdc, 0,0, FWidth, FHeight, srcdc, 0, 0, NOTSRCCOPY);
+    BitBlt(srcdc, 0,0, FWidth, FHeight, tmpdc, 0, 0, SRCCOPY);
+    DeleteObject(tmpbmp);
+  end;
+
+  DeleteDC(tmpdc);
+  DeleteDC(srcdc);
   
+{$else}
+  if FImageData = nil then Exit;
+
   p := FImageData;
   for n:=1 to FImageDataSize do
   begin
     p^ := p^ XOR $FF;
     inc(p);
   end;
-  
+
   if FMaskData <> nil then
   begin
     p := FMaskData;
@@ -2602,34 +2642,74 @@ begin
       inc(p);
     end;
   end;
+{$endif}
 end;
 
 procedure TGfxImage.CreateMaskFromSample(x, y: integer);
 var
+{$ifdef Win32}
+  tmpdc, srcdc : HDC;
+  xc,yc : integer;
+  c, smp : longword;
+{$else}
   p : ^longword;
   pmsk : ^byte;
   c : longword;
-  
+
   linecnt : integer;
   bcnt : integer;
   pixelcnt : integer;
   bit : byte;
   msklinelen : integer;
+{$endif}
 begin
-  if (FImageData = nil) then Exit;
   if FColorDepth = 1 then Exit;
-  
+
+  AllocateMask;
+
+{$ifdef Win32}
+  if FBMPHandle = 0 then Exit;
+
+  tmpdc := CreateCompatibleDC(display);
+  SelectObject(tmpdc, FMaskHandle);
+
+  srcdc := CreateCompatibleDC(display);
+  SelectObject(srcdc, FBMPHandle);
+
+  c := GetPixel(srcdc, x,y);
+  Writeln('Sample color: ',IntToHex(c,8));
+
+  for yc := 0 to FHeight-1 do
+  begin
+    for xc := 0 to FWidth-1 do
+    begin
+      if GetPixel(srcdc, xc, yc) = c then
+      begin
+        SetPixel(tmpdc, xc, yc, 0);
+//        write('0');
+      end else
+      begin
+        SetPixel(tmpdc, xc, yc, $FFFFFF);
+//        write('1');
+      end;
+    end;
+//    writeln;
+  end;
+
+  DeleteDC(tmpdc);
+  DeleteDC(srcdc);
+{$else}
+  if (FImageData = nil) then Exit;
+
   p := FImageData;
   if x < 0 then inc(p,FWidth-1) else inc(p,x);
   if y < 0 then inc(p,FWidth*(FHeight-1)) else inc(p,FWidth*y);
-  
+
   c := p^;  // the sample
-  
-  AllocateMask;
-  
+
   msklinelen := FWidth div 32;
   if (FWidth and $1F) > 0 then inc(msklinelen);
-  
+
   msklinelen := msklinelen shl 2;
   
   p := FImageData;
@@ -2662,6 +2742,8 @@ begin
     inc(linecnt);
 
   until linecnt >= FHeight;
+
+{$endif}
 
 end;
 
