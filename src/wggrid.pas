@@ -4,12 +4,11 @@
 History:
 }
 // $Log$
+// Revision 1.12  2003/12/11 12:54:14  aegluke
+// Bugfix VisibleLines, FHScrollbar-Dependend by now
+//
 // Revision 1.11  2003/12/11 11:57:50  aegluke
 // Scrollbar-Changes
-//
-// Revision 1.10  2003/12/10 19:06:54  aegluke
-// *** empty log message ***
-//
 
 unit wggrid;
 
@@ -209,7 +208,8 @@ function TwgGrid.VisibleLines: integer;
 var
   hh : integer;
 begin
-  if HeadersOn then hh := FHeaderHeight+1 else hh := 0;
+  if FHScrollBar.Visible then hh := FHScrollbar.Height;
+  if HeadersOn then hh := hh + FHeaderHeight+1;
   result := (self.Height - 2*FMargin - hh) div (FRowHeight+1)
 end;
 
