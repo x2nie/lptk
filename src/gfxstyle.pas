@@ -140,11 +140,11 @@ begin
   SetNamedFont('MenuDisabled',  'Arial-10:italic');
 
 
-  SetNamedColor( clWindowBackground,    $C0C0C0);
+  SetNamedColor( clWindowBackground,    $D4D0C8);
   SetNamedColor( clBoxColor,            $FFFFFF);
 
   SetNamedColor( clShadow1,             $808080);
-  SetNamedColor( clShadow2,             $202020);
+  SetNamedColor( clShadow2,             $404040);
   SetNamedColor( clHilite1,             $E0E0E0);
   SetNamedColor( clHilite2,             $FFFFFF);
 
@@ -159,8 +159,8 @@ begin
   SetNamedColor( clInactiveSel,         $D0D0FF);
   SetNamedColor( clInactiveSelText,     $000000);
 
-  SetNamedColor( clScrollBar,           $D0D0D0);
-  SetNamedColor( clButtonFace,          $C0C0C0);
+  SetNamedColor( clScrollBar,           $E8E4DB);
+  SetNamedColor( clButtonFace,          $D4D0C8);
 
   SetNamedColor( clListBox,             $FFFFFF);
 
@@ -326,7 +326,6 @@ end;
 procedure TGfxStyle.SetNamedFont(afontid, afontdesc: string);
 var
   n : integer;
-  afid : string;
 begin
   n:=0;
   while (n < FNamedFonts.Count) and (lowercase(TNamedFontItem(FNamedFonts[n]).FontID) <> lowercase(afontid)) do inc(n);
