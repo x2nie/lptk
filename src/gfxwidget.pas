@@ -420,9 +420,13 @@ var
   w : TWidget;
   n : integer;
   FoundIt : boolean;
+  lasttaborder : integer;
 begin
   result := nil;
   FoundIt := false;
+  if direction in [sdLast,sdPrev] then lasttaborder := -999999
+                                  else lasttaborder := 999999;
+
   for n := 0 to ComponentCount-1 do
   begin
     if Components[n] is TWidget then
@@ -433,34 +437,51 @@ begin
         case direction of
           sdFirst:
             begin
-              Result := w;
-              Exit;
+              if w.TabOrder < lasttaborder then
+              begin
+                Result := w;
+                lasttaborder := w.TabOrder;
+              end;
             end;
 
-          sdLast: Result := w;
-          
+          sdLast:
+            begin
+              if lasttaborder <= w.TabOrder then
+              begin
+                Result := w;
+                lasttaborder := w.TabOrder;
+              end;
+            end;
+
           sdNext:
             begin
-              if (startwg = w) then FoundIt := true
-              else if FoundIt then
+              if startwg = w then FoundIt := true
+              else if w.TabOrder < lasttaborder then
+              begin
+                if (startwg = nil) or
+                   (w.TabOrder > startwg.TabOrder) or
+                   (FoundIt and (w.TabOrder = startwg.TabOrder)) then
                 begin
-                  if w.TabOrder >= startwg.TabOrder then
-                  begin
-                    if result = nil then result := w
-                    else if w.TabOrder < result.TabOrder then result := w;
-                  end;
+                  result := w;
+                  lasttaborder := w.TabOrder;
                 end;
+              end;
             end;
-            
+
           sdPrev:
             begin
-              if (startwg = w) then Exit;
-              
-              if w.TabOrder <= startwg.TabOrder then
+              if startwg = w then FoundIt := true
+              else if w.TabOrder >= lasttaborder then
               begin
-                if result = nil then result := w
-                else if w.TabOrder >= result.TabOrder then result := w;
+                if (startwg = nil) or 
+                   (w.TabOrder < startwg.TabOrder) or
+                   (not FoundIt and (w.TabOrder = startwg.TabOrder)) then
+                begin
+                  result := w;
+                  lasttaborder := w.TabOrder;
+                end;
               end;
+
             end;
 
         end;
