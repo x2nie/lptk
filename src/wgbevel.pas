@@ -50,7 +50,9 @@ constructor TwgBevel.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   Shape := bsBox;
-  Style := bsLowered;
+  Style := bsRaised;
+  FWidth := 80;
+  FHeight := 80;
 end;
 
 procedure TwgBevel.RePaint;
