@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.27  2004/01/15 11:48:12  aegluke
+// Windows Buffering Changes
+//
 // Revision 1.26  2004/01/14 13:06:17  aegluke
 // visiblity-change of GetNodeHeight
 // Bugfix in RePaint, line for single nodes missed
@@ -809,14 +812,14 @@ begin
   UpdateScrollbars;
   AVisibleHeight := VisibleHeight;
   Canvas.DrawOnBuffer := True;
-  Canvas.ClearClipRect;
+//  Canvas.ClearClipRect;
   Canvas.Clear(BackgroundColor);
   if FFocused then
     Canvas.SetColor(clWidgetFrame)
   else
     Canvas.SetColor(clInactiveWGFrame);
   Canvas.DrawRectangle(0, 0, Width, Height); // border
-
+  r.SetRect(0,0,VisibleWidth-2, VisibleHeight-2);
   if ShowColumns then // draw the column header?
   begin
     r.SetRect(1, 1, VisibleWidth, FColumnHeight);
@@ -870,7 +873,7 @@ begin
     r.SetRect(1, 1, VisibleWidth, VisibleHeight);
     col := 0;
   end;
-  Canvas.ClearClipRect;
+//  Canvas.ClearClipRect;
   Canvas.SetClipRect(r);
 
   // draw the nodes with lines
