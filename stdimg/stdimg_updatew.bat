@@ -3,8 +3,10 @@ call stdimg_makew cancel
 call stdimg_makew close
 call stdimg_makew close2
 call stdimg_makew close3
+call stdimg_makew configure
 call stdimg_makew document
 call stdimg_makew exit
+call stdimg_makew find
 call stdimg_makew folder
 call stdimg_makew foldernew
 call stdimg_makew folderopen
