@@ -29,9 +29,9 @@ type
                    property ImageList : TgfxImageList read FImageList write SetImageList;
                    procedure LoadFromFile(AFileName : String);
                    destructor Destroy; override;
-                   constructor Create(AImageList : TgfxImageList; AIndex : Word; AImage : TgfxImage); {$IFNDEF fpc}override;{$ENDIF}
-                   constructor Create; {$IFNDEF fpc}override;{$ENDIF}
-                   constructor Create(AFileName : string; AIndex : Word);
+                   constructor Create; {$IFNDEF FPC}overload; {$ENDIF}
+                   constructor Create(AImageList : TgfxImageList; AIndex : Word; AImage : TgfxImage); {$IFNDEF FPC}overload;{$ENDIF}
+                   constructor Create(AFileName : string; AIndex : Word); {$IFNDEF FPC}overload;{$ENDIF}
      end;
     
     TgfxImageList = class
