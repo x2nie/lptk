@@ -54,6 +54,7 @@ uses
 {$I stdimg_folder16x16.inc}
 {$I stdimg_ok16x16.inc}
 {$I stdimg_cancel16x16.inc}
+{$I stdimg_lens16x16.inc}
 
 function TwgFileDialog.GetFileName : String;
 begin
@@ -139,7 +140,9 @@ begin
     FFileExists := False;
     FOKBtn := CreateButton(Self,10,280,115,'OK',{$IFDEF FPC}@{$ENDIF}OkClick);
     FCancelBtn := CreateButton(Self,125,280,115,'Cancel',{$IFDEF FPC}@{$ENDIF}CancelClick);
-    FDetailBtn := CreateButton(Self,245,10,50,'Detail',{$IFDEF FPC}@{$ENDIF}DetailClick);
+    FDetailBtn := CreateButton(Self,245,10,32,'',{$IFDEF FPC}@{$ENDIF}DetailClick);
+    FDetailBtn.Width := FDetailBtn.Height;
+    
     FDetailBtn.AllowDown := True;
     FFileName := TwgEdit.Create(Self);
     FFileName.SetDimensions(10,250,380,FFileName.Font.Height + 4);
@@ -159,14 +162,22 @@ begin
     Image := TgfxImageItem.Create;
     Image.Image := CreateBMPImage(@stdimg_cancel16x16,sizeof(stdimg_cancel16x16));
     FImageList.Item[3] := Image;
+
+    Image := TgfxImageItem.Create;
+    Image.Image := CreateBMPImage(@stdimg_lens16x16,sizeof(stdimg_lens16x16));
+    FImageList.Item[4] := Image;
     
     FOkBtn.ImageList := FImageList;
-    FOkBtn.ShowImage := True;
     FOkBtn.ImageIndex := 2;
+    FOkBtn.ShowImage := True;
 
     FCancelBtn.ImageList := FImageList;
-    FCancelBtn.ShowImage := True;
     FCancelBtn.ImageIndex := 3;
+    FCancelBtn.ShowImage := True;
+
+    FDetailBtn.ImageList := FImageList;
+    FDetailBtn.ImageIndex := 4;
+    FDetailBtn.ShowImage := True;
     
     FDirTree := TwgDirTreePopup.Create(Self);
     FDirTree.SetDimensions(10,10,230,FDetailBtn.Height);
