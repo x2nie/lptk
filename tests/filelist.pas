@@ -595,8 +595,7 @@ begin
   Clear;
   GetDir(0,FDirectoryName);
   //Writeln('dname: ', dname);
-  if (FDirectoryName <> '') and (copy(FDirectoryName,Length(FDirectoryName),1) <> '/')
-    then FDirectoryName := FDirectoryName+'/';
+  if copy(FDirectoryName,Length(FDirectoryName),1) <> '/' then FDirectoryName := FDirectoryName+'/';
 
   gres := glob('*');
   p := gres;
