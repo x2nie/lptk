@@ -23,9 +23,11 @@ type
     FImageList : TgfxImageList;
     FImageIndex : Longword;
     FShowImage : Boolean;
-    
+    FAllowDown : Boolean;
+    FConsumed : Boolean;
+    FDown : Boolean;
     procedure SetText(const AValue : String16);
-
+    procedure SetDown(AValue : Boolean);
   protected
     FText : String16;
     FFont : TGfxFont;
@@ -53,6 +55,8 @@ type
 
     procedure Click;
 
+    property AllowDown : Boolean read FAllowDown write FAllowDown;
+    property Down : Boolean read FDown write SetDown;
     property Text : String16 read FText write SetText;
     property Text8 : String read GetText8 write SetText8;
     
@@ -81,6 +85,15 @@ begin
 end;
 
 { TwgButton }
+
+procedure TwgButton.SetDown(AValue : Boolean);
+begin
+     if AValue <> FDown then
+     begin
+          FDown := AValue;
+          if AllowDown then RePaint;
+     end;
+end;
 
 procedure TwgButton.SetShowImage(AValue : Boolean);
 begin
@@ -137,6 +150,9 @@ begin
   OnClick := nil;
   FPushed := FALSE;
   FClicked := FALSE;
+  FDown := False;
+  FConsumed := False;
+  FAllowDown := False;
 end;
 
 destructor TwgButton.Destroy;
@@ -214,6 +230,12 @@ begin
     consumed := true;
     FClicked := TRUE;
     FPushed := TRUE;
+    
+    if AllowDown and (not FDown) then
+    begin
+         FConsumed := True;
+         FDown := True;
+    end else FConsumed := false;
     if FWinHandle > 0 then RePaint;
   end;
 end;
@@ -224,10 +246,24 @@ begin
   if not FClicked then Exit;
   if (keycode = KEY_ENTER) or (keycode = 32) then
   begin
-    FClicked := FALSE;
-    FPushed := FALSE;
-    if FWinHandle > 0 then RePaint;
-    Click;
+    if AllowDown then
+    begin
+       if FDown and (not FConsumed) then
+       begin
+            FDown := False;
+            FClicked := False;
+            FPushed := False;
+            RePaint;
+            Click;
+       end;
+    end
+    else
+    begin
+       FClicked := FALSE;
+       FPushed := FALSE;
+       if FWinHandle > 0 then RePaint;
+       Click;
+    end;
   end;
 end;
 
@@ -236,9 +272,21 @@ begin
   inherited HandleMouseDown(X, Y, Button, ShiftState);
   if Button = 1 then   // this should be some constant value i think...
   begin
-    FPushed := TRUE;
-    FClicked := TRUE;
-    if FWinHandle > 0 then RePaint;
+    FConsumed := False;
+    if (not FPushed) and AllowDown then
+    begin
+         FConsumed := True;
+         FPushed := True;
+         FDown := True;
+         Click;
+         RePaint;
+    end
+    else
+    begin
+         FPushed := TRUE;
+         FClicked := TRUE;
+         if FWinHandle > 0 then RePaint;
+    end;
   end;
 end;
 
@@ -247,11 +295,26 @@ begin
   inherited HandleMouseUp(x, y, button, shiftstate);
   if (button = 1) then	// this should be some constant value i think...
   begin
-    FClicked := FALSE;
-    if (FPushed) then
+    if AllowDown then
     begin
-      FPushed := FALSE;
-      Click;
+         if not FConsumed then
+         begin
+              FDown := False;
+              FPushed := False;
+              FClicked := False;
+              FConsumed := False;
+              Click;
+              RePaint;
+         end;
+    end
+    else
+    begin
+        FClicked := FALSE;
+        if (FPushed) then
+        begin
+             FPushed := FALSE;
+             Click;
+        end;
     end;
     if FWinHandle > 0 then RePaint;
   end;
@@ -260,7 +323,7 @@ end;
 procedure TwgButton.HandleMouseExit;
 begin
   inherited HandleMouseExit;
-  if FPushed then
+  if FPushed and (not AllowDown) then
   begin
     FPushed := FALSE;
     if FWinHandle > 0 then RePaint;
@@ -270,7 +333,7 @@ end;
 procedure TwgButton.HandleMouseEnter;
 begin
   inherited HandleMouseEnter;
-  if FClicked then
+  if FClicked and (not AllowDown) then
   begin
      FPushed := TRUE;
      if FWinHandle > 0 then RePaint;
