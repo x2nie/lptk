@@ -143,6 +143,7 @@ begin
 	exit;
     end;
     yp := 2;
+    MaxLine := 0;
     for i := FFirstLine to LineCount do
     begin
 	yp := yp + LineHeight;	
@@ -327,7 +328,7 @@ end;
 
 procedure TwgMemo.DoPaste;
 var
-  s, si, lineend : string16;
+  s, si, si8, lineend : string16;
   n, l : integer;
   lcnt : integer;
   
@@ -340,14 +341,16 @@ begin
   l := FCursorLine;
   n := 1;
   lcnt := 0;
+  si8 := '';
   while n <= length(s) do
   begin
     if (s[n] = #13) or (s[n] = #10) then
     begin
-      if lcnt = 0 then SetLineText(l, si)
-                  else FLines.Insert(l-1, si);
+      if lcnt = 0 then SetLineText(l, si + u8(si8))
+                  else FLines.Insert(l-1, si + u8(si8));
 
       si := '';
+      si8 := '';
       inc(lcnt);
       inc(l);
 
@@ -356,10 +359,12 @@ begin
     end
     else
     begin
-      si := si + Str8to16(s[n]);
+      si8 := si8 + s[n];
     end;
     inc(n);
   end;
+  
+  si := si + u8(si8);
 
   FCursorPos := length16(si);
   si := si + lineend;
