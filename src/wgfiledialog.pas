@@ -35,10 +35,14 @@ type
             procedure FilenameChange(ASender : TObject);
             procedure OkClick(ASender : TObject);
             procedure FileGridImageIndex(Sender : TObject; AFileData : TwgFileData; var AImageIndex : integer);
+            
+            function GetFileName : String;
+            procedure SetFileName(AValue : String);
 	public
 	    function Execute : Boolean;
             constructor Create(AOwner : TComponent); override;
             property FileExists : Boolean read FFileExists write FFileExists;
+            property FileName : String read GetFileName write SetFileName;
     end;
 
 implementation
@@ -48,6 +52,19 @@ uses
 
 {$I stdimg_file16x16.inc}
 {$I stdimg_folder16x16.inc}
+{$I stdimg_ok16x16.inc}
+{$I stdimg_cancel16x16.inc}
+
+function TwgFileDialog.GetFileName : String;
+begin
+     result := FFileName.Text8;
+end;
+
+procedure TwgFileDialog.SetFileName(AValue : String);
+begin
+     FFileName.Text8 := AValue;
+     FFileGrid.LocateFile(AValue);
+end;
 
 procedure TwgFileDialog.FileGridImageIndex(Sender : TObject; AFileData : TwgFileData; var AImageIndex : integer);
 begin
@@ -134,6 +151,22 @@ begin
     Image := TgfxImageItem.Create;
     Image.Image := CreateBMPImage(@stdimg_folder16x16,sizeof(stdimg_folder16x16));
     FImageList.Item[1] := Image;
+
+    Image := TgfxImageItem.Create;
+    Image.Image := CreateBMPImage(@stdimg_ok16x16,sizeof(stdimg_ok16x16));
+    FImageList.Item[2] := Image;
+
+    Image := TgfxImageItem.Create;
+    Image.Image := CreateBMPImage(@stdimg_cancel16x16,sizeof(stdimg_cancel16x16));
+    FImageList.Item[3] := Image;
+    
+    FOkBtn.ImageList := FImageList;
+    FOkBtn.ShowImage := True;
+    FOkBtn.ImageIndex := 2;
+
+    FCancelBtn.ImageList := FImageList;
+    FCancelBtn.ShowImage := True;
+    FCancelBtn.ImageIndex := 3;
     
     FDirTree := TwgDirTreePopup.Create(Self);
     FDirTree.SetDimensions(10,10,230,FDetailBtn.Height);
