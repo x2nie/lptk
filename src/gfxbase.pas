@@ -788,7 +788,8 @@ begin
     pwg := wwg;
     while (pwg <> nil) and (pwg.Parent <> nil) do pwg := pwg.Parent;
 
-    if ((pwg = nil) or (PopupListFind(pwg.WinHandle) = nil)) and (msg <> MSG_MOUSEMOVE) then
+    if ((pwg = nil) or (PopupListFind(pwg.WinHandle) = nil)) and
+       ((msg = MSG_MOUSEDOWN) or (msg = MSG_MOUSEUP)) then
     begin
       ClosePopups;
 
@@ -1236,7 +1237,10 @@ procedure WaitWindowMessageWin;
 var
   Msg: TMsg;
 begin
-  Windows.GetMessageW( {$ifdef FPC}@{$endif} Msg, 0, 0, 0);
+  // Some Win98 hack
+  if (GetVersion() < $80000000) then Windows.GetMessageW( {$ifdef FPC}@{$endif} Msg, 0, 0, 0)   //NT
+                                else Windows.GetMessage( {$ifdef FPC}@{$endif} Msg, 0, 0, 0);   //Win98
+
   if Windows.TranslateMessage( {$ifdef FPC}@{$endif} msg) then
   begin
     //Windows.GetMessageW( {$ifdef FPC}@{$endif} Msg, 0, 0, 0);
