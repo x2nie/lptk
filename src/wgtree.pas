@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.31  2004/02/07 18:17:39  aegluke
+// Fixed missing Repaint in Mouse- and Keyboard-Handling
+//
 // Revision 1.30  2004/02/06 06:09:30  aegluke
 // Bugfix in HandleDoubleClick
 //
@@ -517,7 +520,10 @@ begin
     end;
   end;
   if OldSel <> Selection then
+  begin
+    RePaint;
     DoChange;
+  end;
 end;
 
 procedure TwgTree.HandleKeyPress(var KeyCode: word; var shiftstate: word; var consumed: boolean);
@@ -586,7 +592,10 @@ begin
     Consumed := false;
   end;
   if Selection <> OldSelection then
+  begin
+    RePaint;
     DoChange;
+  end;
   if not Consumed then
     inherited HandleKeyPress(keycode, shiftstate, consumed);
 end;
