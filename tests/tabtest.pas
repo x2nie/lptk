@@ -74,6 +74,8 @@ begin
     Button2.OnClick := {$IFDEF fpc}@{$ENDIF}OnClick2;
     
     edit2 := CreateEdit(sheet2, 10,130, 150, 0);
+    
+    CreateEdit(self, 10, 450, 150, 0);
 
 end;
 

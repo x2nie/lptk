@@ -130,6 +130,8 @@ type
     procedure AfterCreate; virtual;
 
     function FindFocusWidget(startwg : TWidget; direction : TSearchDirection) : TWidget;
+    
+    function FindNextFocusWidget(startwg : TWidget; searchforward : boolean) : TWidget;
 
     procedure RePaint; virtual;
     procedure RePaintChildren;
@@ -467,6 +469,23 @@ begin
   end;
 end;
 
+function TWidget.FindNextFocusWidget(startwg: TWidget; searchforward : boolean): TWidget;
+var
+  wg : TWidget;
+begin
+  if searchforward
+    then wg := FindFocusWidget(startwg,sdNext)
+    else wg := FindFocusWidget(startwg,sdPrev);
+    
+  if wg = nil then
+  begin
+    if searchforward
+      then wg := FindFocusWidget(startwg,sdFirst)
+      else wg := FindFocusWidget(startwg,sdLast);
+  end;
+  result := wg;
+end;
+
 procedure TWidget.RePaint;
 begin
 {$ifdef Win32}
@@ -500,29 +519,50 @@ begin
   
   case keycode of
     KEY_ENTER, KEY_DOWN, KEY_RIGHT, KEY_TAB:
-    // $FF0D,$FF54,$FF09,$FF53: // enter, down, tab
         begin
+          // forward
           wg := FindFocusWidget(ActiveWidget,sdNext);
-          if wg = nil then wg := FindFocusWidget(ActiveWidget,sdFirst);
+          ActiveWidget := wg;
           if wg <> nil then
           begin
-            ActiveWidget := wg;
             consumed := true;
-            //RePaint;
+          end
+          else
+          begin
+            if Parent = nil then
+            begin
+              wg := FindFocusWidget(ActiveWidget,sdFirst);
+              ActiveWidget := wg;
+              consumed := true;
+            end;
           end;
         end;
 
     KEY_UP, KEY_LEFT, KEY_STAB:
-    // $FF52,$FE20,$FF51: // up, shift-tab
         begin
+          // backward
           wg := FindFocusWidget(ActiveWidget,sdPrev);
-          if wg = nil then wg := FindFocusWidget(ActiveWidget,sdLast);
+          ActiveWidget := wg;
           if wg <> nil then
           begin
-            ActiveWidget := wg;
             consumed := true;
-            //RePaint;
+            // we must find the last one!
+            while wg <> nil do
+            begin
+              wg.ActiveWidget := wg.FindFocusWidget(ActiveWidget,sdLast);
+              wg := wg.ActiveWidget;
+            end;
+          end
+          else
+          begin
+            if Parent = nil then
+            begin
+              wg := FindFocusWidget(ActiveWidget,sdLast);
+              ActiveWidget := wg;
+              consumed := true;
+            end;
           end;
+
         end;
   end;
 end;
@@ -877,6 +917,7 @@ procedure TWidget.MsgKeyPress(var msg: TMessageRec);
 var
   key, ss : word;
   consumed : boolean;
+  wg : TWidget;
 begin
   if FFormDesigner <> nil then
   begin
@@ -889,7 +930,12 @@ begin
   HandleKeyPress(key, ss, consumed);
   if not consumed then
   begin
-    if Parent <> nil then Parent.HandleKeyPress(key, ss, consumed);
+    wg := Parent;
+    while (not consumed) and (wg <> nil) do
+    begin
+      wg.HandleKeyPress(key, ss, consumed);
+      wg := wg.Parent;
+    end;
   end;
 end;
 
