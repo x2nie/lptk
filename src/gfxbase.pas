@@ -1173,8 +1173,8 @@ begin
     begin
       // window decoration correction on stupid windows...
 
-      r.Left := integer(lParam and $FFFF);
-      r.Top  := integer((lParam and $FFFF0000) shr 16);
+      r.Left := smallint(lParam and $FFFF);
+      r.Top  := smallint((lParam and $FFFF0000) shr 16);
 
       if (GetWindowLong(wg.WinHandle, GWL_STYLE) and WS_CHILD) = 0 then
       begin
@@ -2212,7 +2212,6 @@ begin
     rwidth := r.Right - r.Left;
     rheight := r.Bottom - r.Top;
   end;
-
   windows.MoveWindow(FWin, x,y, rwidth, rheight, true);
   _ReCreateBuffer(rwidth + 1,rheight + 1);
 {$else}
