@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.5  2004/01/09 14:29:31  aegluke
+// Windows-Drive support
+//
 // Revision 1.4  2004/01/02 19:35:02  aegluke
 // SetDirectoryIndex-Update
 //
@@ -29,36 +32,59 @@ uses
 
 const 
     {$IFDEF win32}
-	cDirSeparator = '\';
+	  cDirSeparator = '\';
     {$ELSE}
-	cDirSeparator = '/';
+	  cDirSeparator = '/';
     {$ENDIF}
     
 type 
-    TwgDirTree = class(TwgTree)
+  TwgDirTree = class(TwgTree)
 	private
 	    FActiveDirectory : string;
-            FDirectoryIndex : word;
+      FDirectoryIndex : word;
 	    procedure SetActiveDirectory(aValue : string);
 	protected
 	    function GetAbsoluteDir(aNode : TwgTreeNode) : string;
 	    procedure DoChange; override;
 	    procedure DoExpand(aNode : TwgTreeNode); override;
-            procedure SetDirectoryIndex(AValue : Word);
+      procedure SetDirectoryIndex(AValue : Word);
+      {$IFDEF win32}
+      procedure ReadDriveNames;
+      {$endif}
 	public
 	    constructor Create(aOwner : TComponent); override;
 	    procedure ReadDirectories(aParentNode : TwgTreeNode);	    
 	    // read's the directory entries of the given dirname in the parent-node.text	    
 	    property ActiveDirectory : string read FActiveDirectory write SetActiveDirectory;
-            property DirectoryIndex : word read FDirectoryIndex write FDirectoryIndex;
+      property DirectoryIndex : word read FDirectoryIndex write FDirectoryIndex;
     end;
 
 implementation
 
 uses
-    sysutils;
+    sysutils{$IFDEF win32},windows{$ENDIF};
+
+{$IFDEF win32}
+procedure TwgDirTree.ReadDriveNames;
+var
+  ADrive : String;
+  ACounter : Integer;
+  ANumber : Integer;
+begin
+  for ACounter := 0 to 25 do
+  begin
+    ADrive := Chr(Ord('A')+ACounter) + ':\';
+    ANumber := Windows.GetDriveType(PChar(ADrive));
+    if ANumber <> 1 then
+    begin
+      RootNode.AppendText8(ADrive+':');
+    end;
+  end;
+end;
+{$ENDIF}
 
 procedure TwgDirTree.SetDirectoryIndex(AValue : Word);
+// Sets the new Directory-Image-Index to all SubNodes
 var
    ANode : TwgTreeNode;
 begin
@@ -139,16 +165,16 @@ begin
     {$IFDEF DEBUG}writeln('ReadDirectories');{$ENDIF}
     if FindFirst(GetAbsoluteDir(aParentNode)+'*',faAnyFile,r)=0 then
     begin
-	repeat
-	    if (faDirectory and r.attr = faDirectory) and (r.name <> '..') and (r.name <> '.') then
+	    repeat
+	      if (faDirectory and r.attr = faDirectory) and (r.name <> '..') and (r.name <> '.') then
                  Items.Append(Str8To16(r.name));
-	until FindNext(r) <> 0;
+	    until FindNext(r) <> 0;
     end;
     Items.Sort;
-    FindClose(r);    
-    
+    Sysutils.FindClose(r);
+
     // all directory entries are in the stringlist and sorted
-    
+
     aParentNode.Clear;
     for i := 0 to Items.Count - 1 do
     begin
@@ -190,101 +216,105 @@ begin
     {$IFDEF DEBUG}
     writeln('SetactiveDirectory:',aValue);
     {$ENDIF}
-    if aValue = '' then aValue := GetCurrentDir;    
+    if aValue = '' then aValue := GetCurrentDir;
     if (FActiveDirectory = '') then // nothing shown
     begin
-	if aValue[Length(AValue)] <> cDirSeparator then aValue := aValue + cDirSeparator;
-	FActiveDirectory := aValue;	
-	RootNode.Clear;		
-	RootNode.AppendText8(copy(aValue,1,pos(cDirSeparator,aValue)-1));
-	ReadDirectories(RootNode.FirstSubNode);
-	delete(aValue,1,pos(cDirSeparator,aValue));
-	aNode := RootNode.FirstSubNode;
-	while aNode <> nil do	// on windows - maybe there are more than one drive :)
-	begin
-	    ReadDirectories(aNode);
-	    aNode.Collapse;
-	    aNode := aNode.Next;
-	end;
-	aNode := RootNode.FirstSubNode.FirstSubNode;
-	while aNode <> nil do
-	begin
-	    ReadDirectories(aNode);
-	    aNode.Collapse;
-	    aNode := aNode.Next;
-	end;
-	aNode := RootNode.FirstSubNode;
-	while pos(cDirSeparator,aValue) <> 0 do
-	begin
-	    searchstr := copy(aValue,1,pos(cDirSeparator,aValue)-1);
-	    aNode := aNode.FindSubNode(Str8To16(searchstr));
-	    aNode.Expand;
+	    if aValue[Length(AValue)] <> cDirSeparator then aValue := aValue + cDirSeparator;
+	    FActiveDirectory := aValue;
+	    RootNode.Clear;
+      {$IFDEF win32}
+      ReadDriveNames;
+      {$ELSE}
+	      RootNode.AppendText8(copy(aValue,1,pos(cDirSeparator,aValue)-1));
+      {$ENDIF}
+	    ReadDirectories(RootNode.FirstSubNode);
 	    delete(aValue,1,pos(cDirSeparator,aValue));
-	    ReadDirectories(aNode);
-	    tmpNode := aNode.FirstSubNode;
-	    while tmpNode <> nil do
+	    aNode := RootNode.FirstSubNode;
+	    while aNode <> nil do	// on windows - maybe there are more than one drive :)
 	    begin
-		ReadDirectories(tmpNode);
-		tmpNode.Collapse;
-		tmpNode := tmpNode.Next;
+	      ReadDirectories(aNode);
+	      aNode.Collapse;
+	      aNode := aNode.Next;
 	    end;
-	end;
+	    aNode := RootNode.FirstSubNode.FirstSubNode;
+	    while aNode <> nil do
+	    begin
+	      ReadDirectories(aNode);
+	      aNode.Collapse;
+	      aNode := aNode.Next;
+	    end;
+	    aNode := RootNode.FirstSubNode;
+	    while pos(cDirSeparator,aValue) <> 0 do
+	    begin
+	      searchstr := copy(aValue,1,pos(cDirSeparator,aValue)-1);
+	      aNode := aNode.FindSubNode(Str8To16(searchstr));
+	      aNode.Expand;
+	      delete(aValue,1,pos(cDirSeparator,aValue));
+	      ReadDirectories(aNode);
+	      tmpNode := aNode.FirstSubNode;
+	      while tmpNode <> nil do
+	      begin
+		      ReadDirectories(tmpNode);
+		      tmpNode.Collapse;
+		      tmpNode := tmpNode.Next;
+	      end;
+	    end;
     end
     else
-    begin	
-	if aValue[Length(aValue)] <> cDirSeparator then aValue := aValue + cDirSeparator;
-	searchstr := aValue;	
-	FActiveDirectory := aValue;
-	// drive into already read pathes
-	aNode := RootNode;
-	while pos(cDirSeparator,aValue) <> 0 do	// liest alle verzeichnisse ein
-	begin
-	    searchstr := copy(aValue,1,pos(cDirSeparator,aValue)-1);
-	    delete(aValue,1,pos(cDirSeparator,aValue));
-	    if aNode.Count > 0 then
-	    begin
-		tmpNode := aNode.FindSubNode(Str8To16(searchstr));
-		if tmpNode = nil then
-		begin
-		    writeln('Verzeichnis nicht gefunden: ',searchstr);
-// TODO - messagebox with error
-		    break;
-		end
-		else
-		begin
-		    aNode := tmpNode;		
-		    if length(aValue) <> 0 then aNode.Expand;
-		end;
-	    end
-	    else	// directory not read yet
-	    begin
-		ReadDirectories(aNode);
-		tmpNode := aNode.FirstSubNode;
-		while tmpNode <> nil do
-		begin
-		    ReadDirectories(tmpNode);
-		    tmpNode.Collapse;
-		    tmpNode := tmpNode.Next;
-		end;
-		tmpNode := aNode.FindSubNode(Str8To16(searchstr));
-		if tmpNode = nil then
-		begin
-		    writeln('Verzeichnis nicht gefunden: ',searchstr);
-// TODO - Messagebox with error
-		    break;
-		end
-		else
-		begin
-		    aNode := tmpNode;
-		    if length(aValue) <> 0 then aNode.Expand;
-		end;
-	    end;
-	end;
-    end;
-    if aNode.count = 0 then 
     begin
-	ReadDirectories(aNode);
-	aNode.Collapse;
+	    if aValue[Length(aValue)] <> cDirSeparator then aValue := aValue + cDirSeparator;
+	    searchstr := aValue;
+	    FActiveDirectory := aValue;
+	// drive into already read pathes
+	    aNode := RootNode;
+	    while pos(cDirSeparator,aValue) <> 0 do	// liest alle verzeichnisse ein
+	    begin
+	      searchstr := copy(aValue,1,pos(cDirSeparator,aValue)-1);
+	      delete(aValue,1,pos(cDirSeparator,aValue));
+	      if aNode.Count > 0 then
+	      begin
+		      tmpNode := aNode.FindSubNode(Str8To16(searchstr));
+		      if tmpNode = nil then
+		      begin
+		        writeln('Verzeichnis nicht gefunden: ',searchstr);
+// TODO - messagebox with error
+		        break;
+		      end
+		      else
+		      begin
+		        aNode := tmpNode;
+		        if length(aValue) <> 0 then aNode.Expand;
+		      end;
+	      end
+	      else	// directory not read yet
+	      begin
+		      ReadDirectories(aNode);
+		      tmpNode := aNode.FirstSubNode;
+		      while tmpNode <> nil do
+		      begin
+		        ReadDirectories(tmpNode);
+		        tmpNode.Collapse;
+		        tmpNode := tmpNode.Next;
+		      end;
+		      tmpNode := aNode.FindSubNode(Str8To16(searchstr));
+		      if tmpNode = nil then
+		      begin
+		          writeln('Verzeichnis nicht gefunden: ',searchstr);
+              // TODO - Messagebox with error
+		          break;
+		      end
+		      else
+		      begin
+		        aNode := tmpNode;
+		        if length(aValue) <> 0 then aNode.Expand;
+		      end;
+	      end;
+	    end;
+    end;
+    if aNode.count = 0 then
+    begin
+	    ReadDirectories(aNode);
+	    aNode.Collapse;
     end;
     Selection := aNode;
     RePaint;
