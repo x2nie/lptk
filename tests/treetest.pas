@@ -27,7 +27,6 @@ begin
     tree := twgtree.create(self);
     tree.top := 40;
     tree.left := 10;
-    tree.space := 20;
     tree.height := 100;
     tree.Anchors := [anBottom, anleft, anright, antop];
     tree.width := 150;
@@ -51,7 +50,7 @@ begin
     subnode.AppendText(Str8To16('SubSubNode4'));
     subnode.AppendText(Str8To16('SubSubNode5'));
     subnode.AppendText(Str8To16('SubSubNode6'));
-    subnode := subnode.getfirstsubnode;
+    subnode := subnode.firstsubnode;
     subnode := subnode.next;
     subnode.AppendText(Str8To16('SubSubSubNode1'));
     subnode.AppendText(Str8To16('SubSubSubNode2'));
