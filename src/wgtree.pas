@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.20  2004/01/02 20:50:26  aegluke
+// Bugfix
+//
 // Revision 1.19  2004/01/02 16:12:02  aegluke
 // Drawing-Lines Bug fixed
 //
@@ -247,8 +250,11 @@ begin
           result := FFont.TextWidth16(ANode.Text) + 2;
           if ShowImages and (ImageList <> nil) then
           begin
-               AImage := ImageList.Item[ANode.ImageIndex];
-               if AImage <> nil then result := result + AImage.Image.Width + 2;
+               if ANode.ImageIndex > -1 then
+               begin
+                    AImage := ImageList.Item[ANode.ImageIndex];
+                    if AImage <> nil then result := result + AImage.Image.Width + 2;
+               end;
           end;
      end;
 end;
@@ -852,8 +858,8 @@ begin
            AImageItem := ImageList.Item[h.ImageIndex];
            if AImageItem <> nil then
            begin
-                 Canvas.DrawImagePart(w - FXOffset + 1, ACenterPos - 4, AImageItem.Image,0,0,16,16);
-                 Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width + 2, ACenterPos - FFont.Ascent div 2, h.text);
+                     Canvas.DrawImagePart(w - FXOffset + 1, ACenterPos - 4, AImageItem.Image,0,0,16,16);
+                     Canvas.DrawString16(w - FXOffset + 1 + AImageItem.Image.Width + 2, ACenterPos - FFont.Ascent div 2, h.text);
            end
            else
                Canvas.DrawString16(w - FXOffset + 1, ACenterPos - FFont.Ascent div 2, h.text);
