@@ -5,6 +5,9 @@ History:
 }
 
 // $Log$
+// Revision 1.16  2003/12/23 17:14:15  aegluke
+// DrawGrid-changes
+//
 // Revision 1.15  2003/12/23 08:24:23  aegluke
 // avoid artifacts on directory change
 //
@@ -359,8 +362,6 @@ begin
   if WinHandle <= 0 then Exit;
 //  inherited RePaint;
 
-//  Canvas.Clear;
-//  Canvas.Clear(BackgroundColor); // problems with DrawGrid-Property without override with background-color
   canvas.ClearClipRect;
   if Focused then Canvas.SetColor(clWidgetFrame) else Canvas.SetColor(clInactiveWgFrame);
   Canvas.DrawRectangle(0,0,width,height);
@@ -418,11 +419,11 @@ begin
 
         // drawing grid lines
         if DrawGrid then
-        begin
-          canvas.SetColor(clGridLines);
-          canvas.DrawLine(r.Left,r.Bottom+1,r.Right+1,r.Bottom+1);
-          canvas.DrawLine(r.Right+1,r.Top,r.Right+1,r.Bottom+1);
-        end;
+	    Canvas.SetColor(clGridLines)
+	else
+	    Canvas.SetColor(BackgroundColor);
+        canvas.DrawLine(r.Left,r.Bottom+1,r.Right+1,r.Bottom+1);
+        canvas.DrawLine(r.Right+1,r.Top,r.Right+1,r.Bottom+1);
         
         canvas.AddClipRect(r);
 
