@@ -1,4 +1,12 @@
 { 	feature-requests or bugs? - mail to: erik@grohnwaldt.de
+}
+
+// $Log$
+// Revision 1.4  2004/02/25 06:41:53  aegluke
+// Bugfix in SetFixedTabWidth with empty Tab-Caption
+//
+
+{
 	History
 	19.06.2003	0.4	property Text8 for TwgTabSheet
 	16.05.2003	0.3	new property: FixedTabWidth
@@ -46,15 +54,15 @@ type
     PTabSheetList = ^TwgTabSheetList;
 
     TwgTabSheetList = record
-	next : PTabSheetList;
-	prev : PTabSheetList;
-	TabSheet : TwgTabSheet;
+	    next : PTabSheetList;
+	    prev : PTabSheetList;
+	    TabSheet : TwgTabSheet;
     end;
 
     TTabSheetChange = procedure(Sender : TObject; NewActiveSheet : TwgTabSheet);
 
     TwgTabControl = class(TWidget)
-	private
+	  private
 	    FActiveSheet : TwgTabSheet;
 	    FNavBar : TWinPosition;
 
@@ -81,12 +89,12 @@ type
 	    procedure OrderSheets; // currently using bubblesort
 	    procedure SetFixedTabWidth(aValue : integer);
 	    function GetTabText(aText : string16) : string16;
-	protected
+	  protected
 	    procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
 	    procedure HandleKeyPress(var KeyCode : word; var ShiftState : word; var consumed : boolean); override;
 	    procedure HandleResize(dWidth, dHeight : integer); override;
 	    procedure DoChange(NewActive : TwgTabSheet);
-	public
+	  public
 	    onChange : TTabSheetChange;
 
 	    constructor Create(aOwner : TComponent); override;
@@ -125,8 +133,8 @@ begin
     {$IFDEF DEBUG}writeln('TabSheet.SetText');{$ENDIF}
     if Owner is TwgTabControl then
     begin
-	FText := aValue;
-	TwgTabControl(Owner).RePaintTitles;
+	    FText := aValue;
+	    TwgTabControl(Owner).RePaintTitles;
     end;
 end;
 
@@ -164,16 +172,17 @@ begin
     i := 1;
     if FFixedTabWidth > 0 then
     begin
-	while FFont.TextWidth16(Str8to16(s1)) < FFixedTabWidth - 10 do
-	begin
-	    if length(s1) = length(s) then break;
-	    s1 := copy(s,1,i);
-	    inc(i);
-	end;
-	if FFont.TextWidth16(Str8To16(s1)) > FFixedTabWidth - 10 then
-	    delete(s1,length(s1),1);
-	if s1[length(s1)] = ' ' then delete(s1,length(s1),1);
-	result := Str8to16(s1);
+	    while FFont.TextWidth16(Str8to16(s1)) < FFixedTabWidth - 10 do
+	    begin
+	      if length(s1) = length(s) then break;
+	      s1 := copy(s,1,i);
+	      inc(i);
+	    end;
+	    if FFont.TextWidth16(Str8To16(s1)) > FFixedTabWidth - 10 then
+	      delete(s1,length(s1),1);
+      if length(s1) > 0 then
+	      if s1[length(s1)] = ' ' then delete(s1,length(s1),1);
+      result := Str8to16(s1);
     end;
 end;
 
@@ -181,11 +190,11 @@ procedure TwgTabControl.SetFixedTabWidth(aValue : integer);
 begin
     if aValue <> FFixedTabWidth then
     begin
-	if aValue > 50 then
-	begin
-	    FFixedTabWidth := aValue;
-	    RePaint;
-	end;
+	    if aValue >= 5 then
+	    begin
+	      FFixedTabWidth := aValue;
+	      RePaint;
+	    end;
     end;
 end;
 
@@ -193,7 +202,7 @@ function TwgTabControl.ButtonWidth(aText : string16) : integer;
 begin
     if FFixedTabWidth > 0 then
     begin
-	result := FFixedTabWidth;
+	    result := FFixedTabWidth;
     end
     else
 	result := FFont.TextWidth16(aText) + 10;
@@ -209,8 +218,8 @@ begin
     while h^.prev <> nil do h := h^.prev;
     while h <> nil do
     begin
-	if ButtonWidth(h^.TabSheet.Text) > result then result := ButtonWidth(h^.TabSheet.Text);
-	h := h^.next;
+	    if ButtonWidth(h^.TabSheet.Text) > result then result := ButtonWidth(h^.TabSheet.Text);
+	    h := h^.next;
     end;
 end;
 
@@ -265,11 +274,11 @@ begin
     {$IFDEF DEBUG}writeln('TabControl.LeftButtonClick');{$ENDIF}
     if FFirstTabButton <> nil then
     begin
-	if FFirstTabButton^.Prev <> nil then
-	begin
-	    FFirstTabButton := FFirstTabButton^.Prev;
-	    RePaint;
-	end;
+	    if FFirstTabButton^.Prev <> nil then
+	    begin
+	        FFirstTabButton := FFirstTabButton^.Prev;
+	        RePaint;
+	    end;
     end;
 end;
 
@@ -278,11 +287,11 @@ begin
     {$IFDEF DEBUG}writeln('TabControl.RightButtonClick');{$ENDIF}
     if FFirstTabButton <> nil then
     begin
-	if FFirstTabButton^.Next <> nil then
-	begin
-	    FFirstTabButton := FFirstTabButton^.Next;
-	    RePaint;
-	end;
+	    if FFirstTabButton^.Next <> nil then
+	    begin
+	        FFirstTabButton := FFirstTabButton^.Next;
+	        RePaint;
+      end;
     end;
 end;
 
@@ -561,7 +570,7 @@ var
     bh : integer; // button height
     r : tgfxrect;
 begin
-    {$IFDEF DEBUG}writeln('TabControl.RePaintTitles');{$ENDIF}
+    {$IFDEF DEBUG}writeln('TwgTabControl.RePaintTitles');{$ENDIF}
     if FWinHandle <= 0 then exit;
     h := FFirstTabSheet;
     if h = nil then exit;
@@ -569,85 +578,84 @@ begin
     while h^.prev <> nil do h := h^.prev;
     Canvas.SetTextColor(clText1);
     case FNavBar of
-	wpBottom : begin
-	    lp := 0;
+	    wpBottom : begin
+	      lp := 0;
+	      if MaxButtonWidthSum > Width - FMargin * 2 then
+	      begin
+		      if FFirstTabButton = nil then FFirstTabButton := h
+		      else h := FFirstTabButton;
+		      r.SetRect(FMargin, Height - FMargin - ButtonHeight, Width - FMargin * 2 - ButtonHeight * 2, ButtonHeight);
+		      FLeftButton.SetDimensions(Width - FMargin * 2 - FRightButton.Width * 2 + 1, Height - FMargin - ButtonHeight, FRightButton.Height, FRightButton.Height);
+		      FRightButton.SetDimensions(Width - FMargin * 2 - FrightButton.Width + 1, Height - FMargin - ButtonHeight, FRightButton.Height, FRightButton.Height);
+		      FLeftButton.Visible := true;
+		      FRightButton.Visible := true;
+	      end
+	      else
+	      begin
+		      r.SetRect(FMargin, Height - FMargin - ButtonHeight, Width - FMargin * 2, ButtonHeight);
+		      FLeftButton.Visible := false;
+		      FRightButton.Visible := false;
+	      end;
+	      Canvas.SetColor(clHilite1);
+	      Canvas.DrawLine(FMargin, FMargin, Width - FMargin * 2, FMargin);
+	      Canvas.DrawLine(FMargin, FMargin, FMargin, Height - ButtonHeight - FMargin + 1);
+	      Canvas.SetColor(clHilite2);
+	      Canvas.DrawLine(FMargin, FMargin + 1, Width - FMargin * 2 - 1, FMargin + 1);
+	      Canvas.DrawLine(FMargin + 1, FMargin + 2, FMargin + 1, Height - Buttonheight - FMargin);
+	      Canvas.SetColor(clShadow2);
+	      Canvas.DrawLine(Width - FMargin * 2, FMargin+1, Width - FMargin * 2, Height - Buttonheight - FMargin + 1);
+	      Canvas.DrawLine(FMargin, Height - FMargin - ButtonHeight + 2, Width - 2 * FMargin, Height - FMargin - ButtonHeight + 2);
+	      Canvas.SetColor(clShadow1);
+	      Canvas.DrawLine(Width - FMargin * 2 - 1, FMargin+2, Width - FMargin * 2 - 1, Height - Buttonheight - FMargin + 1);
+	      Canvas.DrawLine(FMargin+1, Height - FMargin - ButtonHeight + 1, Width - 2 * FMargin -2 , Height - FMargin - ButtonHeight + 1);
+	      Canvas.SetClipRect(r);
+	      while h <> nil do
+	      begin
+		      if h^.TabSheet <> ActiveTabSheet then
+		      begin
+		        h^.TabSheet.Visible := false;
+		        Canvas.SetColor(clShadow1);
+		        Canvas.DrawLine(lp + FMargin + ButtonWidth(h^.TabSheet.Text), Height - ButtonHeight - FMargin + 3, lp + FMargin + ButtonWidth(h^.TabSheet.Text), Height - FMargin);
+		      end
+		      else
+		      begin
+		        h^.TabSheet.SetDimensions(FMargin + 2, FMargin + 2, Width - FMargin * 2 - 4, Height - ButtonHeight - FMargin * 2 - 1);
+		        h^.TabSheet.Visible := true;
+		        Canvas.SetColor(clHilite1);
+		        Canvas.DrawLine(lp + FMargin, Height - ButtonHeight - FMargin + 2, lp + FMargin, Height - FMargin);
+		        Canvas.SetColor(clHilite2);
+		        Canvas.DrawLine(lp + FMargin + 1, Height - ButtonHeight - FMargin + 1, lp + FMargin + 1, Height - FMargin);
+		        Canvas.SetColor(clShadow1);
+            Canvas.DrawLine(lp + FMargin + 1, Height - FMargin - 2, lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 2, Height - FMargin - 2);
+		        Canvas.DrawLine(lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 2, Height - ButtonHeight - Fmargin + 2, lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 2, Height - FMargin - 1);
+		        Canvas.SetColor(clShadow2);
+		        Canvas.DrawLine(lp + FMargin, Height - FMargin - 1, lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 1, Height - FMargin - 1);
+		        Canvas.DrawLine(lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 1, Height - ButtonHeight - Fmargin + 3, lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 1, Height - FMargin);
+		        Canvas.SetColor(clWindowBackground);
+		        Canvas.DrawLine(lp + FMargin + 2, Height - ButtonHeight - FMargin + 1,  lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 3, Height - ButtonHeight - FMargin + 1);
+		        Canvas.DrawLine(lp + FMargin + 2, Height - ButtonHeight - FMargin + 2,  lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 3, Height - ButtonHeight - FMargin + 2);
+		      end;
+		      Canvas.DrawString16(lp+ButtonWidth(h^.TabSheet.Text) div 2 - FFont.TextWidth16(GetTabText(h^.TabSheet.text)) div 2,Height - FMargin - ButtonHeight + 2, GetTabText(h^.TabSheet.text));
+		      lp := lp + ButtonWidth(h^.TabSheet.Text);
+		      h := h^.next;
+	      end;
+	  end;
+	  wpTop : begin // draw in top of the control
 	    if MaxButtonWidthSum > Width - FMargin * 2 then
 	    begin
-		if FFirstTabButton = nil then FFirstTabButton := h
-		else h := FFirstTabButton;
-		r.SetRect(FMargin, Height - FMargin - ButtonHeight, Width - FMargin * 2 - ButtonHeight * 2, ButtonHeight);
-		FLeftButton.SetDimensions(Width - FMargin * 2 - FRightButton.Width * 2 + 1, Height - FMargin - ButtonHeight, FRightButton.Height, FRightButton.Height);
-		FRightButton.SetDimensions(Width - FMargin * 2 - FrightButton.Width + 1, Height - FMargin - ButtonHeight, FRightButton.Height, FRightButton.Height);
-		FLeftButton.Visible := true;
-		FRightButton.Visible := true;
+		    if FFirstTabButton = nil then FFirstTabButton := h
+		    else h := FFirstTabButton;
+		    r.SetRect(FMargin,FMargin,Width - FMargin * 2 - FRightButton.Width * 2 - 1, FRightButton.Height);
+		    FLeftButton.SetDimensions(Width - FMargin * 2 - FRightButton.Width * 2, FMargin, FRightButton.Height, FRightButton.Height);
+		    FRightButton.SetDimensions(Width - FMargin * 2 - FrightButton.Width, FMargin, FRightButton.Height, FRightButton.Height);
+		    FLeftButton.Visible := true;
+		    FRightButton.Visible := true;
 	    end
 	    else
 	    begin
-		r.SetRect(FMargin, Height - FMargin - ButtonHeight, Width - FMargin * 2, ButtonHeight);
-		FLeftButton.Visible := false;
-		FRightButton.Visible := false;
-	    end;
-	    Canvas.SetColor(clHilite1);
-	    Canvas.DrawLine(FMargin, FMargin, Width - FMargin * 2, FMargin);
-	    Canvas.DrawLine(FMargin, FMargin, FMargin, Height - ButtonHeight - FMargin + 1);
-	    Canvas.SetColor(clHilite2);
-	    Canvas.DrawLine(FMargin, FMargin + 1, Width - FMargin * 2 - 1, FMargin + 1);
-	    Canvas.DrawLine(FMargin + 1, FMargin + 2, FMargin + 1, Height - Buttonheight - FMargin);
-	    Canvas.SetColor(clShadow2);
-	    Canvas.DrawLine(Width - FMargin * 2, FMargin+1, Width - FMargin * 2, Height - Buttonheight - FMargin + 1);
-	    Canvas.DrawLine(FMargin, Height - FMargin - ButtonHeight + 2, Width - 2 * FMargin, Height - FMargin - ButtonHeight + 2);
-	    Canvas.SetColor(clShadow1);
-	    Canvas.DrawLine(Width - FMargin * 2 - 1, FMargin+2, Width - FMargin * 2 - 1, Height - Buttonheight - FMargin + 1);
-	    Canvas.DrawLine(FMargin+1, Height - FMargin - ButtonHeight + 1, Width - 2 * FMargin -2 , Height - FMargin - ButtonHeight + 1);
-	    Canvas.SetClipRect(r);
-	    while h <> nil do
-	    begin
-		if h^.TabSheet <> ActiveTabSheet then
-		begin
-		    h^.TabSheet.Visible := false;
-		    Canvas.SetColor(clShadow1);
-		    Canvas.DrawLine(lp + FMargin + ButtonWidth(h^.TabSheet.Text), Height - ButtonHeight - FMargin + 3, lp + FMargin + ButtonWidth(h^.TabSheet.Text), Height - FMargin);
-		end
-		else
-		begin
-		    h^.TabSheet.SetDimensions(FMargin + 2, FMargin + 2, Width - FMargin * 2 - 4, Height - ButtonHeight - FMargin * 2 - 1);
-		    h^.TabSheet.Visible := true;
-		    Canvas.SetColor(clHilite1);
-		    Canvas.DrawLine(lp + FMargin, Height - ButtonHeight - FMargin + 2, lp + FMargin, Height - FMargin);
-		    Canvas.SetColor(clHilite2);
-		    Canvas.DrawLine(lp + FMargin + 1, Height - ButtonHeight - FMargin + 1, lp + FMargin + 1, Height - FMargin);
-		    Canvas.SetColor(clShadow1);
-		    Canvas.DrawLine(lp + FMargin + 1, Height - FMargin - 2, lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 2, Height - FMargin - 2);
-		    Canvas.DrawLine(lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 2, Height - ButtonHeight - Fmargin + 2, lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 2, Height - FMargin - 1);
-		    Canvas.SetColor(clShadow2);
-		    Canvas.DrawLine(lp + FMargin, Height - FMargin - 1, lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 1, Height - FMargin - 1);
-		    Canvas.DrawLine(lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 1, Height - ButtonHeight - Fmargin + 3, lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 1, Height - FMargin);
-		    Canvas.SetColor(clWindowBackground);
-		    Canvas.DrawLine(lp + FMargin + 2, Height - ButtonHeight - FMargin + 1,  lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 3, Height - ButtonHeight - FMargin + 1);
-		    Canvas.DrawLine(lp + FMargin + 2, Height - ButtonHeight - FMargin + 2,  lp + FMargin + ButtonWidth(h^.TabSheet.Text) - 3, Height - ButtonHeight - FMargin + 2);
-		end;
-		Canvas.DrawString16(lp+ButtonWidth(h^.TabSheet.Text) div 2 - FFont.TextWidth16(GetTabText(h^.TabSheet.text)) div 2,Height - FMargin - ButtonHeight + 2, GetTabText(h^.TabSheet.text));
-		lp := lp + ButtonWidth(h^.TabSheet.Text);
-		h := h^.next;
-	    end;
-	end;
-	wpTop : begin // draw in top of the control
-	    if MaxButtonWidthSum > Width - FMargin * 2 then
-	    begin
-		if FFirstTabButton = nil then FFirstTabButton := h
-		else
-		    h := FFirstTabButton;
-		r.SetRect(FMargin,FMargin,Width - FMargin * 2 - FRightButton.Width * 2 - 1, FRightButton.Height);
-		FLeftButton.SetDimensions(Width - FMargin * 2 - FRightButton.Width * 2, FMargin, FRightButton.Height, FRightButton.Height);
-		FRightButton.SetDimensions(Width - FMargin * 2 - FrightButton.Width, FMargin, FRightButton.Height, FRightButton.Height);
-		FLeftButton.Visible := true;
-		FRightButton.Visible := true;
-	    end
-	    else
-	    begin
-		r.SetRect(FMargin,FMargin,Width - FMargin * 2, ButtonHeight);
-		FLeftButton.Visible := false;
-		FRightButton.Visible := false;
+		    r.SetRect(FMargin,FMargin,Width - FMargin * 2, ButtonHeight);
+		    FLeftButton.Visible := false;
+		    FRightButton.Visible := false;
 	    end;
 	    Canvas.SetColor(clHilite1);
 	    Canvas.DrawLine(FMargin,ButtonHeight, FMargin, Height - FMargin * 2);
