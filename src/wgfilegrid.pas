@@ -3,6 +3,9 @@
 
   History: }
 // $Log$
+// Revision 1.9  2004/01/03 10:28:05  aegluke
+// Fixed ScrollBar-Bug
+//
 // Revision 1.8  2004/01/02 20:43:08  aegluke
 // ImageList-Support, Detailed-View-Bugfix
 //
@@ -454,8 +457,8 @@ begin
       end
       else
       begin
-        RowCount := VisibleLines;
         ColumnCount := (FFiles.Count div VisibleLines) + 1;
+        RowCount := VisibleLines;
       end;
     end;
     AVisibleLines := VisibleLines;
