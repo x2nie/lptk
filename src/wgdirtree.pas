@@ -3,6 +3,9 @@ unit wgdirtree;
 // Bugs or Feature Requests - mail to: Erik@Grohnwaldt.de
 // For newer versions look at lptk.sourceforge.net or www.grohnwaldt.de
 // $Log$
+// Revision 1.7  2004/01/14 08:22:31  aegluke
+// Fixed wrong use of FindSubNode
+//
 // Revision 1.6  2004/01/09 17:29:56  aegluke
 // Windows-Drive support - Update
 //
@@ -250,7 +253,7 @@ begin
 	    while pos(cDirSeparator,aValue) <> 0 do
 	    begin
 	      searchstr := copy(aValue,1,pos(cDirSeparator,aValue)-1);
-	      aNode := aNode.FindSubNode(Str8To16(searchstr));
+	      aNode := aNode.FindSubNode(Str8To16(searchstr), false);
 	      aNode.Expand;
 	      delete(aValue,1,pos(cDirSeparator,aValue));
 	      ReadDirectories(aNode);
@@ -276,7 +279,7 @@ begin
 	      delete(aValue,1,pos(cDirSeparator,aValue));
 	      if aNode.Count > 0 then
 	      begin
-		      tmpNode := aNode.FindSubNode(Str8To16(searchstr));
+		      tmpNode := aNode.FindSubNode(Str8To16(searchstr), false);
 		      if tmpNode = nil then
 		      begin
 		        writeln('Verzeichnis nicht gefunden: ',searchstr);
@@ -299,7 +302,7 @@ begin
 		        tmpNode.Collapse;
 		        tmpNode := tmpNode.Next;
 		      end;
-		      tmpNode := aNode.FindSubNode(Str8To16(searchstr));
+		      tmpNode := aNode.FindSubNode(Str8To16(searchstr), false);
 		      if tmpNode = nil then
 		      begin
 		          writeln('Verzeichnis nicht gefunden: ',searchstr);
