@@ -3,6 +3,8 @@ unit wgtree;
 { 
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
+    28.10.2003	0.9	TwgTreeNode.Clear added - removes all subnodes - recourse
+    20.07.2003	0.8a	bugfix for scrollbar-handling
     16.07.2003	0.8	bugfix for: TwgTreeNode.Remove, TwgTreeNode.UnregisterSubNode
     25.06.2003	0.7	fixed error in DoChange, visual enhancements, fixed bug in keyboard selection handling
     20.06.2003	0.6	use of the clUnset-Color, it replaces the ColorSet-properties in the treenodes
@@ -82,6 +84,9 @@ type
 	    function ParentTextColor : TgfxColor;
 	    function ParentSelTextColor : TgfxColor;
 	    function ParentSelColor : TgfxColor;
+	    
+	    procedure Clear;
+	    // removes all subnodes recourse
 	    
 	    property Collapsed : boolean read FCollapsed write SetCollapsed;	    
 	    property Next : TwgTreeNode read FNext write FNext;
@@ -232,7 +237,6 @@ begin
 	writeln('New Column Size: ',GetColumnWidth(FMovingCol) + x - FMovingPos,' for Column: ',FMovingCol);
 	writeln(GetColumnWidth(FMovingCol));
 	{$ENDIF}
-//	RePaint;
     end
     else
     begin
@@ -897,6 +901,17 @@ begin
 end;
 
 { TwgTreeNode }
+
+procedure TwgTreeNode.Clear;
+// removes all sub-nodes - recourse
+begin
+    while FirstSubNode <> nil do
+    begin
+	if FirstSubNode.Count > 0 then	// recourse
+	    FirstSubNode.Clear;
+	Remove(FirstSubNode);
+    end;
+end;
 
 function TwgTreeNode.GetMaxVisibleDepth : integer;
 var
