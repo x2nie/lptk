@@ -1,8 +1,8 @@
 unit vfdwidgetclass;
 
-// the new widget editor interface.
-// not finished and used yet.
-
+{$ifdef FPC}
+  {$mode delphi}
+{$endif}
 {$H+}
 
 interface

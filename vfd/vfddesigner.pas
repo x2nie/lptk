@@ -160,7 +160,7 @@ type
 
 implementation
 
-uses vfdutils, vfdmain, pasparser;
+uses vfdutils, vfdmain;
 
 { TWidgetDesigner }
 
