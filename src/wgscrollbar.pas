@@ -18,6 +18,8 @@ type
   TScrollNotifyEvent = procedure(Sender: TObject; position : integer) of object;
 
   TwgScrollBar = class(TWidget)
+  private
+         FRePaint : Boolean;
   protected
 
     FSliderPos, FSliderLength : TGfxCoord;
@@ -36,7 +38,6 @@ type
     procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
 
     procedure PositionChange(d : integer);
-
   public
     OnScroll : TScrollNotifyEvent;
 
@@ -82,7 +83,8 @@ begin
   if FWinHandle <= 0 then Exit;
 //  inherited RePaint;
   //Canvas.Clear;
-
+  Canvas.DrawOnBuffer := True;
+  FRePaint := True;
   if Orientation = orVertical then
   begin
     DrawButton(0,0,width,width, 0);
@@ -95,7 +97,8 @@ begin
   end;
   
   DrawSlider(true);
-  
+  FRePaint := False;
+  Canvas.SwapBuffer;
 end;
 
 procedure TwgScrollBar.RepaintSlider;
@@ -115,6 +118,7 @@ var
   area : TGfxCoord;
   mm : TGfxCoord;
 begin
+  Canvas.DrawOnBuffer := FRePaint;
   if SliderSize > 1 then SliderSize := 1;
 
   canvas.SetColor(BackgroundColor);
