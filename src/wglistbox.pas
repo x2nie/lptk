@@ -20,7 +20,9 @@ type
   TwgListBox = class(TWidget)
   private
     FPopupFrame: boolean;
+    function GetFontName: string;
     procedure SetFocusItem(const AValue: integer);
+    procedure SetFontName(const AValue: string);
     procedure SetPopupFrame(const AValue: boolean);
   protected
     FFont : TGfxFont;
@@ -77,6 +79,9 @@ type
     
     property PopupFrame : boolean read FPopupFrame write SetPopupFrame;
 
+    property Font : TGfxFont read FFont;
+    property FontName : string read GetFontName write SetFontName;
+    
   public
 
     OnChange : TNotifyEvent;
@@ -102,7 +107,6 @@ type
 
     function Text : string16;
     function Text8 : string;
-
   end;
 
 implementation
@@ -119,6 +123,18 @@ begin
   FollowFocus;
   UpdateScrollbar;
   if FWinHandle > 0 then RePaint;
+end;
+
+function TwgListBox.GetFontName: string;
+begin
+  result := FFont.FontName;
+end;
+
+procedure TwgListBox.SetFontName(const AValue: string);
+begin
+  FFont.Free;
+  FFont := GfxGetFont(AValue);
+  if Windowed then RePaint;
 end;
 
 procedure TwgListBox.SetPopupFrame(const AValue: boolean);
@@ -221,7 +237,7 @@ end;
 constructor TwgListBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FFont := guistyle.ListFont;
+  FFont := GfxGetFont('#List');
   FBackgroundColor := clListBox;
   FScrollBar := TwgScrollBar.Create(self);
   FScrollBar.OnScroll := {$ifdef FPC}@{$endif}ScrollBarMove;
@@ -241,6 +257,7 @@ end;
 destructor TwgListBox.Destroy;
 begin
   //FScrollBar.Free;
+  FFont.Free;
   inherited Destroy;
 end;
 

@@ -18,8 +18,9 @@ type
   TwgLabel = class(TWidget)
   private
     FColor: TGfxColor;
+    function GetFontName: string;
     procedure SetColor(const AValue: TGfxColor);
-    procedure SetFont(const AValue: TGfxFont);
+    procedure SetFontName(const AValue: string);
     procedure SetText(const AValue : String16);
     procedure SetText8(const AValue: string);
     function GetText8: string;
@@ -35,7 +36,8 @@ type
     property Text : String16 read FText write SetText;
     property Text8 : string read GetText8 write SetText8;
 
-    property Font : TGfxFont read FFont write SetFont;
+    property Font : TGfxFont read FFont;
+    property FontName : string read GetFontName write SetFontName;
     
     property Color : TGfxColor read FColor write SetColor;
   end;
@@ -66,11 +68,16 @@ begin
   RePaint;
 end;
 
-procedure TwgLabel.SetFont(const AValue: TGfxFont);
+function TwgLabel.GetFontName: string;
 begin
-  if FFont=AValue then exit;
-  FFont:=AValue;
-  if FWinHandle > 0 then RePaint;
+  result := FFont.FontName;
+end;
+
+procedure TwgLabel.SetFontName(const AValue: string);
+begin
+  FFont.Free;
+  FFont := GfxGetFont(AValue);
+  if Windowed then RePaint;
 end;
 
 procedure TwgLabel.SetText(const AValue : String16);
@@ -94,7 +101,7 @@ constructor TwgLabel.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   FText := '';
-  FFont := guistyle.LabelFont1;
+  FFont := GfxGetFont('#Label1');
   FHeight := FFont.Height;
   FColor := clText1;
 end;
@@ -102,6 +109,7 @@ end;
 destructor TwgLabel.Destroy;
 begin
   FText := '';
+  FFont.Free;
   inherited Destroy;
 end;
 

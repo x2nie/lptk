@@ -77,7 +77,7 @@ constructor TwgCheckBox.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   FText := '';
-  FFont := guistyle.LabelFont1;
+  FFont := GfxGetFont('#Label1');
   FHeight := FFont.Height + 4;
 
   FFocusable := true;
@@ -91,6 +91,7 @@ end;
 destructor TwgCheckBox.Destroy;
 begin
   FText := '';
+  FFont.Free;
   inherited Destroy;
 end;
 

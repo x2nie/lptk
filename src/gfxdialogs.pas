@@ -62,11 +62,7 @@ type
     btnCancel : TwgButton;
     {@VFD_HEAD_END: frmFontSelect}
     
-    curfont : TGfxFont;
-
     procedure AfterCreate; override;
-
-    destructor Destroy; override;
 
     procedure OkClick(sender : TObject);
     procedure CancelClick(sender : TObject);
@@ -221,7 +217,7 @@ constructor TMessageBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FLines := TStringList.Create;
-  FFont := guistyle.LabelFont1;
+  FFont := GfxGetFont('#Label1');
   FTextY := 10;
   FLineHeight := FFont.Height + 4;
   FMinWidth := 200;
@@ -235,6 +231,7 @@ end;
 
 destructor TMessageBox.Destroy;
 begin
+  FFont.Free;
   FLines.Free;
   inherited;
 end;
@@ -468,7 +465,6 @@ begin
 
   {@VFD_BODY_END: frmFontSelect}
 
-  curfont := nil;
   CreateFontList;
 end;
 
@@ -488,11 +484,9 @@ procedure TfrmFontSelect.OnParamChange(sender: TObject);
 var
   fdesc : string;
 begin
-  if curfont <> nil then curfont.Free;
   fdesc := GetFontDesc;
   Writeln(fdesc);
-  curfont := GfxGetFont(fdesc);
-  edSample.Font := curfont;
+  edSample.FontName := fdesc;
 end;
 
 procedure TfrmFontSelect.CreateFontList;
@@ -604,12 +598,6 @@ begin
   end;
 
   OnParamChange(self);
-end;
-
-destructor TfrmFontSelect.Destroy;
-begin
-  if curfont <> nil then curfont.Free;
-  inherited;
 end;
 
 { Color selectors }

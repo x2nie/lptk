@@ -28,6 +28,8 @@ type
     FDown : Boolean;
     FImageMargin: integer;
     FImageSpacing: integer;
+    function GetFontName: string;
+    procedure SetFontName(const AValue: string);
     procedure SetImageName(const AValue: string);
     procedure SetText(const AValue : String16);
     procedure SetDown(AValue : Boolean);
@@ -67,6 +69,7 @@ type
     property Text8 : String read GetText8 write SetText8;
 
     property Font : TGfxFont read FFont;
+    property FontName : string read GetFontName write SetFontName;
 {
     // image-properties
     property ImageList : TgfxImageList read FImageList write SetImageList;
@@ -141,11 +144,23 @@ begin
   //FShowImage := true;
 end;
 
+function TwgButton.GetFontName: string;
+begin
+  result := FFont.FontName;
+end;
+
+procedure TwgButton.SetFontName(const AValue: string);
+begin
+  FFont.Free;
+  FFont := GfxGetFont(AValue);
+  if Windowed then RePaint;
+end;
+
 constructor TwgButton.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   FText := '';
-  FFont := guistyle.LabelFont1;
+  FFont := GfxGetFont('#Label1');
   FHeight := FFont.Height + 8;
   FFocusable := True;
   FBackgroundColor := clButtonFace;
@@ -166,6 +181,7 @@ end;
 destructor TwgButton.Destroy;
 begin
   FText := '';
+  FFont.Free;
   inherited Destroy;
 end;
 

@@ -5,6 +5,9 @@ History:
 }
 
 // $Log$
+// Revision 1.19  2004/04/24 23:59:58  nvitya
+// Font handling changes
+//
 // Revision 1.18  2004/04/24 12:53:43  nvitya
 // better control frames
 //
@@ -46,8 +49,12 @@ type
   TwgGrid = class(TWidget)
   private
     FDrawGrid : boolean;
+    function GetFontName: string;
+    function GetHeaderFontName: string;
     procedure SetFocusCol(const Value: integer);
     procedure SetFocusRow(const Value: integer);
+    procedure SetFontName(const AValue: string);
+    procedure SetHeaderFontName(const AValue: string);
   protected
     FHeaderFont : TGfxFont;
     FFont : TGfxFont;
@@ -86,8 +93,10 @@ type
 
     property RowHeight : TGfxCoord read FRowHeight;
 
-    property HeaderFont : TGfxFont read FHeaderFont;
     property Font : TGfxFont read FFont;
+    property FontName : string read GetFontName write SetFontName;
+    property HeaderFont : TGfxFont read FHeaderFont;
+    property HeaderFontName : string read GetHeaderFontName write SetHeaderFontName;
 
     property ColumnWidth[aCol : integer] : TgfxCoord read GetColumnWidth write SetColumnWidth;
 
@@ -114,6 +123,7 @@ type
 
   public
     constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
 
     procedure RePaint; override;
 
@@ -329,8 +339,8 @@ begin
   FFirstRow := 1;
   FFirstCol := 1;
   FMargin := 2;
-  FFont := guistyle.GridFont;
-  FHeaderFont := guistyle.GridHeaderFont;
+  FFont := GfxGetFont('#Grid');
+  FHeaderFont := GfxGetFont('#GridHeader');
   HeadersOn := true;
   RowSelect := false;
 
@@ -354,6 +364,13 @@ begin
   OnFocusChange := nil;
   OnRowChange := nil;
   OnDoubleClick := nil;
+end;
+
+destructor TwgGrid.Destroy;
+begin
+  FFont.Free;
+  FHeaderFont.Free;
+  inherited Destroy;
 end;
 
 procedure TwgGrid.RePaint;
@@ -850,6 +867,16 @@ begin
   CheckFocusChange;
 end;
 
+function TwgGrid.GetFontName: string;
+begin
+  result := FFont.FontName;
+end;
+
+function TwgGrid.GetHeaderFontName: string;
+begin
+  result := FHeaderFont.FontName;
+end;
+
 procedure TwgGrid.SetFocusRow(const Value: integer);
 begin
   FFocusRow := Value;
@@ -858,6 +885,20 @@ begin
   FollowFocus;
   CheckFocusChange;
   if FWinHandle > 0 then Update;
+end;
+
+procedure TwgGrid.SetFontName(const AValue: string);
+begin
+  FFont.Free;
+  FFont := GfxGetFont(AValue);
+  if Windowed then RePaint;
+end;
+
+procedure TwgGrid.SetHeaderFontName(const AValue: string);
+begin
+  FHeaderFont.Free;
+  FHeaderFont := GfxGetFont(AValue);
+  if Windowed then RePaint;
 end;
 
 end.

@@ -35,7 +35,9 @@ type
   TwgChoiceList = class(TWidget)
   private
     FFocusItem: integer;
+    function GetFontName: string;
     procedure SetFocusItem(const Value: integer);
+    procedure SetFontName(const AValue: string);
   protected
     FFont : TGfxFont;
 
@@ -69,6 +71,9 @@ type
 
     function Text : string16;
     function Text8 : string;
+    
+    property Font : TGfxFont read FFont;
+    property FontName : string read GetFontName write SetFontName;
 
   public
 
@@ -109,7 +114,7 @@ end;
 constructor TwgChoiceList.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FFont := guistyle.ListFont;
+  FFont := GfxGetFont('#List');
 
   FItems := TStringList.Create;
 
@@ -142,6 +147,7 @@ destructor TwgChoiceList.Destroy;
 begin
   FItems.Free;
   FListPopup.Free;
+  FFont.Free;
   inherited Destroy;
 end;
 
@@ -246,6 +252,18 @@ begin
   if FFocusItem < 1 then FFocusItem := 1;
   if FFocusItem > FItems.Count then FFocusItem := FItems.Count;
   if FWinHandle > 0 then RePaint;
+end;
+
+function TwgChoiceList.GetFontName: string;
+begin
+  result := FFont.FontName;
+end;
+
+procedure TwgChoiceList.SetFontName(const AValue: string);
+begin
+  FFont.Free;
+  FFont := GfxGetFont(AValue);
+  if Windowed then RePaint;
 end;
 
 { TChoiceListPopup }

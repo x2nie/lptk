@@ -33,6 +33,8 @@ type
 
     FDrawOffset : integer;
 
+    function GetFontName: string;
+    procedure SetFontName(const AValue: string);
     procedure SetText(const AValue : String16);
 
     procedure DeleteSelection;
@@ -45,12 +47,11 @@ type
     procedure SetText8(const Value: string);
     function GetText8: string;
 
-    procedure SetFont(const Value: TGfxFont);
-
   public
     PasswordMode : boolean;
 
     constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
 
     procedure RePaint; override;
 
@@ -66,7 +67,8 @@ type
 
     property Text8 : string read GetText8 write SetText8;
 
-    property Font : TGfxFont read FFont write SetFont;
+    property Font : TGfxFont read FFont;
+    property FontName : string read GetFontName write SetFontName;
 
   public
 
@@ -96,7 +98,9 @@ constructor TwgEdit.Create(AOwner : TComponent);
 begin
   inherited;
   Focusable := true;
-  FFont := guistyle.EditFont1;
+  
+  FFont := GfxGetFont('#Edit1');  // owned object !
+  
   FHeight := FFont.Height + 6;
   FBackgroundColor := clBoxColor;
 
@@ -118,6 +122,12 @@ begin
   OnChange := nil;
 end;
 
+destructor TwgEdit.Destroy;
+begin
+  FFont.Free;
+  inherited Destroy;
+end;
+
 procedure TwgEdit.SetText(const AValue : String16);
 begin
   if FText=AValue then exit;
@@ -127,6 +137,18 @@ begin
   FSelOffset := 0;
   FDrawOffset := 0;
   if FWinHandle > 0 then RePaint;
+end;
+
+function TwgEdit.GetFontName: string;
+begin
+  result := FFont.FontName;
+end;
+
+procedure TwgEdit.SetFontName(const AValue: string);
+begin
+  FFont.Free;
+  FFont := GfxGetFont(AValue);
+  if Windowed then RePaint;
 end;
 
 procedure TwgEdit.DeleteSelection;
@@ -547,12 +569,6 @@ end;
 procedure TwgEdit.SetText8(const Value: string);
 begin
   Text := str8to16(Value);
-end;
-
-procedure TwgEdit.SetFont(const Value: TGfxFont);
-begin
-  FFont := Value;
-  if FWinHandle <> 0 then RePaint;
 end;
 
 end.

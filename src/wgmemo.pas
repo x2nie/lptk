@@ -50,6 +50,7 @@ type
 
     FLongestLineWidth : TGfxCoord;
 
+    function GetFontName: string;
     procedure RecalcLongestLine;
 
     procedure DeleteSelection;
@@ -61,6 +62,7 @@ type
 
     function LineCount : integer;
     function GetLineText(linenum : integer) : string;
+    procedure SetFontName(const AValue: string);
     procedure SetLineText(linenum : integer; value : string);
     function GetCursorX : integer;
     procedure SetCPByX(x : integer);
@@ -77,8 +79,6 @@ type
     procedure SetText8(const AValue : String);
     function GetText : string16;
     function GetText8 : string;
-
-    procedure SetFont(const Value: TGfxFont);
 
     procedure SetCursorLine(aValue : integer);
   protected
@@ -108,13 +108,14 @@ type
     property LineHeight : integer read FLineHeight;
 
     property Lines : TStringList read FLines;
-
+    property CursorLine : integer read FCursorLine write SetCursorLine;
 
     property Text : string16 read GetText write SetText;
     property Text8 : string read GetText8 write SetText8;
+    
+    property Font : TGfxFont read FFont;
+    property FontName : string read GetFontName write SetFontName;
 
-    property Font : TGfxFont read FFont write SetFont;
-    property CursorLine : integer read FCursorLine write SetCursorLine;
   public
 
     OnChange : TNotifyEvent;
@@ -175,7 +176,7 @@ constructor TwgMemo.Create(AOwner : TComponent);
 begin
   inherited;
   Focusable := true;
-  FFont := guistyle.EditFont1;
+  FFont := GfxGetFont('#Edit1');
   FHeight := FFont.Height + 4;
   FLineHeight := FFont.Height + 2;
   FBackgroundColor := $FFFFFF;
@@ -214,6 +215,7 @@ end;
 destructor TwgMemo.Destroy;
 begin
   FLines.Free;
+  FFont.Free;
   inherited Destroy;
 end;
 
@@ -228,6 +230,11 @@ begin
     lw := FFont.TextWidth16(getlinetext(n));
     if lw > FlongestLineWidth then FlongestLineWidth := lw;
   end;
+end;
+
+function TwgMemo.GetFontName: string;
+begin
+  result := FFont.FontName;
 end;
 
 procedure TwgMemo.DeleteSelection;
@@ -492,6 +499,13 @@ begin
   if (linenum >= 1) and (linenum <= LineCount)
     then result := FLines.Strings[linenum-1]
     else result := '';
+end;
+
+procedure TwgMemo.SetFontName(const AValue: string);
+begin
+  FFont.Free;
+  FFont := GfxGetFont(AValue);
+  if Windowed then RePaint;
 end;
 
 procedure TwgMemo.SetLineText(linenum: integer; value: string);
@@ -1189,13 +1203,6 @@ end;
 procedure TwgMemo.SetText8(const AValue: String);
 begin
   text := u8(avalue);
-end;
-
-procedure TwgMemo.SetFont(const Value: TGfxFont);
-begin
-  if FFont = Value then Exit;
-  FFont := Value;
-  if FWinHandle <> 0 then RePaint;
 end;
 
 end.

@@ -61,35 +61,38 @@ const
 
 type
 
+  TNamedFontItem = class
+  public
+    FontID : string;
+    FontDesc : string;
+    constructor Create(AFontID, AFontDesc : string);
+  end;
+
   TGfxStyle = class
   private
     FNamedColors : array[0..255] of longword;
+    FNamedFonts : TList;
   public
-    LabelFont1,
-    LabelFont2,
-    EditFont1,
-    EditFont2,
-
-    ListFont,
-
-    GridFont,
-    GridHeaderFont   : TGfxFont;
-
-    MenuFont,
-    MenuAccelFont,
-    MenuDisabledFont : TGfxFont;
-
     constructor Create;
     destructor Destroy; override;
 
-    function DefaultFont : TGfxFont;
-
     function GetNamedColorRGB(col : TGfxColor) : TGfxColor;
-
+    function GetNamedFontDesc(afontid : string) : string;
+    function CreateNamedFontx(afontid : string) : TGfxFont;
   public
 
     procedure SetNamedColor(colorid, rgbvalue : longword);
-
+    procedure SetNamedFont(afontid, afontdesc : string);
+    
+  public
+    // Global font objects - never freed!
+    
+    DefaultFont : TGfxFont;
+    
+    MenuFont,
+    MenuAccelFont,
+    MenuDisabledFont : TGfxFont;
+    
   end;
 
 function guistyle : TGfxStyle;
@@ -117,20 +120,24 @@ end;
 
 constructor TGfxStyle.Create;
 begin
-  LabelFont1 := GfxGetFont('Arial-10');
-  LabelFont2 := GfxGetFont('Arial-10:bold');
+  FNamedFonts := TList.Create;
+  
+  // Style description
+  
+  SetNamedFont('Label1',        'Arial-10');
+  SetNamedFont('Label2',        'Arial-10:bold');
 
-  EditFont1 := GfxGetFont('Arial-10');
-  EditFont2 := GfxGetFont('Courier New-10');
+  SetNamedFont('Edit1',         'Arial-10');
+  SetNamedFont('Edit2',         'Courier New-10');
 
-  ListFont  := GfxGetFont('Arial-10');
+  SetNamedFont('List',          'Arial-10');
 
-  GridFont       := GfxGetFont('arial-9:antialias=false');
-  GridHeaderFont := GfxGetFont('arial-9:bold:antialias=false');
+  SetNamedFont('Grid',          'Arial-9:antialias=false');
+  SetNamedFont('GridHeader',    'Arial-9:bold:antialias=false');
 
-  MenuFont := GfxGetFont('arial-10');
-  MenuAccelFont := GfxGetFont('arial-10:bold');
-  MenuDisabledFont := GfxGetFont('arial-10:italic');
+  SetNamedFont('Menu',          'Arial-10');
+  SetNamedFont('MenuAccel',     'Arial-10:bold');
+  SetNamedFont('MenuDisabled',  'Arial-10:italic');
 
 
   SetNamedColor( clWindowBackground,    $C0C0C0);
@@ -171,6 +178,14 @@ begin
 
   SetNamedColor( clMenuText,            $000000);
   SetNamedColor( clMenuDisabled,        $909090);
+  
+  // Global Font Objects
+  
+  DefaultFont := GfxGetFont(GetNamedFontDesc('Label1'));
+  
+  MenuFont := GfxGetFont(GetNamedFontDesc('Menu'));
+  MenuAccelFont := GfxGetFont(GetNamedFontDesc('MenuAccel'));
+  MenuDisabledFont := GfxGetFont(GetNamedFontDesc('MenuDisabled'));
 end;
 
 function TGfxStyle.GetNamedColorRGB(col : TGfxColor) : TGfxColor;
@@ -178,22 +193,37 @@ begin
   result := FNamedColors[col and $FF];
 end;
 
-destructor TGfxStyle.Destroy;
+function TGfxStyle.GetNamedFontDesc(afontid: string): string;
+var
+  n : integer;
 begin
-  LabelFont1.Free;
-  LabelFont2.Free;
-  EditFont1.Free;
-  EditFont2.Free;
+  n:=0;
+  while (n < FNamedFonts.Count) and
+        (lowercase(TNamedFontItem(FNamedFonts[n]).FontID) <> lowercase(afontid)) do inc(n);
 
-  ListFont.Free;
-
-  GridFont.Free;
-  GridHeaderFont.Free;
+  if n < FNamedFonts.Count then
+  begin
+    // found
+    result := TNamedFontItem(FNamedFonts[n]).FontDesc;
+  end
+  else
+  begin
+    Writeln('GetNamedFontDesc error: "'+afontid+'" is missing. Default is used.');
+    result := 'Arial-10';  // default font desc
+  end;
 end;
 
-function TGfxStyle.DefaultFont : TGfxFont;
+function TGfxStyle.CreateNamedFontx(afontid: string): TGfxFont;
 begin
-  Result := LabelFont1;
+  result := GfxGetFont(GetNamedFontDesc(afontid));
+end;
+
+destructor TGfxStyle.Destroy;
+var
+  n : integer;
+begin
+  for n:=0 to FNamedFonts.Count-1 do TNamedFontItem(FNamedFonts[n]).Free;
+  FNamedFonts.Free;
 end;
 
 procedure DrawButtonFace(canvas : TGfxCanvas; x, y, w, h : TGfxCoord);
@@ -291,6 +321,33 @@ begin
   i := colorid and $FF;
 
   FNamedColors[i] := rgbvalue;
+end;
+
+procedure TGfxStyle.SetNamedFont(afontid, afontdesc: string);
+var
+  n : integer;
+  afid : string;
+begin
+  n:=0;
+  while (n < FNamedFonts.Count) and (lowercase(TNamedFontItem(FNamedFonts[n]).FontID) <> lowercase(afontid)) do inc(n);
+  
+  if n < FNamedFonts.Count then
+  begin
+    // already defined
+    TNamedFontItem(FNamedFonts[n]).FontDesc := afontdesc;
+  end
+  else
+  begin
+    FNamedFonts.Add(TNamedFontItem.Create(afontid, afontdesc));
+  end;
+end;
+
+{ TNamedFontItem }
+
+constructor TNamedFontItem.Create(AFontID, AFontDesc: string);
+begin
+  FontId := afontid;
+  FontDesc := afontdesc;
 end;
 
 initialization
