@@ -263,7 +263,7 @@ end;
 
 constructor TGfxForm.Create(AOwner: TComponent);
 begin
-  FWindowTitle := ClassName;
+  FWindowTitle := u8(ClassName);
   FWMOptions := []; //[wmAutoPosition];
   FWindowPosition := wpScreenCenter;
 
