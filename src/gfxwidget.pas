@@ -85,6 +85,7 @@ type
     procedure MsgMouseDown(var msg : TMessageRec); message MSG_MOUSEDOWN;
     procedure MsgMouseUp(var msg : TMessageRec); message MSG_MOUSEUP;
     procedure MsgMouseMove(var msg : TMessageRec); message MSG_MOUSEMOVE;
+    procedure MsgDoubleClick(var msg : TMessageRec); message MSG_DOUBLECLICK;
 
     procedure MsgMouseEnter(var msg : TMessageRec); message MSG_MOUSEENTER;
     procedure MsgMouseExit(var msg : TMessageRec); message MSG_MOUSEEXIT;
@@ -95,6 +96,7 @@ type
 
     procedure MsgMove(var msg : TMessageRec); message MSG_MOVE;
 
+
   protected
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); virtual;
@@ -103,6 +105,7 @@ type
     procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); virtual;
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); virtual;
     procedure HandleMouseMove(x,y : integer; btnstate : word; shiftstate : word); virtual;
+    procedure HandleDoubleClick(x,y : integer; button : word; shiftstate : word); virtual;
 
     procedure HandleWindowScroll(direction, amount : integer); virtual;
 
@@ -174,7 +177,7 @@ type
   public
 
     OnKeyPress : TKeyPressNotifyEvent;
-
+    
   end;
 
 function FindWidget(wh : TWinHandle) : TWidget;
@@ -351,7 +354,7 @@ begin
   RegisterValidDest(self);
   
   OnKeyPress := nil;
-  
+
   AfterCreate;
 end;
 
@@ -553,6 +556,11 @@ begin
 end;
 
 procedure TWidget.HandleMouseMove(x,y : integer; btnstate : word; shiftstate : word);
+begin
+  //
+end;
+
+procedure TWidget.HandleDoubleClick(x, y: integer; button: word; shiftstate: word);
 begin
   //
 end;
@@ -933,6 +941,16 @@ begin
     Exit;
   end;
   HandleMouseMove(msg.Param1, msg.Param2, (msg.Param3 and $FF00) shr 8, msg.Param3 and $FF);
+end;
+
+procedure TWidget.MsgDoubleClick(var msg: TMessageRec);
+begin
+  if FFormDesigner <> nil then
+  begin
+    FFormDesigner.Dispatch(msg);
+    Exit;
+  end;
+  HandleDoubleClick(msg.Param1, msg.Param2, (msg.Param3 and $FF00) shr 8, msg.Param3 and $FF);
 end;
 
 procedure TWidget.MsgMouseEnter(var msg: TMessageRec);

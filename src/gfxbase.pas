@@ -45,6 +45,7 @@ type
   TNotifyEvent = procedure(Sender : TObject) of object;
 
   TKeyPressNotifyEvent = procedure(Sender: TObject; var keycode: word; var shiftstate: word; var consumed : boolean) of object;
+  TMouseNotifyEvent    = procedure(Sender: TObject; x,y : integer; var button : word; var shiftstate : word) of object;
 
 type
   TSizeParams = record
@@ -138,6 +139,8 @@ const
   MSG_DEACTIVATE = MSG_LPTKINT + 6;
   
   MSG_MOVE       = MSG_LPTKINT + 7;
+  
+  MSG_DOUBLECLICK = MSG_LPTKINT + 8;
 
 const
   CUR_DEFAULT   = 1;
@@ -229,7 +232,9 @@ const
   MSG_POPUPCLOSE = 67;
   
   MSG_MOVE       = 68;
-  
+
+  MSG_DOUBLECLICK = 69;
+
 const
   CUR_DEFAULT   = 68;
   CUR_DIR_EW    = 108;
@@ -243,6 +248,9 @@ const
   
   CUR_CROSSHAIR = 34;
 
+const
+  DOUBLECLICK_MS = 200; // the max time between left-clicks for doubleclick
+  
 const
   ss_Shift   = $0001;
   ss_Control = $0004;
@@ -540,6 +548,10 @@ type
 var
   InputMethod  : PXIM;
   InputContext : PXIC;
+  
+var
+  LastClickWindow  : TWinHandle;
+  LastWinClickTime : longword;
 
 // defines:
 procedure XRenderSetPictureClipRectangles(disp : PXDisplay; pic : TPicture; xorigin,yorigin : integer; rect : PXRectangle; num : integer); cdecl; external;
@@ -1459,7 +1471,7 @@ begin
       uc := ks and $FFFF;
       KeySymToUnicode(ks, @uc);
 
-      Writeln('XKey event: ',ev.xkey.keycode,', shift=',IntToHex(ss,4),' keysym=',IntToHex(ks,4),' unicode=',IntToHex(uc,4));
+      //Writeln('XKey event: ',ev.xkey.keycode,', shift=',IntToHex(ss,4),' keysym=',IntToHex(ks,4),' unicode=',IntToHex(uc,4));
 
       wg := FindKeyboardFocus;
       if wg <> nil then PostMessage(nil, wg, ev.xkey._type, uc, ev.xkey.state, 0 )
@@ -1468,7 +1480,7 @@ begin
 
     MSG_MOUSEDOWN, MSG_MOUSEUP:
     begin
-
+    
       if (Popup <> nil) then
       begin
         wg := FindWidget(ev.xbutton.window);
@@ -1508,6 +1520,26 @@ begin
         begin
           PostMessage(nil, ewg, ev._type, ev.xbutton.x, ev.xbutton.y,
              (ev.xbutton.state and $FF) or ((ev.xbutton.button and $FF) shl 8) );
+             
+          // doubleclick check
+          if (ev.xbutton.button = 1) then
+          begin
+            if (ev._type = MSG_MOUSEDOWN) then
+            begin
+              if (ev.xbutton.window = LastClickWindow) and ((ev.xbutton.time - LastWinClickTime) < DOUBLECLICK_MS) then
+              begin
+                //Writeln('doubleclick');
+                PostMessage(nil, ewg, MSG_DOUBLECLICK, ev.xbutton.x, ev.xbutton.y,
+                   (ev.xbutton.state and $FF) or ((ev.xbutton.button and $FF) shl 8) );
+
+              end;
+              //Writeln('button time: ',ev.xbutton.time);
+
+              LastWinClickTime := ev.xbutton.time;
+              LastClickWindow  := ev.xbutton.window;
+            end;
+          end;
+          
         end;
 
       end;
@@ -2786,6 +2818,8 @@ begin
   Display := nil;
   InputMethod  := nil;
   InputContext := nil;
+  LastClickWindow  := 0;
+  LastWinClickTime := 0;
 {$endif}
 end;
 

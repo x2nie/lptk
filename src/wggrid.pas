@@ -93,6 +93,8 @@ type
     procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
     procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
+    
+    procedure HandleDoubleClick(x,y : integer; btnstate, shiftstate : word); override;
 
     procedure HandleResize(dwidth, dheight : integer); override;
 
@@ -100,6 +102,8 @@ type
 
     OnFocusChange : TFocusChangeNotify;
     OnRowChange   : TRowChangeNotify;
+    
+    OnDoubleClick : TMouseNotifyEvent;
 
   end;
 
@@ -262,6 +266,7 @@ begin
 
   OnFocusChange := nil;
   OnRowChange := nil;
+  OnDoubleClick := nil;
 end;
 
 procedure TwgGrid.RePaint;
@@ -705,6 +710,13 @@ begin
 
   end;
 
+end;
+
+procedure TwgGrid.HandleDoubleClick(x, y: integer; btnstate, shiftstate: word);
+begin
+  inherited HandleDoubleClick(x, y, btnstate, shiftstate);
+  
+  if Assigned(OnDoubleClick) then OnDoubleClick(self, x,y, btnstate, shiftstate);
 end;
 
 procedure TwgGrid.HandleResize(dwidth, dheight: integer);
