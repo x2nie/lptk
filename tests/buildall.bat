@@ -4,3 +4,4 @@
 ./buildd.bat treetest
 ./buildd.bat caltest
 ./buildd.bat beveltest
+./buildd.bat imgtest
