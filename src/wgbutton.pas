@@ -13,13 +13,17 @@ unit wgbutton;
 interface
 
 uses
-  Classes, SysUtils, schar16, gfxbase, messagequeue, gfxwidget;
+  Classes, SysUtils, schar16, gfxbase, messagequeue, gfxwidget, gfximagelist;
 
 type
   TwgButton = class(TWidget)
   private
     FPushed  : Boolean;
     FClicked : Boolean;
+    FImageList : TgfxImageList;
+    FImageIndex : Longword;
+    FShowImage : Boolean;
+    
     procedure SetText(const AValue : String16);
 
   protected
@@ -27,6 +31,9 @@ type
     FFont : TGfxFont;
     function GetText8 : String;
     procedure SetText8(const AValue : String);
+    procedure SetImageList(AValue : TgfxImageList);
+    procedure SetImageIndex(AValue : Longword);
+    procedure SetShowImage(AValue : Boolean);
   public
     OnClick : TNotifyEvent;
 
@@ -50,6 +57,11 @@ type
     property Text8 : String read GetText8 write SetText8;
     
     property Font : TGfxFont read FFont;
+
+    // image-properties
+    property ImageList : TgfxImageList read FImageList write SetImageList;
+    property ImageIndex : Longword read FImageIndex write SetImageIndex;
+    property ShowImage : Boolean read FShowImage write SetShowImage;
   end;
 
 function CreateButton(AOwner : TComponent; x, y, w : TGfxCoord; txt : String; onclk : TNotifyEvent) : TwgButton;
@@ -69,6 +81,33 @@ begin
 end;
 
 { TwgButton }
+
+procedure TwgButton.SetShowImage(AValue : Boolean);
+begin
+  if AValue <> FShowImage then
+  begin
+    FShowImage := AValue;
+    if (FImageList <> nil) and ShowImage then RePaint;
+  end;
+end;
+
+procedure TwgButton.SetImageList(AValue : TgfxImageList);
+begin
+  if AValue <> FImageList then
+  begin
+    FImageList := AValue;
+    if (FImageList <> nil) and ShowImage then RePaint;
+  end;
+end;
+
+procedure TwgButton.SetImageIndex(AValue : Longword);
+begin
+  if AValue <> FImageIndex then
+  begin
+    FImageIndex := AValue;
+    if ShowImage and (ImageList <> nil) then RePaint;
+  end;
+end;
 
 function TwgButton.GetText8 : String;
 begin
@@ -107,47 +146,64 @@ begin
 end;
 
 procedure TwgButton.RePaint;
+var
+  Image : TgfxImage;
+  AText : String16;
 begin
-  inherited RePaint;
-  Canvas.Clear(FBackgroundColor);
+  if Windowed then
+  begin
+    inherited RePaint;
+    Canvas.Clear(FBackgroundColor);
 
-  if not FPushed then Canvas.SetColor(clHilite1)
+    if not FPushed then Canvas.SetColor(clHilite1)
 	     else Canvas.SetColor(clShadow2);
 
-  Canvas.DrawLine(0,height-2, 0,0);
-  Canvas.DrawLine(0,0, width-1,0);
+    Canvas.DrawLine(0,height-2, 0,0);
+    Canvas.DrawLine(0,0, width-1,0);
 
-  if not FPushed then Canvas.SetColor(clHilite2)
+    if not FPushed then Canvas.SetColor(clHilite2)
 	     else Canvas.SetColor(clShadow1);
 
-  Canvas.DrawLine(1,height-3, 1,1);
-  Canvas.DrawLine(1,1, width-2,1);
+    Canvas.DrawLine(1,height-3, 1,1);
+    Canvas.DrawLine(1,1, width-2,1);
 
-  if not FPushed then Canvas.SetColor(clShadow2)
+    if not FPushed then Canvas.SetColor(clShadow2)
 	     else Canvas.SetColor(clHilite1);
 
-  Canvas.DrawLine(width-1,1, width-1,height-1);
-  Canvas.DrawLine(0,height-1, width-1,height-1);
+    Canvas.DrawLine(width-1,1, width-1,height-1);
+    Canvas.DrawLine(0,height-1, width-1,height-1);
 
-  if not FPushed then Canvas.SetColor(clShadow1)
+    if not FPushed then Canvas.SetColor(clShadow1)
 	     else Canvas.SetColor(clHilite2);
 
-  Canvas.DrawLine(width-2,2, width-2,height-2);
-  Canvas.DrawLine(1,height-2, width-2,height-2);
+    Canvas.DrawLine(width-2,2, width-2,height-2);
+    Canvas.DrawLine(1,height-2, width-2,height-2);
 
-  if FFocused then
-  begin
-    Canvas.SetColor(clSelection);
-//    Canvas.FillRectangle(2,2,width-3,height-3);
-    Canvas.FillRectangle(3,3,width-5,height-5);
-    Canvas.SetTextColor(clSelectionText);
-  end
-  else Canvas.SetTextColor(clText1);
+    if FFocused then
+    begin
+      Canvas.SetColor(clSelection);
+      Canvas.FillRectangle(3,3,width-5,height-5);
+      Canvas.SetTextColor(clSelectionText);
+    end
+    else Canvas.SetTextColor(clText1);
 
-  Canvas.SetFont(Font);
-
-  canvas.DrawString16((width div 2) - (FFont.TextWidth16(FText) div 2), 4, FText);
-
+    Canvas.SetFont(Font);
+    AText := FText;    
+    if (ShowImage) and (ImageList <> nil) then
+    begin
+      Image := ImageList.Item[ImageIndex].Image;
+      while (FFont.TextWidth16(AText) > Width - 8 - Image.Width) and (Length16(AText) > 9) do
+        Delete16(AText,Length16(AText),1);
+      Canvas.DrawImage((width div 2) - (FFont.TextWidth16(AText) div 2) - Image.Width div 2 - 1, Height div 2 - Image.height div 2, Image);
+      Canvas.DrawString16(((width div 2) + Image.Width div 2) - (FFont.TextWidth16(AText) div 2) + 1, 4, AText);
+    end
+    else
+    begin
+      while (FFont.TextWidth16(AText) > Width - 8) and (Length16(AText) > 9) do
+        Delete16(AText,Length16(AText),1);
+      Canvas.DrawString16((width div 2) - (FFont.TextWidth16(AText) div 2), 4, AText);
+    end;
+  end;
 end;
 
 procedure TwgButton.HandleKeyPress(var keycode : word; var shiftstate : word; var consumed : boolean);
