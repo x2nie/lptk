@@ -14,13 +14,13 @@ type
   public
     img : TGfxImage;
     fpy  : TGfxImage;
-//    flower : TGfxImage;
+    flower : TGfxImage;
 
     procedure AfterCreate; override;
-    
+
     procedure RePaint; override;
   end;
-  
+
 { $I bmp_testimg.inc}
 
 {$I bmp_wtest.inc}
@@ -30,10 +30,10 @@ procedure TMainForm.AfterCreate;
 begin
   Height := 150;
   Width := 300;
-  
+
   img := CreateBMPImage(@bmp_wtest, sizeof(bmp_wtest));
   img.Invert;
-  
+
 //  flower := CreateBMPImage(@bmp_testimg, sizeof(bmp_testimg));
 
   fpy := CreateBMPImage(@bmp_floppy, sizeof(bmp_floppy));
@@ -47,12 +47,13 @@ begin
   inherited RePaint;
 //  Canvas.Clear(clWindowBackground);
 //  Canvas.DrawString16(10,20,u8('qqcska'));
-  
+
   Canvas.DrawImage(10,20, fpy);
   Canvas.DrawImagePart(50,20, fpy,0,0,fpy.height,fpy.height);
 
   Canvas.DrawImagePart(75,20, fpy,fpy.height,0,fpy.height,fpy.height);
 
+  Canvas.SetColor($FF0000);
   Canvas.DrawImage(100,20, img);
 
 //  Canvas.DrawImage(10,50, flower);
