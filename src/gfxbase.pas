@@ -4,8 +4,9 @@
 History:
   15.01.2004  complete buffering support for Windows and Linux
 }
-{$DEFINE BUFFERING}
 unit gfxbase;
+
+{$DEFINE BUFFERING}
 
 {$ifdef FPC}
 {$mode objfpc}{$H+}
@@ -2316,7 +2317,7 @@ begin
   {$ENDIF}
 {$else}
   if dashed then FLineStyle := LineOnOffDash else FLineStyle := LineSolid;
-  XSetLineAttributes(display, Fgc, FLineWidth, FLineStyle, 0, 0);
+  XSetLineAttributes(display, Fgc, FLineWidth, FLineStyle, 3, 0);
 {$endif}
 end;
 
@@ -2583,9 +2584,9 @@ begin
   end
   else
   begin
-      XftDrawSetClip(FXftDraw, FClipRegion);
-      FClipRect := rect;
-      FClipRectSet := True;      
+    XftDrawSetClip(FXftDraw, FClipRegion);
+    FClipRect := rect;
+    FClipRectSet := True;
   end;
   XDestroyRegion(rg);
 end;
@@ -2644,9 +2645,9 @@ begin
   end
   else
   begin
-      FClipRect := Rect;
-      FClipRectSet := True;
-      XftDrawSetClip(FXftDraw, FClipRegion);
+     FClipRect := Rect;
+     FClipRectSet := True;
+     XftDrawSetClip(FXftDraw, FClipRegion);
   end;
   XDestroyRegion(rg);
 end;
@@ -2753,7 +2754,7 @@ var
 {$else}
 var
   msk : TPixmap;
-  gc2 : Tgc;
+  gc2,drawgc : Tgc;
   GcValues : TXGcValues;
 {$endif}
   ARect : TgfxRect;
@@ -2789,6 +2790,7 @@ begin
       if h < 0 then exit;
      end;
      {$ENDIF}
+     
 {$ifdef Win32}
   tmpdc := CreateCompatibleDC(display);
 
@@ -2820,41 +2822,47 @@ begin
 {$else}
   if img.Masked then
   begin
-
-    //XSetForeground(display, Fgc, 0); // $FFFFFF);
-    //XSetBackground(display, Fgc, $FF0000);
-
     // rendering the mask
 
     msk := XCreatePixmap(display, XDefaultRootWindow(display), img.width, img.height, 1);
     GcValues.foreground := 1;
     GcValues.background := 0;
     gc2 := XCreateGc(display, msk, GCForeground or GCBackground, @GcValues);
+    
+    // clear mask
+    XSetForeground(display, gc2, 0);
+    XFillRectangle(display, msk, gc2, 0,0, img.width, img.height);
+    
+    XOffsetRegion(FClipRegion, -x, -y);
+    XSetRegion(display, gc2, FClipRegion);
+    XOffsetRegion(FClipRegion, x, y);
 
+    XSetForeground(display, gc2, 1);
     XPutImage(display, msk, gc2, img.XImageMask, xi,yi, 0,0, w, h);
 
-    XSetClipMask(display, Fgc, msk);
-    XSetClipOrigin(display, Fgc, x,y);
-    if DrawOnBuffer then
-       XPutImage(display, FBufferwin, Fgc, img.XImage, xi,yi, x,y, w, h)
-    else
-        XPutImage(display, Fwin, Fgc, img.XImage, xi,yi, x,y, w, h);
-    XSetClipMask(display, Fgc, 0);
-    XFreePixmap(display, msk);
-    XFreeGc(display,gc2);
+    drawgc := XCreateGc(display, FWin, 0, @GcValues);
+    
+    XSetClipMask(display, drawgc, msk);
+    XSetClipOrigin(display, drawgc, x,y);
 
+    if DrawOnBuffer
+       then XPutImage(display, FBufferwin, drawgc, img.XImage, xi,yi, x,y, w, h)
+       else XPutImage(display, Fwin, drawgc, img.XImage, xi,yi, x,y, w, h);
+      
+    XFreePixmap(display, msk);
+    XFreeGc(display,drawgc);
+    XFreeGc(display,gc2);
   end
   else
   begin
-       if DrawOnBuffer then
-          XPutImage(display, FBufferWin, Fgc, img.XImage, xi,yi, x,y, w, h)
-       else
-           XPutImage(display, FWin, Fgc, img.XImage, xi,yi, x,y, w, h);
+    if DrawOnBuffer
+      then XPutImage(display, FBufferWin, Fgc, img.XImage, xi,yi, x,y, w, h)
+      else XPutImage(display, FWin, Fgc, img.XImage, xi,yi, x,y, w, h);
   end;
 
 {$endif}
-  if FClipRectSet then
-        SetClipRect(FClipRect);
+//  if FClipRectSet then
+//        SetClipRect(FClipRect);
 end;
 
 { TGfxRect }
