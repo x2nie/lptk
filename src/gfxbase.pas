@@ -326,6 +326,8 @@ type
   TGfxImage = class
   private
 {$ifdef Win32}
+    FBMPHandle : HBITMAP;
+    FMaskHandle : HBITMAP;
 {$else}
     FXimg  : TXImage;
     FXimgmask : TXImage;
@@ -334,13 +336,14 @@ type
     FWidth, FHeight : integer;
     FColorDepth : integer;
 
+    FMasked : boolean;
+
     FImageData : pointer;
     FImageDataSize : integer;
-    
+
     FMaskData : pointer;
     FMaskDataSize : integer;
-    
-    FMasked : boolean;
+
   public
     constructor Create;
     destructor Destroy; override;
@@ -349,21 +352,26 @@ type
     procedure AllocateRGBImage(awidth, aheight : integer);
     procedure Allocate2CImage(awidth, aheight : integer);
     procedure AllocateMask;
-    
+
     procedure Invert;
     procedure CreateMaskFromSample(x,y : integer);
-    
+
     property Width : integer read FWidth;
     property Height : integer read FHeight;
     property ColorDepth : integer read FColorDepth;
+
     property ImageData : pointer read FImageData;
     property ImageDataSize : integer read FImageDataSize;
     property MaskData : pointer read FMaskData;
     property MaskDataSize : integer read FMaskDataSize;
-    
+
     property Masked : boolean read FMasked;
-    
-{$ifdef Win32}{$else}
+
+{$ifdef Win32}
+    procedure SetWindowsBitmap(pdata, pinfoheader : pointer; startscan, scanlines : longword);
+    property BMPHandle : HBITMAP read FBMPHandle;
+    property MaskHandle : HBITMAP read FMaskHandle;
+{$else}
     function XImage : PXImage;
     function XImageMask : PXImage;
 {$endif}
@@ -2193,14 +2201,37 @@ begin
 end;
 
 procedure TGfxCanvas.DrawImagePart(x, y: TGfxCoord; img: TGfxImage; xi, yi, w,h: integer);
-{$ifdef Win32}{$else}
+{$ifdef Win32}
+var
+  tmpdc : HDC;
+{$else}
 var
   msk : TPixmap;
   gc2 : Tgc;
   GcValues : TXGcValues;
 {$endif}
 begin
-{$ifdef Win32}{$else}
+{$ifdef Win32}
+  tmpdc := CreateCompatibleDC(display);
+  SelectObject(tmpdc, img.BMPHandle);
+
+  if img.Masked then
+  begin
+    //MaskBlt(Fgc, x,y, w, h, tmpdc, xi, yi, img.MaskHandle, xi, yi, SRCCOPY);
+//    SelectObject(new_gc, (void*)mask);
+//    BitBlt(fl_gc, X, Y, W, H, new_gc, cx, cy, SRCAND);
+//    SelectObject(new_gc, (void*)id);
+//    BitBlt(fl_gc, X, Y, W, H, new_gc, cx, cy, SRCPAINT);
+
+    SelectObject(tmpdc, img.MaskHandle);
+    BitBlt(Fgc, x,y, w, h, tmpdc, xi, yi, SRCAND);
+//    SelectObject(tmpdc, img.BMPHandle);
+//    BitBlt(Fgc, x,y, w, h, tmpdc, xi, yi, SRCPAINT);
+  end
+  else BitBlt(Fgc, x,y, w, h, tmpdc, xi, yi, SRCCOPY);
+
+  DeleteDC(tmpdc);
+{$else}
   if img.Masked then
   begin
 
@@ -2356,6 +2387,11 @@ begin
   FMaskData := nil;
   FMaskDataSize := 0;
   FMasked := false;
+
+{$ifdef Win32}
+  FBMPHandle := 0;
+  FMaskHandle := 0;
+{$endif}  
 end;
 
 destructor TGfxImage.Destroy;
@@ -2375,6 +2411,14 @@ begin
   FMasked := false;
   FWidth := 0;
   FHeight := 0;
+
+{$ifdef Win32}
+  if FBMPHandle > 0 then DeleteObject(FBMPHandle);
+  FBMPHandle := 0;
+  if FMaskHandle > 0 then DeleteObject(FMaskHandle);
+  FMaskHandle := 0;
+{$endif}
+
 end;
 
 procedure TGfxImage.AllocateRGBImage(awidth, aheight: integer);
@@ -2383,11 +2427,19 @@ begin
 
   FWidth := awidth;
   FHeight := aheight;
+
+{$ifdef Win32}
+
+  FColorDepth := 24;
+  FBMPHandle := CreateCompatibleBitmap(display, awidth, aheight);
+
+{$else}
+
   FColorDepth := DisplayDepth;
 
   FImageDataSize := FWidth * FHeight * 4;
   GetMem(FImageData, FImageDataSize);
-  
+
   // Preparing XImage
 
   with FXimg do
@@ -2412,10 +2464,10 @@ begin
 
     data := FImageData;
   end;
-  
+
   XInitImage(@FXimg);
 
-  //XPutImage(display, win, gc, @img3, 0,0, 50,50, img3.width, img3.height);
+{$endif}
 
 end;
 
@@ -2429,7 +2481,13 @@ begin
   FHeight := aheight;
   
   FColorDepth := 1;
-  
+
+{$ifdef Win32}
+
+  FBMPHandle := CreateCompatibleBitmap(display, awidth, aheight);
+
+{$else}
+
   // Real bitmap
   dww := awidth div 32;
   if (awidth and $1F) > 0 then inc(dww);
@@ -2463,7 +2521,9 @@ begin
   end;
 
   XInitImage(@FXimg);
-  
+
+{$endif}
+
 end;
 
 procedure TGfxImage.AllocateMask;
@@ -2471,16 +2531,22 @@ var
   dww : integer;
 begin
   if (FWidth < 1) or (FHeight < 1) then Exit;
-  
+
   if FMaskData <> nil then FreeMem(FMaskData);
+
+  FMasked := true;
   
+{$ifdef Win32}
+
+  FMaskHandle := CreateBitmap(FWidth, FHeight, 1, 1, nil);
+
+{$else}
+
   dww := FWidth div 32;
   if (FWidth and $1F) > 0 then inc(dww);
 
   FMaskDataSize := dww * FHeight * 4;
   GetMem(FMaskData, FMaskDataSize);
-  
-  FMasked := true;
 
   // Preparing XImage
 
@@ -2508,6 +2574,8 @@ begin
   end;
 
   XInitImage(@FXimgMask);
+
+{$endif}
 
 end;
 
@@ -2597,7 +2665,25 @@ begin
 
 end;
 
-{$ifdef Win32}{$else}
+{$ifdef Win32}
+
+procedure TGfxImage.SetWindowsBitmap(pdata, pinfoheader: pointer; startscan, scanlines : longword);
+var
+  r : integer;
+begin
+  r := SetDIBits(display, FBMPHandle, startscan, scanlines, pdata, TBitmapInfo(pinfoheader^), DIB_RGB_COLORS);
+  if FColorDepth = 1 then
+  begin
+    r := SetDIBits(display, FMaskHandle, startscan, scanlines, pdata, TBitmapInfo(pinfoheader^), DIB_RGB_COLORS);
+    writeln('Mask SetDIBits: ',r);
+  end;
+//  writeln('SetDIBits: ',r);
+
+//  FBMPHandle := CreateDIBitmap(display, TBitmapInfoHeader(pinfoheader^), CBM_INIT, pdata, TBitmapInfo(pinfoheader^), DIB_RGB_COLORS);
+//  Writeln('bmp handle: ',FBMPHandle);
+end;
+
+{$else}
 function TGfxImage.XImage: PXImage;
 begin
   result := @FXimg;

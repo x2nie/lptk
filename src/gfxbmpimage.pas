@@ -129,8 +129,10 @@ begin
   inc(p, SizeOf(TBMPHeaderRec));
 
   PByte(ih) := p;
-  
-  if ih^.bitcount > 1 then
+
+  depth := ih^.bitcount;
+
+  if depth > 1 then
   begin
     // color image
     img.AllocateRGBImage(ih^.width, ih^.height);
@@ -144,7 +146,13 @@ begin
     //Exit;
   end;
 
-  depth := ih^.bitcount;
+{$ifdef Win32}
+  // its the Windows native format
+  img.SetWindowsBitmap(pdata, ih, 0, ih^.height);
+  Exit;
+{$else}
+
+{$endif}
 
   //Writeln('width: ',img.width,' height: ',img.height,' depth: ',depth);
   //Writeln('compression: ',ih^.compression);
@@ -166,7 +174,7 @@ begin
 
     pcol := ppal;
     pixelcnt := 0;
-    while p < pdata do
+    while integer(p) < integer(pdata) do
     begin
       pcol^ := convertcolor(Plongword(p)^);
       //Writeln('color: ',HexStr(pcol^,8));
