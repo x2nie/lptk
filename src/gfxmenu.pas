@@ -346,8 +346,12 @@ begin
              end;
            end;
     KEY_ENTER:
-           begin // enter
+           begin
              DoSelect;
+           end;
+    KEY_ESC:
+           begin
+             Close;
            end;
   else
     consumed := false;
