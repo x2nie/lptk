@@ -12,7 +12,8 @@ unit wgdbgrid;
 interface
 
 uses
-  Classes, SysUtils, schar16, gfxbase, messagequeue, gfxwidget, wgscrollbar, wggrid, sqldb;
+  Classes, SysUtils, schar16, gfxbase, messagequeue, gfxwidget, wgscrollbar, wggrid, sqldb,
+  gfxclipboard;
 
 type
 
@@ -49,6 +50,8 @@ type
 
     procedure DrawCell(row,col : integer; rect : TGfxRect; flags : integer); override;
     procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
+
+    procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
 
   public
 
@@ -310,6 +313,28 @@ function TwgDBGrid.GetColumns(index: integer): TDBColumn;
 begin
   if (Index < 0) or (Index > FColumns.Count - 1) then result := nil
   else Result := TDBColumn(FColumns[index]);
+end;
+
+procedure TwgDBGrid.HandleKeyPress(var keycode, shiftstate: word; var consumed: boolean);
+var
+  c : TDBColumn;
+begin
+
+  inherited HandleKeyPress(keycode,shiftstate,consumed);
+
+  if not Consumed then
+  begin
+    if GfxCheckClipboardKey(keycode, shiftstate) = ckCopy then
+    begin
+      c := Columns[FocusCol-1];
+      if c <> nil then
+      begin
+        if FocusField(c.FieldName8) <> nil then SetClipboardText(FocusField(c.FieldName8).AsString);
+        Consumed := true;
+      end;  
+    end;
+  end;
+
 end;
 
 end.
