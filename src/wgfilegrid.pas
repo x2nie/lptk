@@ -3,6 +3,11 @@
 
   History: }
 // $Log$
+// Revision 1.4  2003/12/21 19:16:07  aegluke
+// SetFileName
+// onFileDoubleClick change onFileChose
+// fgDetail-Changes
+//
 // Revision 1.3  2003/12/20 15:13:01  aegluke
 // wgFileGrid-Changes
 //
@@ -18,7 +23,7 @@ unit wgfilegrid;
 interface
 
 uses
-  gfxbase, wgcustomgrid, classes, schar16, sysutils;
+  gfxbase, wgcustomgrid, classes, schar16, sysutils{$IFDEF win32},windows{$ENDIF};
 
 const
   ftDirectory = 1;
@@ -39,7 +44,7 @@ type
   //                  fgDirectoriesFirst: Directories will showed first in the list
 
   TwgFileGridChange = procedure(Sender : TObject; Filename : String) of object;
-  
+
   TwgFileData = class
   public
     // contains data for one file shown in detail-view
@@ -76,7 +81,10 @@ type
     procedure SetFileName(AValue : String);
     function GetFileName : String;
     procedure DoDirectoryChange;
-    procedure DoFileDoubleClick;
+    procedure DoFileChose;
+    {$IFDEF win32}
+    procedure ReadDriveNames;
+    {$endif}
   public
     procedure HandleResize(DWidth, DHeight : Integer); override;
     procedure DoShow; override;
@@ -89,7 +97,7 @@ type
     property FileName : String read GetFileName write SetFileName;
   public
     onDirectoryChange : TwgFileGridChange;
-    onFileDoubleClick : TwgFileGridChange;
+    onFileChose : TwgFileGridChange;
     // executed if somebody doubleclicks on a filename    
   end;
 
@@ -105,10 +113,36 @@ const
   DirSeparator = '/';
 {$ENDIF}
 
-procedure TwgFileGrid.DoFileDoubleClick;
+{$IFDEF win32}
+procedure TwgFileGrid.ReadDriveNames;
+var
+  ADrive : String;
+  ACounter : Integer;
+  ANumber : Integer;
+  Container : TwgFileData;
 begin
-  if Assigned(onFileDoubleClick) then
-    onFileDoubleClick(self,FileName);  
+  FFiles.Clear;
+  for ACounter := 0 to 25 do
+  begin
+    ADrive := Chr(Ord('A')+ACounter) + ':\';
+    ANumber := Windows.GetDriveType(PChar(ADrive));
+    if ANumber <> 1 then
+    begin
+      Container := TwgFileData.Create;
+      Container.FileName := Chr(Ord('A')+ACounter) + ':';
+      Container.FileSize := 0;
+      Container.FileDate := Now;
+      Container.FileType := ftDirectory;
+      FFiles.Add(Container);
+    end;
+  end;
+end;
+{$ENDIF}
+
+procedure TwgFileGrid.DoFileChose;
+begin
+  if Assigned(onFileChose) then
+    onFileChose(self,FileName);
 end;
 
 procedure TwgFileGrid.DoDirectoryChange;
@@ -118,8 +152,43 @@ begin
 end;
 
 procedure TwgFileGrid.SetFileName(AValue : String);
+var
+  AFilePath : String;
+  ACounter : integer;
+  AFileName : String;
+  AFilePos : Integer;
 begin
-// TODO
+  AFilePath := ExtractFilePath(AValue);
+  if FileExists(AFilePath) then
+  begin
+    Directory := AFilePath;
+    AFileName := ExtractFileName(AValue);
+    AFilePos := -1;
+    for ACounter := 0 to FFiles.Count - 1 do
+    begin
+      {$IFDEF WIN32}
+      if UpperCase(TwgFileData(FFiles[ACounter]).FileName) = UpperCase(AFileName) then
+      {$ELSE}
+      if TwgFileData(FFiles[ACounter]).FileName = AFileName then
+      {$ENDIF}
+      begin
+        AFilePos := ACounter;
+        Break;
+      end;
+    end;
+    if AFilePos > -1 then
+    begin
+      if fgDetail in Options then
+      begin
+        FocusRow := AFilePos + 1;
+      end
+      else
+      begin
+        FocusRow := (AFilePos) MOD VisibleLines;
+        FocusCol := ((AFilePos) DIV VisibleLines) + 1;
+      end;
+    end;
+  end;
 end;
 
 function TwgFileGrid.GetFileName : String;
@@ -165,13 +234,28 @@ begin
   begin
     case KeyCode of
       KEY_ENTER : begin
-        AFilesPos := (FocusCol - 1) * VisibleLines + FocusRow - 1;
+        if not (fgDetail in Options) then
+          AFilesPos := (FocusCol - 1) * VisibleLines + FocusRow - 1
+        else
+          AFilesPos := FocusRow - 1;
         if TwgFileData(FFiles[AFilesPos]).FileType = ftDirectory then
         begin
-          Directory := Directory + DirSeparator + TwgFileData(FFiles[AFilesPos]).FileName;
+          {$IFDEF win32}
+          if (Length(Directory) = 3) and (TwgFileData(FFiles[AFilesPos]).FileName = '..') then
+            Directory := ''
+          else
+            if Length(Directory) >= 3 then
+              Directory := Directory + DirSeparator + TwgFileData(FFiles[AFilesPos]).FileName
+            else
+              Directory := TwgFileData(FFiles[AFilesPos]).FileName + DirSeparator;
+          {$ELSE}
+            Directory := Directory + DirSeparator + TwgFileData(FFiles[AFilesPos]).FileName;
+          {$ENDIF}
           DoDirectoryChange;
           Consumed := true;
-        end;
+        end
+        else
+          DoFileChose;
       end;
       KEY_UP : begin
         if (FocusRow = 1) and (FocusCol > 1) then
@@ -195,7 +279,7 @@ begin
       KEY_DOWN : begin
         if FocusRow = VisibleLines then
         begin
-          FocusCol := FocusCol + 1;
+         FocusCol := FocusCol + 1;
           FocusRow := 1;
           consumed := true;
         end
@@ -244,36 +328,29 @@ end;
 
 procedure TwgFileGrid.HandleDoubleClick(x, y : integer; btnstate, shiftstate : word);
 var
-  FilePosition : Integer;
+  AFilesPos : Integer;
 begin
-  if fgDetail in Options then
-  begin
-    if TwgFileData(FFiles[FocusRow - 1]).FileType = ftDirectory then
-      // doubleclick on directory drives into the directory
-    begin
-      Directory := Directory + DirSeparator + TwgFileData(FFiles[FocusRow - 1]).FileName;
-      FocusRow := 1;
-    end
-    else
-    begin
-      DoFileDoubleClick;
-    end;
+   if not (fgDetail in Options) then
+     AFilesPos := (FocusCol - 1) * VisibleLines + FocusRow - 1
+   else
+     AFilesPos := FocusRow - 1;
+   if TwgFileData(FFiles[AFilesPos]).FileType = ftDirectory then
+   begin
+          {$IFDEF win32}
+          if (Length(Directory) = 3) and (TwgFileData(FFiles[AFilesPos]).FileName = '..') then
+            Directory := ''
+          else
+            if Length(Directory) >= 3 then
+              Directory := Directory + DirSeparator + TwgFileData(FFiles[AFilesPos]).FileName
+            else
+              Directory := TwgFileData(FFiles[AFilesPos]).FileName + DirSeparator;
+          {$ELSE}
+            Directory := Directory + DirSeparator + TwgFileData(FFiles[AFilesPos]).FileName;
+          {$ENDIF}
+          DoDirectoryChange;
   end
   else
-  begin
-    FilePosition := (FocusCol - 1)* VisibleLines + FocusRow - 1;
-    if FilePosition < FFiles.Count then
-    begin
-      if TwgFileData(FFiles[FilePosition]).FileType = ftDirectory then
-      begin
-          Directory := Directory + DirSeparator + TwgFileData(FFiles[FilePosition]).FileName;
-      end
-      else
-      begin
-        DoFileDoubleClick;
-      end;
-    end;
-  end;
+    DoFileChose;
 end;
 
 procedure TwgFileGrid.RecalcGrid;
@@ -546,39 +623,6 @@ begin
 end;
 
 procedure TwgFileGrid.SetDirectory(aValue: string);
-  function GetAbsoluteDirectory(aValue : String) : String;
-  // the directory without ..
-  var
-    WorkStr : String;
-    SearchStr : String;
-    DelPos : Integer;
-    Counter : Integer;
-    LastPos : Integer;
-  begin
-    {$IFDEF DEBUG}
-      writeln('GetAbsoluteDirectory: ',AValue);
-    {$ENDIF}
-    WorkStr := aValue;
-    SearchStr := DirSeparator + '..' + DirSeparator;
-    while Pos(SearchStr,WorkStr) <> 0 do
-    begin
-      DelPos := Pos(SearchStr,WorkStr);
-      Delete(WorkStr,DelPos,Length(SearchStr));
-      LastPos := 0;
-      for Counter := 1 to DelPos do
-      begin
-        if WorkStr[Counter] = DirSeparator then
-          LastPos := Counter;
-      end;
-      if LastPos <> 0 then
-      begin
-        Delete(WorkStr,LastPos+1,DelPos - LastPos - 1);
-      end;
-    end;
-    if WorkStr[Length(WorkStr)] = DirSeparator then
-      Delete(WorkStr,Length(WorkStr),1);
-    result := WorkStr;
-  end;
 begin
   {$IFDEF DEBUG}
   Writeln('SetDirectory: ',AValue);
@@ -590,16 +634,28 @@ begin
       Delete(AValue,Length(AValue),1);
     end;
   end;
-  AValue := GetAbsoluteDirectory(AValue+'\');
-  if DirectoryExists(AValue) and (AValue <> FDirectory) then
-  begin
-    FDirectory := aValue;
-    ReadDirectory;
-    FocusCol := 0;
-    FocusRow := 0;
-    RePaint;
-    DoDirectoryChange;
-  end;
+  {$IFDEF win32}
+    if AValue = '' then
+    begin
+      ReadDriveNames;
+      FDirectory := AValue;
+      RePaint;
+      DoDirectoryChange;
+    end
+    else
+  {$ENDIF}
+    begin
+      AValue := ExpandFileName(AValue+DirSeparator);
+      if DirectoryExists(AValue) and (AValue <> FDirectory) then
+      begin
+        FDirectory := aValue;
+        ReadDirectory;
+        FocusCol := 0;
+        FocusRow := 0;
+        RePaint;
+        DoDirectoryChange;
+      end;
+    end;
 end;
 
 end.
