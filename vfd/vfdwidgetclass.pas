@@ -9,38 +9,45 @@ uses Classes, SysUtils, gfxbase, gfxwidget, schar16,
   wgLabel, wgEdit;
 
 type
-  TVFDPropertyEditor = class(TWidget)
-  public
-    OnChange : TNotifyEvent;
+  TWidgetClass = class of TWidget;
 
-    constructor Create(AOwner : TComponent); override;
+  TVFDWidgetProperty = class;
+
+  TVFDPropertyEditor = class(TWidget)
+  private
+    FProp : TVFDWidgetProperty;
+  public
+    OnUpdate : TNotifyEvent;
+
+    constructor Create(AOwner : TComponent; aprop : TVFDWidgetProperty); reintroduce;
   public
     // virtuals
     procedure CreateLayout; virtual;
 
-    procedure SetWidgetProperty(wg : TWidget; propname : string); virtual;
-    procedure GetWidgetProperty(wg : TWidget; propname : string); virtual;
+    procedure LoadValue(wg : TWidget); virtual;
+    procedure StoreValue(wg : TWidget); virtual;
+
+    procedure UpdateProperty(sender : TObject);
+
+    property Prop : TVFDWidgetProperty read FProp;
   end;
 
-  TVFDPropertyEditorClass = class of TVFDPropertyEditor;
-
-  TWidgetClass = class of TWidget;
-
   TVFDWidgetProperty = class
-  protected
-    FEditorClass : TVFDPropertyEditorClass;
   public
     Name : string;
     Description : string;
-
-    function CreateEditor(AOwner : TComponent) : TVFDPropertyEditor;
-
   public
     // Virtuals
-    constructor Create; virtual;  // override to set EditorClass
+    constructor Create(aName : string); virtual;
 
     function ParseSourceLine(wg : TWidget; const line : string) : boolean; virtual;
     function GetPropertySource(wg : TWidget) : string; virtual;
+
+    // Property editing
+    function GetValueText(wg : TWidget) : string; virtual;
+    procedure DrawValue(wg : TWidget; canvas : TGfxCanvas; rect: TGfxRect; flags: integer); virtual;
+
+    function CreateEditor(AOwner : TComponent) : TVFDPropertyEditor; virtual;
   end;
 
   TVFDPropertyClass = class of TVFDWidgetProperty;
@@ -73,8 +80,7 @@ uses TypInfo, vfdformparser;
 function TVFDWidgetClass.AddProperty(apropname : string; apropclass : TVFDPropertyClass;
   desc : string) : TVFDWidgetProperty;
 begin
-  result := apropclass.Create;
-  result.Name := apropname;
+  result := apropclass.Create(apropname);
   result.Description := desc;
   FProps.Add(result);
 end;
@@ -112,11 +118,10 @@ end;
 
 { TVFDWidgetProperty }
 
-constructor TVFDWidgetProperty.Create;
+constructor TVFDWidgetProperty.Create(aName : string);
 begin
-  Name := '???';
+  Name := aName;
   Description := '';
-  FEditorClass := nil;
 end;
 
 function TVFDWidgetProperty.GetPropertySource(wg: TWidget): string;
@@ -131,16 +136,34 @@ end;
 
 function TVFDWidgetProperty.CreateEditor(AOwner : TComponent): TVFDPropertyEditor;
 begin
-  result := FEditorClass.Create(AOwner);
+  result := nil;
+end;
+
+procedure TVFDWidgetProperty.DrawValue(wg: TWidget; canvas: TGfxCanvas; rect: TGfxRect; flags: integer);
+var
+  x,y,fy : integer;
+  s : string;
+begin
+  x := rect.left;
+  y := rect.top;
+  fy := y + rect.height div 2 - Canvas.Font.Height div 2;
+
+  s := GetValueText(wg);
+  Canvas.DrawString16(x+1,fy,s);
+end;
+
+function TVFDWidgetProperty.GetValueText(wg: TWidget): string;
+begin
+  result := u8('['+Name+']');
 end;
 
 { TVFDPropertyEditor }
 
-constructor TVFDPropertyEditor.Create(AOwner: TComponent);
+constructor TVFDPropertyEditor.Create(AOwner: TComponent; aprop : TVFDWidgetProperty);
 begin
-  inherited;
-  OnChange := nil;
-  CreateLayout;
+  inherited Create(AOwner);
+  OnUpdate := nil;
+  FProp := aprop;
 end;
 
 procedure TVFDPropertyEditor.CreateLayout;
@@ -148,14 +171,19 @@ begin
   //abstract
 end;
 
-procedure TVFDPropertyEditor.GetWidgetProperty(wg: TWidget; propname: string);
+procedure TVFDPropertyEditor.LoadValue(wg: TWidget);
 begin
-  Writeln('abstract: GetWidgetProperty');
+  Writeln('abstract: editor.LoadValue');
 end;
 
-procedure TVFDPropertyEditor.SetWidgetProperty(wg: TWidget; propname: string);
+procedure TVFDPropertyEditor.UpdateProperty(sender: TObject);
 begin
-  Writeln('abstract: SetWidgetProperty');
+  if Assigned(OnUpdate) then OnUpdate(self);
+end;
+
+procedure TVFDPropertyEditor.StoreValue(wg: TWidget);
+begin
+  Writeln('abstract: editor.StoreValue');
   // check property type
   // the property must be published !
   // PPropInfo := GetPropInfo(object, 'propname');
