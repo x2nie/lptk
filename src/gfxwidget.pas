@@ -700,12 +700,12 @@ begin
     mask := CWOverrideRedirect or CWBackPixel;
 
     wh := XCreateWindow(Display, pwh,
-                    Left, Top, Width, Height, 0,
-                    GfxDefaultVisual^.bits_per_rgb,
-                    InputOutput,
-                    gfxDefaultVisual,
-                    mask,
-                    @attr);
+          Left, Top, Width, Height, 0,
+          CopyFromParent,
+          InputOutput,
+           gfxDefaultVisual,
+           mask,
+           @attr);
   end
   else
   begin
