@@ -1,4 +1,4 @@
-{ Copyright (c) 2003, Nagy Viktor 
+{ Copyright (c) 2003, Nagy Viktor
 
  A general SQL data browser utility
 }
@@ -76,7 +76,7 @@ begin
 
   DBName := '';
 
-  WindowTitle := 'SQL query';
+  WindowTitle8 := 'SQL query';
 
   SetDimensions(10,10,400,300);
   WindowPosition := wpAuto;
@@ -180,7 +180,7 @@ procedure TSqlForm.RunSql;
 begin
   grid.SetResultSet(nil,true);
   grid.Visible := false;
-  WindowTitle := 'Running query...';
+  WindowTitle8 := 'Running query...';
   GfxFlush;
 
   if qr <> nil then
@@ -190,15 +190,15 @@ begin
   qr := conn.RunQuery(memo.Text8);
 
   grid.Visible := true;
-  WindowTitle := 'Fetching records...';
+  WindowTitle8 := 'Fetching records...';
   GfxFlush;
-  
+
   if qr <> nil then
   begin
     writeln('fetching...');
     qr.FetchAll;
 
-    WindowTitle := IntToStr(qr.RowCount)+' rows ('+DBName+')';
+    WindowTitle8 := IntToStr(qr.RowCount)+' rows ('+DBName+')';
 
     writeln('displaying...');
     grid.SetResultSet(qr,true);
@@ -209,7 +209,7 @@ begin
   else
   begin
     ShowMessage8(conn.ErrorMsg8, 'SQL error: '+IntToStr(conn.LastError));
-    WindowTitle := 'Error has happened';
+    WindowTitle8 := 'Error has happened';
   end;
 end;
 
@@ -223,7 +223,7 @@ var
 begin
   inherited AfterCreate;
 
-  WindowTitle := 'Select ODBC database';
+  WindowTitle8 := 'Select ODBC database';
 
   SetDimensions(10,10,340,315);
   WindowPosition := wpAuto;
@@ -334,7 +334,7 @@ begin
   begin
     l1.Text := str8to16('Driver:');
   end
-  else                             
+  else
   begin
     l1.Text := str8to16('DSN:');
   end;

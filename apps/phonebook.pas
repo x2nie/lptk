@@ -1,4 +1,4 @@
-{ Copyright (c) 2003, Nagy Viktor 
+{ Copyright (c) 2003, Nagy Viktor
 
  Small, but useful phonebook application
 }
@@ -51,28 +51,28 @@ type
     {@VFD_HEAD_END: FormMain}
 
     procedure AfterCreate; override;
-    
+
   public
     procedure OnEditClick(Sender : TObject);
-    
+
     procedure OnCloseClick(Sender : TObject);
-    
+
     procedure DeleteClick(Sender : TObject);
 
   public
     qr : TSqlResult;
-    
+
     procedure PopulateCat;
-  
+
     procedure ReQuery(id : integer);
-    
+
     procedure EditEntry(id : integer);
-    
+
     procedure GridRowChange(Sender : TObject; row : integer);
     procedure gridDoubleClick(Sender: TObject; x,y : integer; var button : word; var shiftstate : word);
 
     procedure FilterChange(sender : TObject);
-  
+
   end;
 
   TFormEdit = class(TGfxForm)
@@ -104,7 +104,7 @@ type
     {@VFD_HEAD_END: frmAskDelete}
 
     procedure AfterCreate; override;
-    
+
     procedure ButtonClick(Sender : TObject);
 
   end;
@@ -122,7 +122,7 @@ procedure TfrmAskDelete.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: frmAskDelete}
   SetDimensions(300,100,339,83);
-  WindowTitle := 'Deleting entry';
+  WindowTitle8 := 'Deleting entry';
 
   lbLabel1 := TwgLabel.Create(self);
   with lbLabel1 do
@@ -160,7 +160,7 @@ procedure TFormEdit.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: FormEdit}
   SetDimensions(334,266,321,306);
-  WindowTitle := 'Edit phonebook entry';
+  WindowTitle8 := 'Edit phonebook entry';
 
   lbLabel1 := TwgLabel.Create(self);
   with lbLabel1 do
@@ -251,7 +251,7 @@ procedure TFormMain.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: FormMain}
   SetDimensions(295,122,573,356);
-  WindowTitle := 'Phonebook';
+  WindowTitle8 := 'Phonebook';
   WindowPosition := wpScreenCenter;
 
   lbLabel2 := TwgLabel.Create(self);
@@ -409,14 +409,14 @@ var
   s : string;
 begin
   if qr <> nil then qr.Free;
-  
+
   s := 'select * from phonebook where (1=1) ';
   if chlFLTCAT.FocusItem > 1 then s := s + ' and (CATEGORY='''+chlFLTCAT.Text8+ ''')';
-  
+
   if edFLTNAME.Text8 <> '' then s := s + ' and (NAME like '''+edFLTNAME.Text8+'%'')';
-  
+
   s := s + ' order by NAME, ID';
-  
+
   qr := dbconn.RunQuery(s);
   fr := 1;
   n := 1;
@@ -426,7 +426,7 @@ begin
     qr.FetchNext;
     inc(n);
   end;
-  
+
   grid.SetResultSet(qr, false);
   grid.FocusRow := fr;
 end;
@@ -445,7 +445,7 @@ begin
       edPHONE.Text8 := grid.FocusField('PHONE').asString;
       edOTHER.Text8 := grid.FocusField('OTHER').asString;
     end;
-    
+
     if ShowModal = 1 then
     begin
       uis := Tdbuis.Create('phonebook',dbconn,false);
@@ -458,7 +458,7 @@ begin
       if id > 0 then uis.ExecUpdate('where id='+IntToStr(id)) else uis.ExecInsert;
 
       uis.Free;
-      
+
       PopulateCat;
 
       ReQuery(id);
@@ -496,7 +496,7 @@ begin
   FormMain.PopulateCat;
   FormMain.ReQuery(-1);
   FormMain.Show;
-  
+
   repeat
     try
       GfxDoMessageLoop;
@@ -505,6 +505,6 @@ begin
       on e : Exception do ShowMessage8('Exception: '#10+e.message,'Exception');
     end;
   until false;
-  
+
   gfxCloseDisplay;
 end.

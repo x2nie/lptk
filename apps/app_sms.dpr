@@ -189,7 +189,7 @@ begin
       case c of
         #193:  c := #197;  // Á
         #225:  c := #224;  // á
-        
+
         #218,
         #250:  c := #249; // Ú, ú
 
@@ -295,9 +295,9 @@ begin
       Kill(cpid, SIGTERM);
       waitpid(cpid, @exitstat, 0);
     end;
-    
+
     // getting the output from the child
-    
+
     aoutput := '';
     repeat
       setlength(buf,256);
@@ -327,7 +327,7 @@ procedure TfrmWait.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: frmWait}
   SetDimensions(468,292,244,45);
-  WindowTitle := 'frmWait';
+  WindowTitle8 := 'frmWait';
 
   lbLabel1 := TWGLABEL.Create(self);
   with lbLabel1 do
@@ -346,7 +346,7 @@ procedure TfrmMain.AfterCreate;
 begin
   {@VFD_BODY_BEGIN: frmMain}
   SetDimensions(295,101,220,389);
-  WindowTitle := 'SMS Sender';
+  WindowTitle8 := 'SMS Sender';
 
   lbLabel1 := TWGLABEL.Create(self);
   with lbLabel1 do
@@ -515,18 +515,18 @@ begin
   end;
 
   cmd := 'gsmsendsms -d '+ chlDevice.Text8 + ' -b '+chlSpeed.Text8 +' '+phn;
-  
+
   //ShowMessage8(cmd);
-  
+
   frm := TfrmWait.Create(nil);
   frm.Show;
-  
+
   GfxProcessMessages;
 
   pout := '';
   //rcode := ExecPrg('gsmsendsms -t 1234','abcd',pout);
   rcode := ExecPrg(cmd,GetSMSText,pout, 30);
-  
+
   frm.Free;
 
   if rcode = 127 then
@@ -539,7 +539,7 @@ begin
     if rcode = 0 then msg := 'The SMS has been sended successfully.'
                  else msg := 'Error sending the SMS message! ('+IntToStr(rcode)+')';
     if pout <> '' then msg := msg + #10 + 'gsmsendsms output:' + #10 + pout;
-    
+
     ShowMessage8(msg);
   end;
   //ShowMessage8(GetSMSText);

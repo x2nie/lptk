@@ -1,4 +1,4 @@
-{ Copyright (c) 2003, Nagy Viktor 
+{ Copyright (c) 2003, Nagy Viktor
 
  Small dictionary program which uses special formatted text files
 }
@@ -29,7 +29,7 @@ type
     procedure AfterCreate; override;
 
     procedure SearchKeyPress(Sender : TObject; var keycode: word; var shiftstate: word; var consumed : boolean);
-    
+
     procedure StartSearch;
 
   end;
@@ -43,20 +43,20 @@ var
 begin
   inherited AfterCreate;
 
-  WindowTitle := 'Small dictionary';
+  WindowTitle8 := 'Small dictionary';
 
   SetDimensions(10,10,320,400);
 {$ifdef FPC}
   SizeParams.min_width := 200;
   SizeParams.min_height := 250;
-{$endif}  
+{$endif}
   //SetMinSize;
   //WindowPosition := wpAuto;
 
   gap := 50;
   y := 10;
   x := 10;
-  
+
   w := 300;
 
   l1 := CreateLabel(self, x,y, 'Dictionary file:');
@@ -69,7 +69,7 @@ begin
   chlDic.Items.Add(Str8to16('/data/dict/HUN-ENG.TXT'));
 {$endif}
   chlDic.Anchors := [anLeft,anTop,anRight];
-  
+
   inc(y,gap);
   l2 := CreateLabel(self, x,y, 'Search mode:');
   chlMode := CreateChoiceList(self, 10,y+20, w, nil);
@@ -137,10 +137,10 @@ begin
     Reset(f);
     ss := edSearch.Text8;
     if chlMode.FocusItem = 3 then ss := ' '+ss+' ';
-    
+
     ss := UpperCase(ss);
     //Writeln('search: ',ss);
-    
+
     n := 0;
     while not eof(f) do
     begin
@@ -155,7 +155,7 @@ begin
       end;
     end;
     CloseFile(f);
-    WindowTitle := IntToStr(n)+' matches';
+    WindowTitle8 := IntToStr(n)+' matches';
     if n < 1 then lblist.Items.Add(Str8to16('no match'));
 
     lblist.Update;
