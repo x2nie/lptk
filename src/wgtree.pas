@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.22  2004/01/13 10:38:28  aegluke
+// Doublebuffer-Support
+//
 // Revision 1.21  2004/01/10 16:21:03  aegluke
 // HandleKeyPress-Bugfix
 // TwgTreeNode - Inactive-Selection-Color-Support added
@@ -67,7 +70,7 @@ unit wgtree;
 
 interface
 
-uses gfxwidget, gfxbase, schar16, classes, sysutils, wgscrollbar, gfximagelist;
+uses gfxwidget, gfxbase, schar16, classes, sysutils, wgscrollbar, gfximagelist, xlib;
 
 type
   PWgTreeColumnWidth = ^TwgTreeColumnWidth;
@@ -312,6 +315,7 @@ begin
       FVScrollbar.Position := GetAbsoluteNodeTop(Selection) + GetNodeHeight - VisibleHeight;
       FYOffset := FVScrollbar.Position;
       UpdateScrollBars;
+      if Windowed then FVScrollbar.Canvas.DrawOnBuffer := True;
       FVScrollbar.RePaint;
     end;
     if GetAbsoluteNodeTop(Selection) - FVScrollbar.Position < 0 then
@@ -319,9 +323,9 @@ begin
       FVScrollbar.Position := GetAbsoluteNodeTop(Selection);
       FYOffset := FVScrollbar.Position;
       UpdateScrollbars;
+      if Windowed then FVScrollBar.Canvas.DrawOnBuffer := True;
       FVScrollbar.RePaint;
     end;
-    RePaint;
   end;
 end;
 
@@ -746,7 +750,7 @@ begin
 	AColumnLeft := new(PColumnLeft);
 	AColumnLeft^ := Aleft;
 	FColumnLeft.Add(AColumnLeft);
-	Aleft := ALeft + GetColumnWidth(ACounter);	
+	Aleft := ALeft + GetColumnWidth(ACounter);
     end;
 end;
 
@@ -785,12 +789,11 @@ begin
   {$IFDEF DEBUG}
   writeln('TwgTree.RePaint');
   {$ENDIF}
-  if FWinHandle <= 0 then
-    exit;
+  if FWinHandle <= 0 then exit;
   i1 := 0;
   PreCalcColumnLeft;
   UpdateScrollbars;
-  //    inherited RePaint;
+  Canvas.DrawOnBuffer := True;
   Canvas.ClearClipRect;
   Canvas.Clear(BackgroundColor);
   if FFocused then
@@ -976,12 +979,16 @@ begin
         begin
           h := h.parent;
           if (h = nil) or (h = rootnode) then
+          begin
+            Canvas.SwapBuffer;
             exit;
+          end;
         end;
         h := h.next;
       end;
     end;
   end;
+  Canvas.SwapBuffer;
 end;
 
 function TwgTree.PrevVisualNode(aNode: TwgTreeNode): TwgTreeNode;
