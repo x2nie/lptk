@@ -4,6 +4,9 @@ unit wgtree;
     feature-requests or bugs? - mail to: erik@grohnwaldt.de
     History
 // $Log$
+// Revision 1.25  2004/01/14 08:22:52  aegluke
+// Add recourse-param to FindSubNode
+//
 // Revision 1.24  2004/01/13 19:27:44  aegluke
 // removed litte mistakes on win32
 //
@@ -123,7 +126,7 @@ type
     procedure UnregisterSubNode(aNode: TwgTreeNode);
 
     procedure Append(aValue: TwgTreeNode);
-    function FindSubNode(aValue: string16): TwgTreeNode;
+    function FindSubNode(aValue: string16; ARecourse : Boolean): TwgTreeNode;
     function AppendText(aValue: string16): TwgTreeNode;
     function AppendText8(aValue: string): TwgTreeNode;
     function GetMaxDepth: integer;
@@ -1366,11 +1369,13 @@ begin
   result := result + a;
 end;
 
-function TwgTreeNode.FindSubNode(aValue: string16): TwgTreeNode;
+function TwgTreeNode.FindSubNode(aValue: string16; ARecourse : Boolean): TwgTreeNode;
 var
   h: TwgTreeNode;
 begin
   result := nil;
+  if ARecourse then
+  begin
   h := FirstSubNode;
   while h <> nil do
   begin
@@ -1381,11 +1386,25 @@ begin
     end;
     if h.count > 0 then
     begin
-      result := h.FirstSubNode.FindSubNode(aValue);
+      result := h.FirstSubNode.FindSubNode(aValue, ARecourse);
       if result <> nil then
         exit;
     end;
     h := h.next;
+  end;
+  end
+  else
+  begin
+    h := FirstSubNode;
+    while h <> nil do
+    begin
+      if h.Text = AValue then
+      begin
+        result := h;
+        break;
+      end;
+      h := h.next;
+    end;
   end;
 end;
 
