@@ -1,3 +1,12 @@
+{ wgfilegrid.pas: FileGrid widget
+  File maintainer: Erik@Grohnwaldt.de
+
+  History: }
+//$Log$
+//Revision 1.3  2003/12/10 19:11:08  aegluke
+//Design and Visibility-Changes
+//
+
 unit wgcustomgrid;
 
 {$ifdef FPC}
@@ -26,21 +35,20 @@ type
     FRowCount : integer;
     FColumns : TList;
 
+    function GetColumnCount : integer; override;
+    procedure SetColumnCount(value : integer);
+
+    function GetRowCount : integer; override;
+    procedure SetRowCount(value : integer);
+
     function GetColumnWidth(col : integer) : TGfxCoord; override;
     procedure SetColumnWidth(col : integer; cwidth : TgfxCoord); override;
-
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
-    
-    function GetRowCount : integer; override;
-    procedure SetRowCount(value : integer);
-    
+
     property RowCount : integer read GetRowCount write SetRowCount;
-    
-    function GetColumnCount : integer; override;
-    procedure SetColumnCount(value : integer);
-    
+
     property ColumnCount : integer read GetColumnCount write SetColumnCount;
     
     procedure DrawHeader(col : integer; rect : TGfxRect; flags : integer); override;
