@@ -40,6 +40,10 @@ function u8noesc(s : String8) : string16;  // inserts #0-s, doesn't use escapes
 function Length16(s : String16) : integer;
 procedure SetLength16(var s : String16; len : integer);
 
+function Pos16(const s : string16; const searched : string16) : integer;
+function UpCase16(const s : string16) : string16;
+function Upper16(const s : string16) : string16;
+
 function Copy16(s : String16; ind,len : integer) : String16;
 procedure Insert16(s : String16; var dest : string16; ind : integer);
 procedure Delete16(var s : String16; ind, count : integer);
@@ -259,6 +263,43 @@ end;
 function Length16(s : String16) : integer;
 begin
   Result := Length(s) shr 1;
+end;
+
+function Pos16(const s : string16; const searched : string16) : integer;
+var
+  n,m : integer;
+begin
+  result := 0;
+  if length16(s) < 1 then Exit;
+  for n := 1 to Length16(searched)-Length16(s) do
+  begin
+    if CompareMem(@s[1], @searched[n*2-1], Length16(s)) then
+    begin
+      result := n;
+      Exit;
+    end;
+  end;
+end;
+
+function UpCase16(const s : string16) : string16;
+begin
+  if length(s) < 2 then Exit;
+  if s[2] = #0 then Result := UpCase(s[1])+#0
+  else
+  begin
+    result := chr(ord(s[1]) and $FE) + s[2];
+  end;
+end;
+
+function Upper16(const s : string16) : string16;
+var
+  n : integer;
+begin
+  result := '';
+  for n := 1 to length16(s) do
+  begin
+    result := result + UpCase16(s[n*2-1]+s[n*2]);
+  end;
 end;
 
 function Copy16(s : String16; ind,len : integer) : String16;
