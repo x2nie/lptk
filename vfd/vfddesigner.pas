@@ -1366,7 +1366,7 @@ begin
   inherited;
   wgClassName := 'TWidget';
   FBackgroundColor := $C0E0C0;
-  FFont := guistyle.LabelFont1;
+  FFont := guistyle.DefaultFont;
 end;
 
 procedure TOtherWidget.RePaint;

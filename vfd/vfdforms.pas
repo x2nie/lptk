@@ -212,7 +212,7 @@ begin
   l1 := CreateLabel(self, x,y, 'Class name:');
   lbClass := CreateLabel(self, x2,y, 'CLASS');
   lbClass.Width := w;
-  lbClass.Font := guistyle.LabelFont2;
+  lbClass.FontName := '#Label2';
 
   inc(y, gap);
 
@@ -268,7 +268,7 @@ begin
   edOther := TwgMemo.Create(self);
   edOther.SetDimensions(x,y+gap,self.Width - 2*x,self.Height-x-y-gap);
   edOther.Anchors := AllAnchors;
-  edOther.Font := guistyle.EditFont2;
+  edOther.FontName := '#Edit2';
 
 //  lbHeight := CreateLabel(self, x2,y, 'h');
 //  lbHeight.Width := w;
