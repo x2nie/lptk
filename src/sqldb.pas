@@ -392,8 +392,6 @@ end;
 
 function TSqlDBConnection.ConnectByDSN(const DatabaseName, UserName, UserPass: string): boolean;
 var
-  connstring : string;
-  len : SQLSMALLINT;
   res : integer;
   dsn, user, pass : string;
 begin
@@ -528,6 +526,8 @@ var
   stmtHandle : SQLHSTMT;
   res : integer;
 begin
+  result := nil;
+
   Res := SQLAllocHandle(SQL_HANDLE_STMT, FDBHandle, stmtHandle);
   If not ODBCSuccess(res) then
   begin
@@ -548,8 +548,6 @@ begin
     GetSQLError(stmtHandle);
 
     SQLFreeHandle(SQL_HANDLE_STMT, stmtHandle);
-
-    result := nil;
   end;
 end;
 
@@ -966,12 +964,6 @@ var
 
   irow : PRowIndexItem;
   
-  multiplier : double;
-  
-  dbl : double;
-  
-  datalen : string;
-  
   f : TSqlField;
 begin
   for n:=1 to FieldCount do
@@ -1181,7 +1173,6 @@ end;
 procedure TSqlDBConnection.PopulateStringList16(sqltext : string; sl : TStringList; conv8to16, withID : boolean);
 var
   lsql : TSqlResult;
-  n : integer;
   id : integer;
 begin
   sl.Clear;
@@ -1299,7 +1290,6 @@ function TSqlField.GetAsInteger: integer;
 var
   p, pr  : Pointer;
   offs : integer;
-  d : TDateTime;
   s : string;
 begin
 
@@ -1384,7 +1374,6 @@ function TSqlField.GetAsFloat: double;
 var
   p, pr  : Pointer;
   offs : integer;
-  d : TDateTime;
   s : string;
 begin
 
@@ -1456,7 +1445,6 @@ function TSqlField.GetAsDateTime: TDateTime;
 var
   p, pr  : Pointer;
   offs : integer;
-  d : TDateTime;
   s : string;
 begin
 
