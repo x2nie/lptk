@@ -1,1 +1,1 @@
-dcc32 -U../src;c:/delphi/odbc %1 %2 %3
+dcc32 -B -U../src %1 %2 %3
