@@ -99,7 +99,7 @@ begin
   edEdit := TwgEdit.Create(self);
   with edEdit do
   begin
-    SetDimensions(4,28,150,20);
+    SetDimensions(4,28,150,22);
     Text := u8('edEdit');
   end;
 
