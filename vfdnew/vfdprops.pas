@@ -141,7 +141,11 @@ var
   n : integer;
 begin
   pi := GetPropInfo(wg, propname);
+{$ifdef FPC}
+  T := GetTypeData(pi^.PropType);
+{$else}
   T := GetTypeData(pi^.PropType^);
+{$endif}
   P := @T^.NameList;
 
   for n := 0 to T^.MaxValue do
