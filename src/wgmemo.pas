@@ -107,18 +107,21 @@ type
 
     property LineHeight : integer read FLineHeight;
 
-    property Lines : TStringList read FLines;
     property CursorLine : integer read FCursorLine write SetCursorLine;
 
     property Text : string16 read GetText write SetText;
     property Text8 : string read GetText8 write SetText8;
-    
+
     property Font : TGfxFont read FFont;
-    property FontName : string read GetFontName write SetFontName;
 
   public
 
     OnChange : TNotifyEvent;
+
+  published
+
+    property Lines : TStringList read FLines;
+    property FontName : string read GetFontName write SetFontName;
 
   end;
 
@@ -177,7 +180,8 @@ begin
   inherited;
   Focusable := true;
   FFont := GfxGetFont('#Edit1');
-  FHeight := FFont.Height + 4;
+  FHeight := FFont.Height*3 + 4;
+  FWidth := 120;
   FLineHeight := FFont.Height + 2;
   FBackgroundColor := $FFFFFF;
 
@@ -465,7 +469,8 @@ begin
   begin
     FHScrollBar.Min := 0;
     FHScrollBar.Max := FLongestLineWidth - VisibleWidth - 1;
-    if FLongestLineWidth <= VisibleWidth then FHScrollBar.SliderSize := 1
+    if (FLongestLineWidth <= 0) or (FLongestLineWidth <= VisibleWidth)
+      then FHScrollBar.SliderSize := 1
       else FHScrollBar.SliderSize := VisibleWidth / FLongestLineWidth;
     FHScrollBar.Position := FDrawOffset;
     FHScrollBar.RepaintSlider;

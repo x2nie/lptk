@@ -239,8 +239,13 @@ begin
     Canvas.SetColor(clSelection);
     Canvas.FillRectangle(3,3,width-5,height-5);
     Canvas.SetTextColor(clSelectionText);
+    Canvas.SetColor(clSelectionText);
   end
-  else Canvas.SetTextColor(clText1);
+  else
+  begin
+    Canvas.SetTextColor(clText1);
+    Canvas.SetColor(clText1);
+  end;
 
   r.left := 2;
   r.top  := 2;
