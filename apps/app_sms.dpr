@@ -392,7 +392,7 @@ begin
   begin
     SetDimensions(8,80,202,22);
     Text := u8('');
-    Font := guistyle.EditFont2;
+    //Font := guistyle.EditFont2;
   end;
 
   lbLabel4 := TWGLABEL.Create(self);
@@ -418,6 +418,7 @@ begin
     Anchors := [anLeft,anBottom];
     Text := u8('Send');
     OnClick := @SendClick;
+    imagename := 'stdimg.ok';
   end;
 
   btnExit := TWGBUTTON.Create(self);
@@ -427,6 +428,7 @@ begin
     Anchors := [anRight,anBottom];
     Text := u8('Exit');
     OnClick := @ExitClick;
+    imagename := 'stdimg.cancel';
   end;
 
   lbLabel5 := TWGLABEL.Create(self);
