@@ -13,26 +13,7 @@ procedure GfxCreateStandardImages;
 
 implementation
 
-{$I ..\stdimg\inc\cancel.inc}
-{$I ..\stdimg\inc\close.inc}
-{$I ..\stdimg\inc\close2.inc}
-{$I ..\stdimg\inc\close3.inc}
-{$I ..\stdimg\inc\configure.inc}
-{$I ..\stdimg\inc\document.inc}
-{$I ..\stdimg\inc\exit.inc}
-{$I ..\stdimg\inc\find.inc}
-{$I ..\stdimg\inc\folder.inc}
-{$I ..\stdimg\inc\foldernew.inc}
-{$I ..\stdimg\inc\folderopen.inc}
-{$I ..\stdimg\inc\folderup.inc}
-{$I ..\stdimg\inc\new.inc}
-{$I ..\stdimg\inc\no.inc}
-{$I ..\stdimg\inc\ok.inc}
-{$I ..\stdimg\inc\open.inc}
-{$I ..\stdimg\inc\save.inc}
-{$I ..\stdimg\inc\yes.inc}
-
-{I ..\stdimg\inc\.inc}
+{$I ..\stdimg\stdimages.inc}
 
 procedure GfxCreateStandardImages;
 var
