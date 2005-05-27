@@ -270,7 +270,7 @@ begin
   begin
     SetDimensions(8,28,154,22);
     Text := u8('');
-    OnChange := {$ifdef FPC}@{$endif}FilterChange;
+    OnChange := FilterChange;
   end;
 
   lbLabel1 := TWGLABEL.Create(self);
@@ -284,7 +284,7 @@ begin
   with chlFLTCAT do
   begin
     SetDimensions(168,28,114,22);
-    OnChange := {$ifdef FPC}@{$endif}FilterChange;
+    OnChange := FilterChange;
   end;
 
   grid := TWGDBGRID.Create(self);
@@ -295,8 +295,8 @@ begin
     AddColumn8('Name','NAME',160,alLeft);
     AddColumn8('Cat.','CATEGORY',60,alLeft);
     AddColumn8('Phone','PHONE',220,alLeft);
-    OnRowChange := {$ifdef FPC}@{$endif}GridRowChange;
-    OnDoubleClick := {$ifdef FPC}@{$endif}gridDoubleClick;
+    OnRowChange := GridRowChange;
+    OnDoubleClick := gridDoubleClick;
     RowSelect := true;
   end;
 
