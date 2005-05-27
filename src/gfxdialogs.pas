@@ -280,7 +280,8 @@ uses
 {$ifdef Win32}
   windows
 {$else}
-  libc, linux
+  libc,
+  unixutil
 {$endif}
   ;
 
@@ -814,10 +815,12 @@ end;
 
 function TFileList.ReadDirectory(const fmask : string; ShowHidden : boolean): integer;
 Var
-  gres,p : PGlob;
+  gres : glob_t;
+  n,r : integer;
+  p : PPChar;
   e : TFileEntry;
   fullname : string;
-  info : stat;
+  info : _stat;
   //dname : string;
 begin
   Clear;
@@ -825,31 +828,35 @@ begin
   //Writeln('dname: ', dname);
   if copy(FDirectoryName,Length(FDirectoryName),1) <> '/' then FDirectoryName := FDirectoryName+'/';
 
-  gres := glob('*');
-  p := gres;
-  while p <> nil do
+  FillChar(gres,sizeof(gres),0);
+  glob('*',GLOB_PERIOD,nil,@gres);
+  n := 0;
+  p := gres.gl_pathv;
+  while n < gres.gl_pathc do
   begin
     e := TFileEntry.Create;
-    e.Name := p^.name;
+    e.Name := p^;
     //Write(e.Name);
     e.NameExt := ExtractFileExt(e.Name);
     fullname := FDirectoryName + e.Name;
 
     //Writeln('fullname: ',fullname);
-    if lstat(fullname,info) then
+    if lstat(PChar(fullname),info) = 0 then
     begin
-      e.islink := ((info.mode and $F000) = $A000);
+      e.islink := ((info.st_mode and $F000) = $A000);
       if e.islink then
       begin
-        e.linktarget := ReadLink(fullname);
-        fstat(fullname,info);
+        SetLength(e.linktarget,256);
+        r := libc.readlink(PChar(fullname),@(e.linktarget[1]),sizeof(e.linktarget));
+        if r > 0 then SetLength(e.linktarget,r) else e.linktarget := '';
+        libc.stat(PChar(fullname),info);
       end;
 
-      e.mode := info.mode;
-      e.size := info.size;
-      e.ownerid := info.uid;
-      e.groupid := info.gid;
-      e.modtime   := EpochToDateTime(info.mtime);
+      e.mode := info.st_mode;
+      e.size := info.st_size;
+      e.ownerid := info.st_uid;
+      e.groupid := info.st_gid;
+      e.modtime   := EpochToDateTime(info.st_mtime);
 
       if (e.mode and $F000) = $4000 then e.etype := etDir
       else e.etype := etFile;
@@ -869,10 +876,11 @@ begin
 
     end;
     //writeln;
-    p := p^.next;
+    inc(p);
+    inc(n);
   end;
 
-  if gres <> nil then GlobFree(gres);
+  if gres.gl_pathc > 0 then GlobFree(@gres);
 
   result := FEntries.Count;
 end;
@@ -1257,7 +1265,7 @@ begin
   btn := TwgButton.Create(self);
   btn.Text := str8to16('OK');
   btn.Width := 80;
-  btn.OnClick := {$ifdef FPC}@{$endif}btnClick;
+  btn.OnClick := btnClick;
   Resizeable := false;
 end;
 

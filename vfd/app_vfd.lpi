@@ -1,87 +1,52 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="5"/>
     <General>
-      <ProjectType Value="Custom program"/>
+      <Flags>
+        <MainUnitIsPascalSource Value="False"/>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
       <MainUnit Value="0"/>
-      <ActiveEditorIndexAtStart Value="10"/>
+      <ActiveEditorIndexAtStart Value="11"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
       <Title Value="app_vfd"/>
-      <OutputDirectory Value="."/>
-      <UnitOutputDirectory Value="."/>
     </General>
-    <JumpHistory Count="17" HistoryIndex="16">
+    <JumpHistory Count="7" HistoryIndex="6">
       <Position1>
-        <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
-        <Caret Line="259" Column="102" TopLine="231"/>
+        <Filename Value="newformdesigner.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
-        <Caret Line="59" Column="95" TopLine="42"/>
+        <Filename Value="newformdesigner.pas"/>
+        <Caret Line="386" Column="97" TopLine="367"/>
       </Position2>
       <Position3>
-        <Filename Value="/data/workl/lptk/src/wgchoicelist.pas"/>
-        <Caret Line="60" Column="61" TopLine="40"/>
+        <Filename Value="newformdesigner.pas"/>
+        <Caret Line="395" Column="52" TopLine="367"/>
       </Position3>
       <Position4>
-        <Filename Value="/data/workl/lptk/src/wggrid.pas"/>
-        <Caret Line="398" Column="5" TopLine="353"/>
+        <Filename Value="newformdesigner.pas"/>
+        <Caret Line="405" Column="98" TopLine="388"/>
       </Position4>
       <Position5>
-        <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
-        <Caret Line="151" Column="5" TopLine="106"/>
+        <Filename Value="vfdwgdbgrid.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position5>
       <Position6>
-        <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
-        <Caret Line="156" Column="28" TopLine="148"/>
+        <Filename Value="vfdwgdbgrid.pas"/>
+        <Caret Line="115" Column="20" TopLine="96"/>
       </Position6>
       <Position7>
-        <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
-        <Caret Line="157" Column="17" TopLine="148"/>
+        <Filename Value="vfdwgdbgrid.pas"/>
+        <Caret Line="165" Column="48" TopLine="148"/>
       </Position7>
-      <Position8>
-        <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
-        <Caret Line="165" Column="5" TopLine="120"/>
-      </Position8>
-      <Position9>
-        <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
-        <Caret Line="158" Column="32" TopLine="149"/>
-      </Position9>
-      <Position10>
-        <Filename Value="/data/workl/lptk/src/wggrid.pas"/>
-        <Caret Line="398" Column="10" TopLine="395"/>
-      </Position10>
-      <Position11>
-        <Filename Value="/data/workl/lptk/src/wggrid.pas"/>
-        <Caret Line="153" Column="26" TopLine="126"/>
-      </Position11>
-      <Position12>
-        <Filename Value="/data/workl/lptk/src/wggrid.pas"/>
-        <Caret Line="168" Column="19" TopLine="139"/>
-      </Position12>
-      <Position13>
-        <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
-        <Caret Line="194" Column="17" TopLine="189"/>
-      </Position13>
-      <Position14>
-        <Filename Value="/data/workl/lptk/src/wggrid.pas"/>
-        <Caret Line="169" Column="20" TopLine="139"/>
-      </Position14>
-      <Position15>
-        <Filename Value="/data/workl/lptk/src/wggrid.pas"/>
-        <Caret Line="168" Column="21" TopLine="136"/>
-      </Position15>
-      <Position16>
-        <Filename Value="/data/workl/lptk/src/wggrid.pas"/>
-        <Caret Line="177" Column="12" TopLine="142"/>
-      </Position16>
-      <Position17>
-        <Filename Value="/data/workl/lptk/src/gfxbase.pas"/>
-        <Caret Line="1363" Column="42" TopLine="1314"/>
-      </Position17>
     </JumpHistory>
-    <Units Count="23">
+    <Units Count="25">
       <Unit0>
         <CursorPos X="41" Y="57"/>
         <EditorIndex Value="0"/>
@@ -105,8 +70,8 @@
         </Bookmarks>
       </Unit1>
       <Unit2>
-        <CursorPos X="1" Y="1"/>
-        <EditorIndex Value="19"/>
+        <CursorPos X="101" Y="26"/>
+        <EditorIndex Value="9"/>
         <Filename Value="vfdutils.pas"/>
         <Loaded Value="True"/>
         <TopLine Value="1"/>
@@ -115,7 +80,7 @@
       </Unit2>
       <Unit3>
         <CursorPos X="53" Y="21"/>
-        <EditorIndex Value="18"/>
+        <EditorIndex Value="8"/>
         <Filename Value="vfdmain.pas"/>
         <Loaded Value="True"/>
         <TopLine Value="1"/>
@@ -131,7 +96,7 @@
       </Unit4>
       <Unit5>
         <CursorPos X="1" Y="1"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="7"/>
         <Filename Value="vfdfile.pas"/>
         <Loaded Value="True"/>
         <TopLine Value="1"/>
@@ -140,7 +105,7 @@
       </Unit5>
       <Unit6>
         <CursorPos X="1" Y="1"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="6"/>
         <Filename Value="vfdformparser.pas"/>
         <Loaded Value="True"/>
         <TopLine Value="1"/>
@@ -149,7 +114,7 @@
       </Unit6>
       <Unit7>
         <CursorPos X="1" Y="3"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="5"/>
         <Filename Value="vfdresizer.pas"/>
         <Loaded Value="True"/>
         <TopLine Value="1"/>
@@ -158,7 +123,7 @@
       </Unit7>
       <Unit8>
         <CursorPos X="15" Y="11"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="3"/>
         <Filename Value="vfdforms.pas"/>
         <Loaded Value="True"/>
         <TopLine Value="1"/>
@@ -167,9 +132,7 @@
       </Unit8>
       <Unit9>
         <CursorPos X="1" Y="1404"/>
-        <EditorIndex Value="10"/>
         <Filename Value="/data/workl/lptk/src/gfxbase.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="1394"/>
         <UnitName Value="gfxbase"/>
         <UsageCount Value="18"/>
@@ -186,16 +149,14 @@
       </Unit10>
       <Unit11>
         <CursorPos X="1" Y="886"/>
-        <EditorIndex Value="13"/>
         <Filename Value="/data/workl/lptk/src/gfxwidget.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="874"/>
         <UnitName Value="gfxwidget"/>
         <UsageCount Value="17"/>
       </Unit11>
       <Unit12>
         <CursorPos X="4" Y="746"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="4"/>
         <Filename Value="/usr/src/fpc/packages/extra/x11/xlib.pp"/>
         <Loaded Value="True"/>
         <TopLine Value="726"/>
@@ -204,9 +165,7 @@
       </Unit12>
       <Unit13>
         <CursorPos X="1" Y="190"/>
-        <EditorIndex Value="11"/>
         <Filename Value="/data/workl/lptk/src/popupwindow.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="182"/>
         <UnitName Value="popupwindow"/>
         <UsageCount Value="15"/>
@@ -218,81 +177,84 @@
         <UsageCount Value="9"/>
       </Unit14>
       <Unit15>
-        <CursorPos X="3" Y="343"/>
-        <EditorIndex Value="3"/>
+        <CursorPos X="3" Y="93"/>
+        <EditorIndex Value="2"/>
         <Filename Value="vfdeditors.pas"/>
         <Loaded Value="True"/>
-        <TopLine Value="318"/>
+        <TopLine Value="56"/>
         <UnitName Value="vfdeditors"/>
         <UsageCount Value="14"/>
       </Unit15>
       <Unit16>
         <CursorPos X="3" Y="30"/>
-        <EditorIndex Value="2"/>
         <Filename Value="/data/workl/lptk/src/wglabel.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="1"/>
         <UnitName Value="wglabel"/>
         <UsageCount Value="13"/>
       </Unit16>
       <Unit17>
         <CursorPos X="1" Y="275"/>
-        <EditorIndex Value="14"/>
         <Filename Value="/data/workl/lptk/src/messagequeue.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="263"/>
         <UnitName Value="messagequeue"/>
         <UsageCount Value="13"/>
       </Unit17>
       <Unit18>
         <CursorPos X="21" Y="258"/>
-        <EditorIndex Value="9"/>
         <Filename Value="/data/workl/lptk/src/wgedit.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="241"/>
         <UnitName Value="wgedit"/>
         <UsageCount Value="13"/>
       </Unit18>
       <Unit19>
         <CursorPos X="3" Y="283"/>
-        <EditorIndex Value="6"/>
         <Filename Value="/data/workl/lptk/src/wgdbgrid.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="258"/>
         <UnitName Value="wgdbgrid"/>
         <UsageCount Value="12"/>
       </Unit19>
       <Unit20>
         <CursorPos X="3" Y="18"/>
-        <EditorIndex Value="7"/>
         <Filename Value="/data/workl/lptk/src/sqldb.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="1"/>
         <UnitName Value="sqldb"/>
         <UsageCount Value="12"/>
       </Unit20>
       <Unit21>
         <CursorPos X="27" Y="729"/>
-        <EditorIndex Value="5"/>
         <Filename Value="/data/workl/lptk/src/wggrid.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="715"/>
         <UnitName Value="wggrid"/>
         <UsageCount Value="12"/>
       </Unit21>
       <Unit22>
         <CursorPos X="34" Y="258"/>
-        <EditorIndex Value="4"/>
         <Filename Value="/data/workl/lptk/src/wgchoicelist.pas"/>
-        <Loaded Value="True"/>
         <TopLine Value="253"/>
         <UnitName Value="wgchoicelist"/>
         <UsageCount Value="11"/>
       </Unit22>
+      <Unit23>
+        <CursorPos X="55" Y="414"/>
+        <EditorIndex Value="10"/>
+        <Filename Value="newformdesigner.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="388"/>
+        <UnitName Value="newformdesigner"/>
+        <UsageCount Value="10"/>
+      </Unit23>
+      <Unit24>
+        <CursorPos X="51" Y="224"/>
+        <EditorIndex Value="11"/>
+        <Filename Value="vfdwgdbgrid.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="206"/>
+        <UnitName Value="vfdwgdbgrid"/>
+        <UsageCount Value="10"/>
+      </Unit24>
     </Units>
     <PublishOptions>
       <Version Value="2"/>
-      <DestinationDirectory Value="$(TestDir)/publishedproject/"/>
       <IgnoreBinaries Value="False"/>
     </PublishOptions>
     <RunParams>
@@ -303,21 +265,27 @@
     </RunParams>
   </ProjectOptions>
   <CompilerOptions>
+    <Version Value="5"/>
     <SearchPaths>
-      <OtherUnitFiles Value="../src"/>
-      <CompilerPath Value="$(CompPath)"/>
+      <OtherUnitFiles Value="../src/"/>
       <LCLWidgetType Value="gtk"/>
+      <SrcPath Value="../src/"/>
     </SearchPaths>
     <Parsing>
-      <SymantecChecking>
+      <SyntaxOptions>
+        <D2Extensions Value="False"/>
+        <CStyleOperator Value="False"/>
+        <AllowLabel Value="False"/>
+        <CPPInline Value="False"/>
         <DelphiCompat Value="True"/>
         <UseAnsiStrings Value="True"/>
-      </SymantecChecking>
+      </SyntaxOptions>
     </Parsing>
     <CodeGeneration>
       <Checks>
         <RangeChecks Value="True"/>
       </Checks>
+      <Generate Value="Faster"/>
       <TargetProcessor Value="3"/>
     </CodeGeneration>
     <Linking>
@@ -325,5 +293,8 @@
         <GenerateDebugInfo Value="True"/>
       </Debugging>
     </Linking>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
   </CompilerOptions>
 </CONFIG>

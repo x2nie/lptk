@@ -1,80 +1,310 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="5"/>
     <General>
-      <ProjectType Value="Custom program"/>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
       <MainUnit Value="0"/>
-      <ActiveEditorIndexAtStart Value="1"/>
+      <ActiveEditorIndexAtStart Value="0"/>
       <TargetFileExt Value=""/>
       <Title Value="lptk"/>
-      <OutputDirectory Value="."/>
-      <UnitOutputDirectory Value="."/>
     </General>
-    <JumpHistory Count="4" HistoryIndex="3">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="lptkmain.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="237" Column="48" TopLine="210"/>
       </Position1>
       <Position2>
-        <Filename Value="lptkmain.pas"/>
-        <Caret Line="17" Column="20" TopLine="1"/>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
       </Position2>
       <Position3>
-        <Filename Value="lptkmain.pas"/>
-        <Caret Line="99" Column="61" TopLine="84"/>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="271" Column="70" TopLine="230"/>
       </Position3>
       <Position4>
-        <Filename Value="lptkmain.pas"/>
-        <Caret Line="101" Column="56" TopLine="84"/>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
       </Position4>
+      <Position5>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="275" Column="93" TopLine="230"/>
+      </Position5>
+      <Position6>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
+      </Position6>
+      <Position7>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="270" Column="51" TopLine="230"/>
+      </Position7>
+      <Position8>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
+      </Position8>
+      <Position9>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="271" Column="13" TopLine="230"/>
+      </Position9>
+      <Position10>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
+      </Position10>
+      <Position11>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="276" Column="44" TopLine="230"/>
+      </Position11>
+      <Position12>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
+      </Position12>
+      <Position13>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="239" Column="129" TopLine="230"/>
+      </Position13>
+      <Position14>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
+      </Position14>
+      <Position15>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="271" Column="22" TopLine="230"/>
+      </Position15>
+      <Position16>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="13" Column="25" TopLine="1"/>
+      </Position16>
+      <Position17>
+        <Filename Value="/work/lptk/src/gfxbase.pas"/>
+        <Caret Line="27" Column="25" TopLine="1"/>
+      </Position17>
+      <Position18>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="13" Column="25" TopLine="1"/>
+      </Position18>
+      <Position19>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
+      </Position19>
+      <Position20>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="252" Column="13" TopLine="230"/>
+      </Position20>
+      <Position21>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
+      </Position21>
+      <Position22>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="261" Column="17" TopLine="230"/>
+      </Position22>
+      <Position23>
+        <Filename Value="lptk.dpr"/>
+        <Caret Line="283" Column="1" TopLine="230"/>
+      </Position23>
+      <Position24>
+        <Filename Value="/work/lptk/src/gfxdialogs.pas"/>
+        <Caret Line="285" Column="3" TopLine="272"/>
+      </Position24>
+      <Position25>
+        <Filename Value="/work/lptk/src/gfxdialogs.pas"/>
+        <Caret Line="813" Column="3" TopLine="786"/>
+      </Position25>
+      <Position26>
+        <Filename Value="/work/lptk/src/gfxdialogs.pas"/>
+        <Caret Line="705" Column="3" TopLine="678"/>
+      </Position26>
+      <Position27>
+        <Filename Value="/work/lptk/src/gfxdialogs.pas"/>
+        <Caret Line="285" Column="5" TopLine="271"/>
+      </Position27>
+      <Position28>
+        <Filename Value="/work/lptk/src/gfxdialogs.pas"/>
+        <Caret Line="813" Column="3" TopLine="786"/>
+      </Position28>
+      <Position29>
+        <Filename Value="/work/lptk/src/gfxdialogs.pas"/>
+        <Caret Line="286" Column="5" TopLine="258"/>
+      </Position29>
+      <Position30>
+        <Filename Value="/work/lptk/src/gfxdialogs.pas"/>
+        <Caret Line="814" Column="3" TopLine="787"/>
+      </Position30>
     </JumpHistory>
-    <Units Count="3">
+    <Units Count="20">
       <Unit0>
-        <CursorPos X="13" Y="3"/>
+        <CursorPos X="19" Y="248"/>
         <EditorIndex Value="0"/>
-        <Filename Value="lptk.pas"/>
+        <Filename Value="lptk.dpr"/>
         <IsPartOfProject Value="True"/>
         <Loaded Value="True"/>
-        <TopLine Value="1"/>
-        <UnitName Value="lptk"/>
+        <TopLine Value="230"/>
         <UsageCount Value="20"/>
       </Unit0>
       <Unit1>
-        <CursorPos X="76" Y="103"/>
-        <EditorIndex Value="1"/>
-        <Filename Value="lptkmain.pas"/>
+        <CursorPos X="27" Y="282"/>
+        <EditorIndex Value="3"/>
+        <Filename Value="/work/lptk/src/gfxdialogs.pas"/>
         <Loaded Value="True"/>
-        <TopLine Value="94"/>
-        <UnitName Value="lptkmain"/>
+        <TopLine Value="258"/>
+        <UnitName Value="gfxdialogs"/>
         <UsageCount Value="10"/>
+        <Bookmarks Count="1">
+          <Item0 X="5" Y="284" ID="1"/>
+        </Bookmarks>
       </Unit1>
       <Unit2>
-        <CursorPos X="10" Y="45"/>
-        <EditorIndex Value="2"/>
-        <Filename Value="/data/workl/lptk/src/wgbutton.pas"/>
+        <CursorPos X="1" Y="32"/>
+        <EditorIndex Value="5"/>
+        <Filename Value="/usr/src/fpc/rtl/unix/sysutils.pp"/>
         <Loaded Value="True"/>
-        <TopLine Value="30"/>
-        <UnitName Value="wgbutton"/>
+        <TopLine Value="1"/>
+        <UnitName Value="sysutils"/>
         <UsageCount Value="10"/>
       </Unit2>
+      <Unit3>
+        <CursorPos X="51" Y="205"/>
+        <Filename Value="/usr/src/fpc/rtl/objpas/sysutils/sysutilh.inc"/>
+        <TopLine Value="195"/>
+        <UsageCount Value="10"/>
+      </Unit3>
+      <Unit4>
+        <CursorPos X="1" Y="1"/>
+        <Filename Value="/usr/src/fpc/rtl/objpas/sysutils/sysansih.inc"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit4>
+      <Unit5>
+        <CursorPos X="39" Y="9"/>
+        <Filename Value="/usr/src/fpc/rtl/objpas/sysutils/finah.inc"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit5>
+      <Unit6>
+        <CursorPos X="48" Y="17"/>
+        <Filename Value="/usr/src/fpc/rtl/objpas/sysutils/filutilh.inc"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit6>
+      <Unit7>
+        <CursorPos X="44" Y="6"/>
+        <Filename Value="/usr/src/fpc/rtl/objpas/sysutils/diskh.inc"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit7>
+      <Unit8>
+        <CursorPos X="53" Y="23"/>
+        <Filename Value="/usr/src/fpc/rtl/unix/unix.pp"/>
+        <TopLine Value="1"/>
+        <UnitName Value="Unix"/>
+        <UsageCount Value="10"/>
+      </Unit8>
+      <Unit9>
+        <CursorPos X="56" Y="4"/>
+        <Filename Value="/usr/src/fpc/rtl/unix/unixtype.pp"/>
+        <TopLine Value="1"/>
+        <UnitName Value="unixtype"/>
+        <UsageCount Value="10"/>
+      </Unit9>
+      <Unit10>
+        <CursorPos X="60" Y="92"/>
+        <Filename Value="/usr/src/fpc/rtl/linux/ptypes.inc"/>
+        <TopLine Value="88"/>
+        <UsageCount Value="10"/>
+      </Unit10>
+      <Unit11>
+        <CursorPos X="7" Y="54"/>
+        <EditorIndex Value="4"/>
+        <Filename Value="/usr/src/fpc/packages/base/libc/libc.pp"/>
+        <Loaded Value="True"/>
+        <TopLine Value="26"/>
+        <UnitName Value="libc"/>
+        <UsageCount Value="10"/>
+      </Unit11>
+      <Unit12>
+        <CursorPos X="59" Y="31"/>
+        <Filename Value="/usr/src/fpc/packages/base/libc/globh.inc"/>
+        <TopLine Value="20"/>
+        <UsageCount Value="10"/>
+      </Unit12>
+      <Unit13>
+        <CursorPos X="42" Y="81"/>
+        <Filename Value="/usr/src/fpc/packages/base/libc/timeh.inc"/>
+        <TopLine Value="58"/>
+        <UsageCount Value="10"/>
+      </Unit13>
+      <Unit14>
+        <CursorPos X="37" Y="4"/>
+        <Filename Value="/usr/src/fpc/packages/base/libc/direnth.inc"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit14>
+      <Unit15>
+        <CursorPos X="25" Y="2"/>
+        <Filename Value="/usr/src/fpc/packages/base/libc/fileh.inc"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit15>
+      <Unit16>
+        <CursorPos X="48" Y="19"/>
+        <Filename Value="/usr/src/fpc/packages/base/libc/sstath.inc"/>
+        <TopLine Value="13"/>
+        <UsageCount Value="10"/>
+      </Unit16>
+      <Unit17>
+        <CursorPos X="46" Y="10"/>
+        <Filename Value="/usr/src/fpc/packages/base/libc/bstath.inc"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit17>
+      <Unit18>
+        <CursorPos X="25" Y="27"/>
+        <EditorIndex Value="1"/>
+        <Filename Value="/work/lptk/src/gfxbase.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1"/>
+        <UnitName Value="gfxbase"/>
+        <UsageCount Value="10"/>
+      </Unit18>
+      <Unit19>
+        <CursorPos X="47" Y="23"/>
+        <EditorIndex Value="2"/>
+        <Filename Value="/work/lptk/src/unitxft.pas"/>
+        <Loaded Value="True"/>
+        <TopLine Value="1"/>
+        <UnitName Value="unitxft"/>
+        <UsageCount Value="10"/>
+      </Unit19>
     </Units>
     <PublishOptions>
       <Version Value="2"/>
-      <DestinationDirectory Value="$(TestDir)/publishedproject/"/>
       <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <LaunchingApplication Use="True" PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e bash -i -c '$(TargetCmdLine)'"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
   </ProjectOptions>
   <CompilerOptions>
+    <Version Value="5"/>
     <SearchPaths>
-      <OtherUnitFiles Value="../src"/>
-      <CompilerPath Value="$(CompPath)"/>
-      <LCLWidgetType Value="gtk"/>
+      <OtherUnitFiles Value="../src/"/>
+      <SrcPath Value="../src/"/>
     </SearchPaths>
+    <CodeGeneration>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
   </CompilerOptions>
 </CONFIG>

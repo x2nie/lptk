@@ -98,7 +98,7 @@ procedure XftDrawString16(draw : PXftDraw; var col : TXftColor; fnt : PXftFont; 
 procedure XftTextExtents16(display : PXDisplay; fnt : PXftFont; txt : PChar; len : integer; var extents : TXGlyphInfo); cdecl;
 procedure XftTextExtents8(display : PXDisplay; fnt : PXftFont; txt : PChar; len : integer; var extents : TXGlyphInfo); cdecl;
 
-function XftGlyphExists(display : PXDisplay; fnt : PXftFont; ch : integer) : longbool; cdecl;
+//function XftGlyphExists(display : PXDisplay; fnt : PXftFont; ch : integer) : longbool; cdecl;
 
 //procedure XftDrawSetClipRectangles(draw : PXftDraw; xorigin, yorigin : integer; rect : PXRectangle; rnum : integer); cdecl;
 
@@ -125,7 +125,7 @@ procedure XftDrawString16(draw : PXftDraw; var col : TXftColor; fnt : PXftFont; 
 procedure XftTextExtents16(display : PXDisplay; fnt : PXftFont; txt : PChar; len : integer; var extents : TXGlyphInfo); cdecl; external;
 procedure XftTextExtents8(display : PXDisplay; fnt : PXftFont; txt : PChar; len : integer; var extents : TXGlyphInfo); cdecl; external;
 
-function XftGlyphExists(display : PXDisplay; fnt : PXftFont; ch : integer) : longbool; cdecl; external;
+//function XftGlyphExists(display : PXDisplay; fnt : PXftFont; ch : integer) : longbool; cdecl; external;
 
 //procedure XftDrawSetClipRectangles(draw : PXftDraw; xorigin, yorigin : integer; rect : PXRectangle; rnum : integer); cdecl; external;
 

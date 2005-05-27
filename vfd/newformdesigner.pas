@@ -383,7 +383,7 @@ begin
 
   l3 := CreateLabel(self, 3,y+1, 'Left:');
   l3.Anchors := [anLeft,anBottom];
-  btnLeft := CreateButton(self, 50, y-2, 48, '1234', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
+  btnLeft := CreateButton(self, 50, y-2, 48, '1234', maindsgn.OnPropPosEdit);
   with btnLeft do
   begin
     Height := 22;
@@ -392,7 +392,7 @@ begin
   end;
   l4 := CreateLabel(self, 110, y, 'Top:');
   l4.Anchors := [anLeft,anBottom];
-  btnTop := CreateButton(self, 160, y-2, 48, '45', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
+  btnTop := CreateButton(self, 160, y-2, 48, '45', maindsgn.OnPropPosEdit);
   with btnTop do
   begin
     Height := 22;
@@ -402,7 +402,7 @@ begin
   inc(y, gap+5);
   l5 := CreateLabel(self, 3,y+1, 'Width:');
   l5.Anchors := [anLeft,anBottom];
-  btnWidth := CreateButton(self, 50, y-2, 48, '1234', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
+  btnWidth := CreateButton(self, 50, y-2, 48, '1234', maindsgn.OnPropPosEdit);
   with btnWidth do
   begin
     Height := 22;
@@ -411,7 +411,7 @@ begin
   end;
   l6 := CreateLabel(self, 110, y, 'Height:');
   l6.Anchors := [anLeft,anBottom];
-  btnHeight := CreateButton(self, 160, y-2, 48, '45', {$ifdef FPC}@{$endif}maindsgn.OnPropPosEdit);
+  btnHeight := CreateButton(self, 160, y-2, 48, '45', maindsgn.OnPropPosEdit);
   with btnHeight do
   begin
     Height := 22;

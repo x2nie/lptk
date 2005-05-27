@@ -112,7 +112,7 @@ begin
   with grid do
   begin
     SetDimensions(8,24,328,204);
-    OnRowChange := {$ifdef FPC}@{$endif}GridRowChange;
+    OnRowChange := GridRowChange;
   end;
 
   lbLabel2 := TwgLabel.Create(self);
@@ -162,7 +162,7 @@ begin
   begin
     SetDimensions(344,72,160,22);
     Text := u8('');
-    OnChange := {$ifdef FPC}@{$endif}EditChange;
+    OnChange := EditChange;
   end;
 
   edFIELDNAME := TwgEdit.Create(self);
@@ -170,7 +170,7 @@ begin
   begin
     SetDimensions(344,116,160,22);
     Text := u8('');
-    OnChange := {$ifdef FPC}@{$endif}EditChange;
+    OnChange := EditChange;
   end;
 
   edCOLWIDTH := TwgEdit.Create(self);
@@ -178,7 +178,7 @@ begin
   begin
     SetDimensions(344,160,160,22);
     Text := u8('');
-    OnChange := {$ifdef FPC}@{$endif}EditChange;
+    OnChange := EditChange;
   end;
 
   chlALIGN := TwgChoiceList.Create(self);
@@ -188,7 +188,7 @@ begin
     Items.Add(u8('Left'));
     Items.Add(u8('Right'));
     Items.Add(u8('Center'));
-    OnChange := {$ifdef FPC}@{$endif}EditChange;
+    OnChange := EditChange;
   end;
 
   btnNew := TwgButton.Create(self);
@@ -196,7 +196,7 @@ begin
   begin
     SetDimensions(8,236,60,24);
     Text := u8('New');
-    OnClick := {$ifdef FPC}@{$endif}NewButtonClick;
+    OnClick := NewButtonClick;
   end;
 
   btnDelete := TwgButton.Create(self);
@@ -204,7 +204,7 @@ begin
   begin
     SetDimensions(76,236,60,24);
     Text := u8('Delete');
-    OnClick := {$ifdef FPC}@{$endif}DeleteButtonClick;
+    OnClick := DeleteButtonClick;
   end;
 
   btnUP := TwgButton.Create(self);
@@ -212,7 +212,7 @@ begin
   begin
     SetDimensions(152,236,60,24);
     Text := u8('UP');
-    OnClick := {$ifdef FPC}@{$endif}UpDownButtonClick;
+    OnClick := UpDownButtonClick;
   end;
 
   btnDOWN := TwgButton.Create(self);
@@ -220,7 +220,7 @@ begin
   begin
     SetDimensions(216,236,60,24);
     Text := u8('DOWN');
-    OnClick := {$ifdef FPC}@{$endif}UpDownButtonClick;
+    OnClick := UpDownButtonClick;
   end;
 
   btnClose := TwgButton.Create(self);
@@ -228,7 +228,7 @@ begin
   begin
     SetDimensions(444,236,60,24);
     Text := u8('Close');
-    OnClick := {$ifdef FPC}@{$endif}CloseButtonClick;
+    OnClick := CloseButtonClick;
   end;
 
   {@VFD_BODY_END: ColumnEditForm}

@@ -133,9 +133,9 @@ begin
 
   l3 := CreateLabel(self, 10, 160, 'wgButton:');
 
-  btn := CreateButton(self, 10,180,85, 'ModalForm', {$ifdef FPC}@{$endif}btnClick);
+  btn := CreateButton(self, 10,180,85, 'ModalForm', btnClick);
 
-  btnMsg := CreateButton(self, 105,180,85, 'Message', {$ifdef FPC}@{$endif}btnMsgClick);
+  btnMsg := CreateButton(self, 105,180,85, 'Message', btnMsgClick);
   btnMsg.ImageName := 'stdimg.ok';
 
 //  btnClip := CreateButton(self, 105,160,80, 'Clipboard', @btnClipClick);
@@ -234,7 +234,7 @@ begin
   l1 := CreateLabel(self, 10,10, 'Hello');
   e1 := CreateEdit(self, 10,30,120,0);
 
-  btn := CreateButton(self, 10,70,85, 'Close', {$ifdef FPC}@{$endif}btnClick);
+  btn := CreateButton(self, 10,70,85, 'Close', btnClick);
 
 end;
 
