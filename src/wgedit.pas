@@ -107,9 +107,6 @@ begin
   FSideMargin := 3;
   FMaxLength := 0;
   FText := '';
-//  FText := str8to16('halihoka');
-//  FText := FText + #80 + #1;
-//  FText := FText + #81 + #1;
   FCursorPos := Length(FText);
   FSelStart  := FCursorPos;
   FSelOffset := 0;
@@ -336,13 +333,11 @@ begin
                   if (shiftstate and ss_control) <> 0 then
                   begin
                     // word search...
-(*
-                    while (FCursorPos > 0) and not ptkIsAlphaNum16(copy16(FText,FCursorPos,1))
+                    while (FCursorPos > 0) and not ptkIsAlphaNum(copy(FText,FCursorPos,1))
                       do Dec(FCursorPos);
 
-                    while (FCursorPos > 0) and ptkIsAlphaNum16(copy16(FText,FCursorPos,1))
+                    while (FCursorPos > 0) and ptkIsAlphaNum(copy(FText,FCursorPos,1))
                       do Dec(FCursorPos);
-*)
                   end;
 
                 end;
@@ -355,14 +350,12 @@ begin
 
                   if (shiftstate and ss_control) <> 0 then
                   begin
-(*
                     // word search...
-                    while (FCursorPos < Length(FText)) and ptkIsAlphaNum16(copy16(FText,FCursorPos+1,1))
+                    while (FCursorPos < Length(FText)) and ptkIsAlphaNum(copy(FText,FCursorPos+1,1))
                       do Inc(FCursorPos);
 
-                    while (FCursorPos < Length(FText)) and not ptkIsAlphaNum16(copy16(FText,FCursorPos+1,1))
+                    while (FCursorPos < Length(FText)) and not ptkIsAlphaNum(copy(FText,FCursorPos+1,1))
                       do Inc(FCursorPos);
-*)
                   end;
                 end;
               end;

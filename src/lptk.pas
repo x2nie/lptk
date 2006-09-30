@@ -528,7 +528,7 @@ begin
   end;
 
   wc := ws[1];
-  
+
   if wc > #255 then Exit;
 
   if (wc < '0') or

@@ -107,7 +107,7 @@ end;
 
 procedure SetClipboardText(value : string);
 begin
-  Writeln('SetClipBoardText: ',value);
+  //Writeln('SetClipBoardText: ',value);
   ClipBoardData := value;
 
 {$ifdef Win32}
