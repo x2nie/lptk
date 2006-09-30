@@ -1,6 +1,6 @@
 // lptk2_w32.inc
 
-function GfxOpenDisplay(DisplayName : string) : boolean;
+function ptkOpenDisplay(DisplayName : string) : boolean;
 var
   h : HWND;
   r : TRECT;
@@ -28,7 +28,7 @@ begin
   with WindowClass do
   begin
     style := CS_HREDRAW or CS_VREDRAW or CS_OWNDC or CS_DBLCLKS;
-    lpfnWndProc := WndProc(@GfxWindowProc);
+    lpfnWndProc := WndProc(@ptkWindowProc);
     hInstance := MainInstance;
     hIcon := LoadIcon(0, IDI_APPLICATION);
     hCursor := LoadCursor(0, IDC_ARROW);
@@ -40,7 +40,7 @@ begin
   with WidgetClass do
   begin
     style := CS_OWNDC or CS_DBLCLKS;
-    lpfnWndProc := WndProc(@GfxWindowProc);
+    lpfnWndProc := WndProc(@ptkWindowProc);
     hInstance := MainInstance;
     hIcon := 0;
     hCursor := 0;
@@ -61,15 +61,15 @@ begin
 
   hcr_CROSSHAIR := LoadCursor(0, IDC_CROSS);
 
-  GfxInternalInit;
+  ptkInternalInit;
 
-  if pos('-HIDECONSOLE',UpperCase(CmdLine)) > 0 then GfxHideConsoleWindow;
+  if pos('-HIDECONSOLE',UpperCase(CmdLine)) > 0 then ptkHideConsoleWindow;
 
   result := true;
 end;
 
 
-procedure GfxCloseDisplay;
+procedure ptkCloseDisplay;
 begin
 end;
 
@@ -86,7 +86,7 @@ begin
   SetConsoleTitle(PChar(s));
 end;
 
-procedure GfxHideConsoleWindow;
+procedure ptkHideConsoleWindow;
 var
   h : HWND;
 begin
@@ -97,12 +97,12 @@ begin
     SetWindowPos(h, 0, 0,0,0,0, SWP_HIDEWINDOW or SWP_NOSIZE or SWP_NOZORDER or SWP_NOMOVE);
 end;
 
-procedure GfxFlush;
+procedure ptkFlush;
 begin
   GdiFlush;
 end;
 
-function GfxColorToWin(col : TGfxColor) : TGfxColor;
+function ptkColorToWin(col : TptkColor) : TptkColor;
 var
   c : dword;
 begin
@@ -181,10 +181,10 @@ begin
     end;
   end;
 
-  if GfxTopModalForm <> nil then
+  if ptkTopModalForm <> nil then
   begin
     pwg := WidgetParentForm(wwg);
-    if (pwg <> nil) and (GfxTopModalForm <> pwg) then wwg := nil;
+    if (pwg <> nil) and (ptkTopModalForm <> pwg) then wwg := nil;
   end;
 
   if wwg <> nil then
@@ -204,7 +204,7 @@ begin
 
 end;
 
-function GfxWindowProc(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+function ptkWindowProc(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
 var
   wg,kwg : TWidget;
   kcode,i : integer;
@@ -332,7 +332,7 @@ begin
       //Writeln('Hittest: ',IntToHex((lParam and $FFFF),4));
       if (lParam and $FFFF) <= 1 then
       begin
-        GfxSetMouseCursor(wg.WinHandle, wg.MouseCursor);
+        ptkSetMouseCursor(wg.WinHandle, wg.MouseCursor);
         result := 1;
       end
       else Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -449,13 +449,13 @@ begin
 
     WM_NCACTIVATE:
     begin
-      if (GfxTopModalForm <> nil) then
+      if (ptkTopModalForm <> nil) then
       begin
-        if (wParam = 0) and (GfxTopModalForm = wg) then
+        if (wParam = 0) and (ptkTopModalForm = wg) then
         begin
           blockmsg := true;
         end
-        else if (wParam <> 0) and (GfxTopModalForm <> wg) then
+        else if (wParam <> 0) and (ptkTopModalForm <> wg) then
         begin
           blockmsg := true;
         end;
@@ -480,7 +480,7 @@ begin
   end;
 end;
 
-procedure WaitWindowMessageWin;
+procedure ptkWaitWindowMessageWin;
 var
   Msg: TMsg;
 begin
@@ -503,7 +503,7 @@ begin
   DeliverMessages;
 end;
 
-function WinOpenFont(desc : string) : TGfxFontData;
+function WinOpenFont(desc : string) : TptkFontData;
 var
   lf : Windows.LOGFONT;
 
@@ -534,7 +534,7 @@ var
   end;
 
 begin
-//  Writeln('GfxGetFont(''',desc,''')');
+//  Writeln('ptkGetFont(''',desc,''')');
 
   FillChar(lf,sizeof(lf),0);
 
@@ -619,7 +619,7 @@ begin
   Result := 1;
 end;
 
-function GfxGetFontFaceList : TStringList;
+function ptkGetFontFaceList : TStringList;
 var
   LFont: TLogFont;
 begin

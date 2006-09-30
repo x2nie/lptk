@@ -316,7 +316,7 @@ function ptkGetFontFaceList : TStringList;
 
 procedure ptkProcessMessages;
 
-procedure WaitWindowMessage;
+procedure ptkWaitWindowMessage;
 procedure ptkDoMessageLoop;
 
 procedure ptkFlush;
@@ -642,26 +642,26 @@ begin
   GdiFlush;
   while Windows.PeekMessageW( {$ifdef FPC}@{$endif} Msg, 0, 0, 0, PM_NOREMOVE) do
   begin
-    WaitWindowMessageWin;
+    ptkWaitWindowMessageWin;
     GdiFlush;
   end;
 {$else}
   XFlush(display);
   while XPending(Display) > 0 do
   begin
-    WaitWindowMessageX;
+    ptkWaitWindowMessageX;
     ptkDeliverMessages;
     XFlush(display);
   end;
 {$endif}
 end;
 
-procedure WaitWindowMessage;
+procedure ptkWaitWindowMessage;
 begin
 {$ifdef Win32}
-    WaitWindowMessageWin;
+    ptkWaitWindowMessageWin;
 {$else}
-    WaitWindowMessageX;
+    ptkWaitWindowMessageX;
 {$endif}
 end;
 
@@ -669,9 +669,9 @@ procedure ptkDoMessageLoop;
 begin
   repeat
 {$ifdef Win32}
-    WaitWindowMessageWin;
+    ptkWaitWindowMessageWin;
 {$else}
-    WaitWindowMessageX;
+    ptkWaitWindowMessageX;
     ptkDeliverMessages;
 {$endif}
   until false;

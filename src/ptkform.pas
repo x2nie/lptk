@@ -344,7 +344,7 @@ begin
   ptkDeliverMessages;
 
   repeat
-    WaitWindowMessage;
+    ptkWaitWindowMessage;
     ptkDeliverMessages;
   until (ModalResult <> 0) or (not Visible);
 

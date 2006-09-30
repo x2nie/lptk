@@ -218,7 +218,7 @@ begin
   if bok then result := lpw else result := 0;
 end;
 
-procedure WaitWindowMessageX;
+procedure ptkWaitWindowMessageX;
 var
   ev : TXEvent;
   n,i,r,i2 : integer;
