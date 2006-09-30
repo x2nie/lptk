@@ -11,7 +11,7 @@ unit ptkpopup;
 interface
 
 uses
-  Classes, SysUtils, ptkmsgqueue, lptk, ptkstyle, ptkwidget;
+  Classes, SysUtils, lptk, ptkstyle, ptkwidget;
 
 type
 
@@ -19,7 +19,7 @@ type
   protected
     DontCloseWidget : TptkWidget;
     
-    procedure MsgClose(var msg : TMessageRec); message MSG_CLOSE;
+    procedure MsgClose(var msg : TptkMessageRec); message MSG_CLOSE;
 
     procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
 
@@ -185,7 +185,7 @@ end;
 
 { TPopupWindow }
 
-procedure TPopupWindow.MsgClose(var msg: TMessageRec);
+procedure TPopupWindow.MsgClose(var msg: TptkMessageRec);
 begin
   Close;
 end;

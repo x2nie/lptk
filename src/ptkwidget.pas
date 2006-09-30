@@ -12,7 +12,7 @@ unit ptkwidget;
 interface
 
 uses
-  Classes, SysUtils, ptkmsgqueue, lptk;
+  Classes, SysUtils, lptk;
 
 type
   TSearchDirection = (sdFirst, sdLast, sdNext, sdPrev);
@@ -75,24 +75,24 @@ type
     procedure DoKillFocus; virtual;
     procedure DoSetFocus; virtual;
 
-    procedure MsgPaint(var msg : TMessageRec); message MSG_PAINT;
+    procedure MsgPaint(var msg : TptkMessageRec); message MSG_PAINT;
 
-    procedure MsgKeyPress(var msg : TMessageRec); message MSG_KEYPRESS;
-    procedure MsgKeyRelease(var msg : TMessageRec); message MSG_KEYRELEASE;
+    procedure MsgKeyPress(var msg : TptkMessageRec); message MSG_KEYPRESS;
+    procedure MsgKeyRelease(var msg : TptkMessageRec); message MSG_KEYRELEASE;
     
-    procedure MsgMouseDown(var msg : TMessageRec); message MSG_MOUSEDOWN;
-    procedure MsgMouseUp(var msg : TMessageRec); message MSG_MOUSEUP;
-    procedure MsgMouseMove(var msg : TMessageRec); message MSG_MOUSEMOVE;
-    procedure MsgDoubleClick(var msg : TMessageRec); message MSG_DOUBLECLICK;
+    procedure MsgMouseDown(var msg : TptkMessageRec); message MSG_MOUSEDOWN;
+    procedure MsgMouseUp(var msg : TptkMessageRec); message MSG_MOUSEUP;
+    procedure MsgMouseMove(var msg : TptkMessageRec); message MSG_MOUSEMOVE;
+    procedure MsgDoubleClick(var msg : TptkMessageRec); message MSG_DOUBLECLICK;
 
-    procedure MsgMouseEnter(var msg : TMessageRec); message MSG_MOUSEENTER;
-    procedure MsgMouseExit(var msg : TMessageRec); message MSG_MOUSEEXIT;
+    procedure MsgMouseEnter(var msg : TptkMessageRec); message MSG_MOUSEENTER;
+    procedure MsgMouseExit(var msg : TptkMessageRec); message MSG_MOUSEEXIT;
 
-    procedure MsgScroll(var msg : TMessageRec); message MSG_SCROLL;
+    procedure MsgScroll(var msg : TptkMessageRec); message MSG_SCROLL;
 
-    procedure MsgResize(var msg : TMessageRec); message MSG_RESIZE;
+    procedure MsgResize(var msg : TptkMessageRec); message MSG_RESIZE;
 
-    procedure MsgMove(var msg : TMessageRec); message MSG_MOVE;
+    procedure MsgMove(var msg : TptkMessageRec); message MSG_MOVE;
 
 
   protected
@@ -355,7 +355,7 @@ begin
   if (Owner <> nil) and (Owner is TptkWidget) then FParent := TptkWidget(Owner)
                                            else FParent := nil;
                                            
-  RegisterValidDest(self);
+  ptkRegisterValidMsgDest(self);
   
   OnKeyPress := nil;
 
@@ -366,7 +366,7 @@ destructor TptkWidget.Destroy;
 begin
   FreeCanvas;
   DoHide;
-  UnRegisterValidDest(self);
+  ptkUnRegisterValidMsgDest(self);
   inherited Destroy;
 end;
 
@@ -981,7 +981,7 @@ begin
 
 end;
 
-procedure TptkWidget.MsgPaint(var msg: TMessageRec);
+procedure TptkWidget.MsgPaint(var msg: TptkMessageRec);
 {$ifdef Win32}
 var
   PaintStruct: TPaintStruct;
@@ -999,7 +999,7 @@ begin
 end;
 {$endif}
 
-procedure TptkWidget.MsgKeyPress(var msg: TMessageRec);
+procedure TptkWidget.MsgKeyPress(var msg: TptkMessageRec);
 var
   key, ss : word;
   consumed : boolean;
@@ -1025,7 +1025,7 @@ begin
   end;
 end;
 
-procedure TptkWidget.MsgKeyRelease(var msg: TMessageRec);
+procedure TptkWidget.MsgKeyRelease(var msg: TptkMessageRec);
 var
   key, ss : Word;
   consumed : boolean;
@@ -1045,7 +1045,7 @@ begin
   end;
 end;
 
-procedure TptkWidget.MsgMouseDown(var msg : TMessageRec);
+procedure TptkWidget.MsgMouseDown(var msg : TptkMessageRec);
 begin
   if FFormDesigner <> nil then
   begin
@@ -1055,7 +1055,7 @@ begin
   HandleMouseDown(msg.Param1, msg.Param2, (msg.Param3 and $FF00) shr 8, msg.Param3 and $FF);
 end;
 
-procedure TptkWidget.MsgMouseUp(var msg : TMessageRec);
+procedure TptkWidget.MsgMouseUp(var msg : TptkMessageRec);
 begin
   if FFormDesigner <> nil then
   begin
@@ -1065,7 +1065,7 @@ begin
   HandleMouseUp(msg.Param1, msg.Param2, (msg.Param3 and $FF00) shr 8, msg.Param3 and $FF);
 end;
 
-procedure TptkWidget.MsgMouseMove(var msg: TMessageRec);
+procedure TptkWidget.MsgMouseMove(var msg: TptkMessageRec);
 begin
   if FFormDesigner <> nil then
   begin
@@ -1075,7 +1075,7 @@ begin
   HandleMouseMove(msg.Param1, msg.Param2, (msg.Param3 and $FF00) shr 8, msg.Param3 and $FF);
 end;
 
-procedure TptkWidget.MsgDoubleClick(var msg: TMessageRec);
+procedure TptkWidget.MsgDoubleClick(var msg: TptkMessageRec);
 begin
   if FFormDesigner <> nil then
   begin
@@ -1085,7 +1085,7 @@ begin
   HandleDoubleClick(msg.Param1, msg.Param2, (msg.Param3 and $FF00) shr 8, msg.Param3 and $FF);
 end;
 
-procedure TptkWidget.MsgMouseEnter(var msg: TMessageRec);
+procedure TptkWidget.MsgMouseEnter(var msg: TptkMessageRec);
 begin
   if FFormDesigner <> nil then
   begin
@@ -1095,7 +1095,7 @@ begin
   HandleMouseEnter;
 end;
 
-procedure TptkWidget.MsgMouseExit(var msg: TMessageRec);
+procedure TptkWidget.MsgMouseExit(var msg: TptkMessageRec);
 begin
   if FFormDesigner <> nil then
   begin
@@ -1105,12 +1105,12 @@ begin
   HandleMouseExit;
 end;
 
-procedure TptkWidget.MsgScroll(var msg: TMessageRec);
+procedure TptkWidget.MsgScroll(var msg: TptkMessageRec);
 begin
   HandleWindowScroll(msg.Param1, msg.Param2);
 end;
 
-procedure TptkWidget.MsgResize(var msg: TMessageRec);
+procedure TptkWidget.MsgResize(var msg: TptkMessageRec);
 begin
   FWidth  := FWidth + msg.Param1;
   FHeight := FHeight + msg.Param2;
@@ -1124,7 +1124,7 @@ begin
 
 end;
 
-procedure TptkWidget.MsgMove(var msg: TMessageRec);
+procedure TptkWidget.MsgMove(var msg: TptkMessageRec);
 begin
   FLeft := msg.Param1;
   FTop  := msg.Param2;

@@ -270,8 +270,8 @@ begin
       //Writeln('XKey event: ',ev.xkey.keycode,', shift=',IntToHex(ss,4),' keysym=',IntToHex(ks,4),' unicode=',IntToHex(uc,4));
 
       wg := FindKeyboardFocus;
-      if wg <> nil then PostMessage(nil, wg, ev.xkey._type, uc, ev.xkey.state, 0 )
-		   else PostMessage(nil, FindWidget(ev.xkey.window), ev.xkey._type, uc, ev.xkey.state, 0 );
+      if wg <> nil then ptkPostMessage(nil, wg, ev.xkey._type, uc, ev.xkey.state, 0 )
+		   else ptkPostMessage(nil, FindWidget(ev.xkey.window), ev.xkey._type, uc, ev.xkey.state, 0 );
     end;
 
     MSG_MOUSEDOWN, MSG_MOUSEUP:
@@ -287,7 +287,7 @@ begin
         begin
           ClosePopups;
           Popup := nil;
-          PostMessage(nil, ewg, MSG_POPUPCLOSE, 0, 0, 0 );
+          ptkPostMessage(nil, ewg, MSG_POPUPCLOSE, 0, 0, 0 );
           //blockmsg := true;
         end;
       end;
@@ -309,12 +309,12 @@ begin
           if ev._type = MSG_MOUSEDOWN then
           begin
             if ev.xbutton.button > 5 then i := 1 else i := 3;  // amount
-            PostMessage(nil, ewg, MSG_SCROLL, ev.xbutton.button mod 4, i, ev.xbutton.state );
+            ptkPostMessage(nil, ewg, MSG_SCROLL, ev.xbutton.button mod 4, i, ev.xbutton.state );
           end;
         end
         else
         begin
-          PostMessage(nil, ewg, ev._type, ev.xbutton.x, ev.xbutton.y,
+          ptkPostMessage(nil, ewg, ev._type, ev.xbutton.x, ev.xbutton.y,
              (ev.xbutton.state and $FF) or ((ev.xbutton.button and $FF) shl 8) );
              
           // doubleclick check
@@ -325,7 +325,7 @@ begin
               if (ev.xbutton.window = LastClickWindow) and ((ev.xbutton.time - LastWinClickTime) < DOUBLECLICK_MS) then
               begin
                 //Writeln('doubleclick');
-                PostMessage(nil, ewg, MSG_DOUBLECLICK, ev.xbutton.x, ev.xbutton.y,
+                ptkPostMessage(nil, ewg, MSG_DOUBLECLICK, ev.xbutton.x, ev.xbutton.y,
                    (ev.xbutton.state and $FF) or ((ev.xbutton.button and $FF) shl 8) );
 
               end;
@@ -344,7 +344,7 @@ begin
     MSG_PAINT:
     begin
       repeat until not XCheckTypedWindowEvent(display, ev.xany.window, MSG_PAINT, @ev);
-      PostMessage(nil, FindWidget(ev.xany.window), ev._type, 0,0,0);
+      ptkPostMessage(nil, FindWidget(ev.xany.window), ev._type, 0,0,0);
     end;
 
     MSG_MOUSEMOVE:
@@ -360,7 +360,7 @@ begin
       //Writeln('Motion: x=',ev.xmotion.x,' y=',ev.xmotion.y,'  st=',ev.xmotion.state);
 
       if not blockmsg then
-        PostMessage(nil, FindWidget(ev.xbutton.window), ev._type, ev.xmotion.x, ev.xmotion.y, ev.xmotion.state);
+        ptkPostMessage(nil, FindWidget(ev.xbutton.window), ev._type, ev.xmotion.x, ev.xmotion.y, ev.xmotion.state);
 
     end;
 
@@ -373,7 +373,7 @@ begin
         if (wg <> nil) and (ptkTopModalForm <> wg) then blockmsg := true;
       end;
 
-      if not blockmsg then PostMessage(nil, FindWidget(ev.xany.window), ev._type, 0,0,0);
+      if not blockmsg then ptkPostMessage(nil, FindWidget(ev.xany.window), ev._type, 0,0,0);
 
     end;
 
@@ -387,7 +387,7 @@ begin
         frm := TptkForm(wg);
         if (frm.width <> ev.xconfigure.width) or (frm.height <> ev.xconfigure.height) then
         begin
-          PostMessage(nil, wg, MSG_RESIZE, ev.xconfigure.width - wg.Width, ev.xconfigure.height - wg.Height, 0);
+          ptkPostMessage(nil, wg, MSG_RESIZE, ev.xconfigure.width - wg.Width, ev.xconfigure.height - wg.Height, 0);
         end;
 
         wh := GetDecorationWindow(ev.xconfigure.window);
@@ -410,7 +410,7 @@ begin
 
         if (frm.Left <> px) or (frm.Top <> py) then
         begin
-          PostMessage(nil, wg, MSG_MOVE, px, py, 0);
+          ptkPostMessage(nil, wg, MSG_MOVE, px, py, 0);
         end;
       end;
     end;
@@ -426,7 +426,7 @@ begin
     end;
 
   else
-    PostMessage(nil, FindWidget(ev.xany.window), ev._type, 0,0,0);
+    ptkPostMessage(nil, FindWidget(ev.xany.window), ev._type, 0,0,0);
   end;
 
 end;

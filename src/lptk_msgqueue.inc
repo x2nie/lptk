@@ -1,56 +1,6 @@
-{ messagequeue.pas: Message queue handling. Heavy use on unix, rare on Windows.
-  The solution avoids memory allocation/deallocation for messages.
-  File maintainer: nvitya@freemail.hu
+{ $Id$ }
 
-History:
-}
-unit ptkmsgqueue;
-
-{$ifdef FPC}
-  {$mode objfpc}{$H+}
-{$endif}
-
-interface
-
-uses
-  Classes, SysUtils;
-
-const
-  KMessageQueueSize = 512;
-
-const
-  MSG_KILLME = 9999;
-
-type
-  TMessageRec = record
-    MsgCode : integer;
-    Sender  : TObject;
-    Dest    : TObject;
-    Param1  : integer;
-    Param2  : integer;
-    Param3  : integer;
-  end;
-  PMessageRec = ^TMessageRec;
-  
-var
-  ValidateMessageDest : boolean;
-
-procedure PostMessage(Sender, Dest : TObject; MsgCode : integer; Param1, Param2, Param3 : integer);
-procedure SendMessage(Sender, Dest : TObject; MsgCode : integer; Param1, Param2, Param3 : integer);
-
-procedure DeliverMessage(var msg : TMessageRec);
-procedure DeliverMessages;
-
-// Destination address validation:
-procedure RegisterValidDest(obj : TObject);
-procedure UnRegisterValidDest(obj : TObject);
-
-//function AllocateMessage : PMessageRec;
-
-function GetFirstMessage : PMessageRec;
-procedure DeleteFirstMessage;
-
-implementation
+// LPTK internal message queue implementation
 
 type
   TMessageListElement = class
@@ -58,7 +8,7 @@ type
     Next : TMessageListElement;
     Prev : TMessageListElement;
   public
-    msg  : TMessageRec;
+    msg  : TptkMessageRec;
   end;
 
   PValidDest = ^ValidDestItem;
@@ -76,12 +26,12 @@ var
   FirstValidItem : PValidDest;
   LastValidItem  : PValidDest;
 
-procedure RegisterValidDest(obj : TObject);
+procedure ptkRegisterValidMsgDest(obj : TObject);
 var
   p : PValidDest;
 begin
-  if not ValidateMessageDest then Exit;
-  
+  if not ptkValidateMsgDest then Exit;
+
   New(p);
   p^.ValidObj := obj;
   p^.Next := nil;
@@ -90,12 +40,12 @@ begin
   LastValidItem := p;
 end;
 
-procedure UnRegisterValidDest(obj : TObject);
+procedure ptkUnRegisterValidMsgDest(obj : TObject);
 var
   prevp, p, px : PValidDest;
 begin
-  if not ValidateMessageDest then Exit;
-  
+  if not ptkValidateMsgDest then Exit;
+
   p := FirstValidItem;
   prevp := nil;
 
@@ -118,7 +68,7 @@ begin
   end;
 end;
 
-function DestIsValid(obj : TObject; const msg : TMessageRec) : boolean;
+function ptkMsgDestIsValid(obj : TObject; const msg : TptkMessageRec) : boolean;
 var
   p : PValidDest;
 begin
@@ -134,12 +84,12 @@ begin
   end;
 
   Writeln('INVALID MESSAGE DESTINATION! (msg=',msg.MsgCode,' p1=',msg.Param1,' p2=',msg.Param2, ' p3=',msg.Param3,')');
-  
+
   result := False;
 end;
 
 
-procedure InsertElement(Elem : TMessageListElement; var First : TMessageListElement; var Last : TMessageListElement);
+procedure MsgListInsertElement(Elem : TMessageListElement; var First : TMessageListElement; var Last : TMessageListElement);
 begin
   Elem.Prev := nil;
   Elem.Next := nil;
@@ -157,7 +107,7 @@ begin
   end;
 end;
 
-procedure RemoveElement(Elem : TMessageListElement; var First : TMessageListElement; var Last : TMessageListElement);
+procedure MsgListRemoveElement(Elem : TMessageListElement; var First : TMessageListElement; var Last : TMessageListElement);
 begin
   if Elem = First then First := Elem.Next;
   if Elem = Last  then Last  := Elem.Prev;
@@ -165,57 +115,57 @@ begin
   if Elem.Prev <> nil then Elem.Prev.Next := Elem.Next;
 end;
 
-function AllocateMessage : PMessageRec;
+function ptkAllocateMessage : PptkMessageRec;
 var
   e : TMessageListElement;
 begin
   e := FreeFirstMessage;
   if e <> nil then
   begin
-    RemoveElement(e, FreeFirstMessage, FreeLastMessage);
-    InsertElement(e, UsedFirstMessage, UsedLastMessage);
+    MsgListRemoveElement(e, FreeFirstMessage, FreeLastMessage);
+    MsgListInsertElement(e, UsedFirstMessage, UsedLastMessage);
     result := @(e.msg);
   end
   else result := nil;
 end;
 
-procedure DeleteFirstMessage;
+procedure ptkDeleteFirstMessage;
 var
   e : TMessageListElement;
 begin
   e := UsedFirstMessage;
   if e <> nil then
   begin
-    RemoveElement(e, UsedFirstMessage, UsedLastMessage);
-    InsertElement(e, FreeFirstMessage, FreeLastMessage);
+    MsgListRemoveElement(e, UsedFirstMessage, UsedLastMessage);
+    MsgListInsertElement(e, FreeFirstMessage, FreeLastMessage);
   end;
 end;
 
-function GetFirstMessage : PMessageRec;
+function ptkGetFirstMessage : PptkMessageRec;
 begin
   if UsedFirstMessage <> nil then Result := @(UsedFirstMessage.msg)
                              else Result := nil;
 end;
 
-procedure InitQueue;
+procedure ptkInitMsgQueue;
 var
   n : integer;
   e : TMessageListElement;
 begin
-  for n := 1 to KMessageQueueSize do
+  for n := 1 to ptkMessageQueueSize do
   begin
     e := TMessageListElement.Create;
-    InsertElement(e,FreeFirstMessage,FreeLastMessage);
+    MsgListInsertElement(e,FreeFirstMessage,FreeLastMessage);
   end;
 end;
 
-procedure PostMessage(Sender, Dest : TObject; MsgCode : integer; Param1, Param2, Param3 : integer);
+procedure ptkPostMessage(Sender, Dest : TObject; MsgCode : integer; Param1, Param2, Param3 : integer);
 var
-  p : PMessageRec;
+  p : PptkMessageRec;
 begin
   if Dest = nil then Exit;
 
-  p := AllocateMessage;
+  p := ptkAllocateMessage;
   if p <> nil then
   begin
     p^.MsgCode := MsgCode;
@@ -231,9 +181,9 @@ begin
   end;
 end;
 
-procedure SendMessage(Sender, Dest : TObject; MsgCode : integer; Param1, Param2, Param3 : integer);
+procedure ptkSendMessage(Sender, Dest : TObject; MsgCode : integer; Param1, Param2, Param3 : integer);
 var
-  m : TMessageRec;
+  m : TptkMessageRec;
 begin
   if Dest = nil then Exit;
 
@@ -244,16 +194,16 @@ begin
   m.Param2  := Param2;
   m.Param3  := Param3;
 
-  if not ValidateMessageDest or DestIsValid(m.Dest,m) then
+  if not ptkValidateMsgDest or ptkMsgDestIsValid(m.Dest,m) then
   begin
     m.Dest.Dispatch(m)
   end;
 end;
 
 
-procedure DeliverMessage(var msg : TMessageRec);
+procedure ptkDeliverMessage(var msg : TptkMessageRec);
 begin
-  if not ValidateMessageDest or DestIsValid(msg.Dest,msg) then
+  if not ptkValidateMsgDest or ptkMsgDestIsValid(msg.Dest,msg) then
   begin
     if msg.MsgCode = MSG_KILLME then
     begin
@@ -261,43 +211,26 @@ begin
       msg.Dest.Free
     end
     else
-        msg.Dest.Dispatch(msg)
+    begin
+      msg.Dest.Dispatch(msg);
+    end;
   end;
 end;
 
-procedure DeliverMessages;
+procedure ptkDeliverMessages;
 var
-  mp : PMessageRec;
-  m : TMessageRec;
+  mp : PptkMessageRec;
+  m : TptkMessageRec;
 begin
   repeat
-    mp := GetFirstMessage;
+    mp := ptkGetFirstMessage;
     if mp <> nil then
     begin
       m := mp^;
-      DeleteFirstMessage;
-      
-      DeliverMessage(m);
+      ptkDeleteFirstMessage;
+
+      ptkDeliverMessage(m);
     end;
   until mp = nil;
 end;
-
-
-initialization
-begin
-  UsedFirstMessage := nil;
-  UsedLastMessage  := nil;
-  FreeFirstMessage := nil;
-  FreeLastMessage  := nil;
-  ValidateMessageDest := True;
-  InitQueue;
-end;
-
-finalization
-begin
-  //
-end;
-
-
-end.
 

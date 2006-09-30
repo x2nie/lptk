@@ -11,7 +11,7 @@ unit ptkform;
 interface
 
 uses
-  Classes, SysUtils, ptkmsgqueue, lptk, ptkwidget;
+  Classes, SysUtils, lptk, ptkwidget;
   
 type
   TWindowPosition = (wpUser, wpAuto, wpScreenCenter);
@@ -38,10 +38,10 @@ type
 
     FWindowPosition : TWindowPosition;
 
-    procedure MsgActivate(var msg : TMessageRec); message MSG_ACTIVATE;
-    procedure MsgDeActivate(var msg : TMessageRec); message MSG_DEACTIVATE;
+    procedure MsgActivate(var msg : TptkMessageRec); message MSG_ACTIVATE;
+    procedure MsgDeActivate(var msg : TptkMessageRec); message MSG_DEACTIVATE;
 
-    procedure MsgClose(var msg : TMessageRec); message MSG_CLOSE;
+    procedure MsgClose(var msg : TptkMessageRec); message MSG_CLOSE;
 
     procedure SetWindowParameters; override; // for X
     procedure AdjustWindowStyle(var ws,es : longword; var pwh : TptkWinHandle); override; // for win32
@@ -142,7 +142,7 @@ begin
 {$endif}
 end;
 
-procedure TptkForm.MsgActivate(var msg : TMessageRec);
+procedure TptkForm.MsgActivate(var msg : TptkMessageRec);
 begin
   //writeln('activate: ',ClassName);
   if (ptkTopModalForm = nil) or (ptkTopModalForm = self) then
@@ -160,13 +160,13 @@ begin
   end;
 end;
 
-procedure TptkForm.MsgDeActivate(var msg: TMessageRec);
+procedure TptkForm.MsgDeActivate(var msg: TptkMessageRec);
 begin
   //writeln('deactivate: ',ClassName);
   if FActiveWidget <> nil then ActiveWidget.KillFocus;
 end;
 
-procedure TptkForm.MsgClose(var msg: TMessageRec);
+procedure TptkForm.MsgClose(var msg: TptkMessageRec);
 begin
   HandleClose;
 end;
@@ -341,11 +341,11 @@ begin
   // processing messages until this form ends.
   
   // delivering the remaining messages
-  DeliverMessages;
+  ptkDeliverMessages;
 
   repeat
     WaitWindowMessage;
-    DeliverMessages;
+    ptkDeliverMessages;
   until (ModalResult <> 0) or (not Visible);
 
   ptkTopModalForm := FPrevModalForm;
@@ -376,7 +376,7 @@ end;
 
 procedure TptkForm.PostKillMe;
 begin
-  ptkmsgqueue.PostMessage(self,self,MSG_KILLME,0,0,0);
+  ptkPostMessage(self,self,MSG_KILLME,0,0,0);
 end;
 
 procedure TptkForm.SetMinSize;

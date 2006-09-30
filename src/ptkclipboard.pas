@@ -10,7 +10,7 @@ unit ptkclipboard;
 interface
 
 uses
-  Classes, SysUtils, lptk, ptkmsgqueue, ptkwidget;
+  Classes, SysUtils, lptk, ptkwidget;
 
 var
   ClipboardWindow : TptkWinHandle;
@@ -86,11 +86,11 @@ begin
   WaitingForSelection := true;
 
   // delivering the remaining messages
-  DeliverMessages;
+  ptkDeliverMessages;
 
   repeat
     WaitWindowMessage;
-    DeliverMessages;
+    ptkDeliverMessages;
   until not WaitingForSelection;
 
 {$endif}

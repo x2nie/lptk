@@ -16,11 +16,11 @@ interface
 uses
   Classes, SysUtils,
 {$ifdef Win32}
-    windows, {$ifndef FPC}messages,{$endif}
+    windows {$ifndef FPC},messages{$endif}
 {$else}
-    X, Xlib, XUtil, x11_xft,
+    X, Xlib, XUtil, x11_xft
 {$endif}
-  ptkmsgqueue;
+ ;
 
 type
   TptkCoord = integer;     // we might use floating point coordinates in the future...
@@ -94,8 +94,27 @@ const
   {$include lptk_consts_x11.inc}
 {$endif}
 
-type
+const
+  ptkMessageQueueSize = 512;
 
+const
+  MSG_KILLME = 9999;
+
+type
+  TptkMessageRec = record
+    MsgCode : integer;
+    Sender  : TObject;
+    Dest    : TObject;
+    Param1  : integer;
+    Param2  : integer;
+    Param3  : integer;
+  end;
+  PptkMessageRec = ^TptkMessageRec;
+
+var
+  ptkValidateMsgDest : boolean;
+
+type
   TptkFontResource = class
   private
     FFont : TptkFontData;
@@ -320,6 +339,19 @@ function ptkIsAlphaNum(ws : widestring) : boolean;
   function ptkColorToX(col : TptkColor) : longword;
 {$endif}
 
+procedure ptkPostMessage(Sender, Dest : TObject; MsgCode : integer; Param1, Param2, Param3 : integer);
+procedure ptkSendMessage(Sender, Dest : TObject; MsgCode : integer; Param1, Param2, Param3 : integer);
+
+procedure ptkDeliverMessage(var msg : TptkMessageRec);
+procedure ptkDeliverMessages;
+
+// Destination address validation:
+procedure ptkRegisterValidMsgDest(obj : TObject);
+procedure ptkUnRegisterValidMsgDest(obj : TObject);
+
+function ptkGetFirstMessage : PptkMessageRec;
+procedure ptkDeleteFirstMessage;
+
 //procedure HideConsoleWindow;
 
 
@@ -412,7 +444,7 @@ end;
 
 
 (*
-procedure lpMoveResizeWindow(wh : TptkWinHandle; x,y,w,h : TptkCoord);
+procedure ptkMoveResizeWindow(wh : TptkWinHandle; x,y,w,h : TptkCoord);
 {$ifdef Win32}
 var
   rwidth, rheight : integer;
@@ -591,6 +623,7 @@ begin
   else result := col;
 end;
 
+{$include lptk_msgqueue.inc}
 
 {$ifdef Win32}
   {$include lptk_w32.inc}
@@ -617,7 +650,7 @@ begin
   while XPending(Display) > 0 do
   begin
     WaitWindowMessageX;
-    DeliverMessages;
+    ptkDeliverMessages;
     XFlush(display);
   end;
 {$endif}
@@ -639,7 +672,7 @@ begin
     WaitWindowMessageWin;
 {$else}
     WaitWindowMessageX;
-    DeliverMessages;
+    ptkDeliverMessages;
 {$endif}
   until false;
 end;
@@ -912,6 +945,15 @@ begin
   LastClickWindow  := 0;
   LastWinClickTime := 0;
 {$endif}
+
+  // internal message queue
+  UsedFirstMessage := nil;
+  UsedLastMessage  := nil;
+  FreeFirstMessage := nil;
+  FreeLastMessage  := nil;
+
+  ptkValidateMsgDest := True;
+  ptkInitMsgQueue;
 end;
 
 
