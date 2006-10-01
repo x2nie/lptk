@@ -1,11 +1,8 @@
-{ gfxwidget.pas: Widget base definition
-  File maintainer: nvitya@freemail.hu
-  
-History:
-  2003-05-15: Container type widgets focus handling corrected (Focus propagation)
-}
+{ $Id$ }
 
 unit ptkwidget;
+
+// Widget base definition
 
 {$include lptk_config.inc}
 
@@ -16,6 +13,8 @@ uses
 
 type
   TSearchDirection = (sdFirst, sdLast, sdNext, sdPrev);
+
+  { TptkWidget }
 
   TptkWidget = class(TComponent)
   private
@@ -102,7 +101,14 @@ type
 
     procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); virtual;
     procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); virtual;
+    
+    procedure HandleLeftMouseDown(x,y : integer; shiftstate : word); virtual;
+    procedure HandleLeftMouseUp(x,y : integer; shiftstate : word); virtual;
+    procedure HandleRightMouseDown(x,y : integer; shiftstate : word); virtual;
+    procedure HandleRightMouseUp(x,y : integer; shiftstate : word); virtual;
+
     procedure HandleMouseMove(x,y : integer; btnstate : word; shiftstate : word); virtual;
+    
     procedure HandleDoubleClick(x,y : integer; button : word; shiftstate : word); virtual;
 
     procedure HandleWindowScroll(direction, amount : integer); virtual;
@@ -191,8 +197,8 @@ var
 implementation
 
 uses
-  {$ifdef Win32}windows,{$else}X, Xlib, Xutil,{$endif}
-  ptkstyle;
+  {$ifdef Win32}windows{$else}X, Xlib, Xutil{$endif}
+  ;
 
 type
   PWidgetLookupRec = ^WidgetLookupRec;
@@ -593,26 +599,46 @@ begin
 end;
 
 procedure TptkWidget.HandleMouseDown(x, y : integer; button : word; shiftstate : word);
-var
-  pw : TptkWidget;
-  w : TptkWidget;
 begin
-  pw := Parent;
-  w := self;
-  if (button <= 3) then
-  begin
-    while pw <> nil do
-    begin
-      if w.Visible and w.Enabled and w.Focusable then pw.ActiveWidget := w;
-      w := pw;
-      pw := pw.Parent;
-    end;
-  end;
+  if button = MOUSE_LEFT then HandleLeftMouseDown(x,y,shiftstate)
+  else if button = MOUSE_RIGHT then HandleRightMouseDown(x,y,shiftstate);
 end;
 
 procedure TptkWidget.HandleMouseUp(x, y : integer; button : word; shiftstate : word);
 begin
-  //
+  if button = MOUSE_LEFT then HandleLeftMouseUp(x,y,shiftstate)
+  else if button = MOUSE_RIGHT then HandleRightMouseUp(x,y,shiftstate);
+end;
+
+procedure TptkWidget.HandleLeftMouseDown(x, y: integer; shiftstate: word);
+var
+  pw : TptkWidget;
+  w : TptkWidget;
+begin
+  // setting the focus trough all parents
+  pw := Parent;
+  w := self;
+  while pw <> nil do
+  begin
+    if w.Visible and w.Enabled and w.Focusable then pw.ActiveWidget := w;
+    w := pw;
+    pw := pw.Parent;
+  end;
+end;
+
+procedure TptkWidget.HandleLeftMouseUp(x, y: integer; shiftstate: word);
+begin
+
+end;
+
+procedure TptkWidget.HandleRightMouseDown(x, y: integer; shiftstate: word);
+begin
+
+end;
+
+procedure TptkWidget.HandleRightMouseUp(x, y: integer; shiftstate: word);
+begin
+
 end;
 
 procedure TptkWidget.HandleMouseMove(x,y : integer; btnstate : word; shiftstate : word);

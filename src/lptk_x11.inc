@@ -446,7 +446,7 @@ begin
   if (col and $80000000) <> 0 then
   begin
     // named color
-    c := guistyle.GetNamedColorRGB(col);
+    c := ptkGetNamedColor(col);
   end
   else c := col;
 

@@ -45,7 +45,7 @@ begin
   FDrawOnBuffer := False;
   FBackgroundColor := clBoxColor;
   Fgc := XCreateGc(display, FWin, 0, @GcValues);
-  FCurFont := guistyle.DefaultFont;
+  FCurFont := ptkstyle.DefaultFont;
   SetTextColor(clText1);
 
   FLineStyle := LineSolid;

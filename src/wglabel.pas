@@ -49,8 +49,6 @@ function CreateLabel(AOwner : TComponent; x, y : TptkCoord; txt8 : String) : Twg
 
 implementation
 
-uses ptkstyle;
-
 function CreateLabel(AOwner : TComponent; x, y : TptkCoord; txt8 : String) : TwgLabel;
 begin
   Result := TwgLabel.Create(AOwner);
@@ -127,8 +125,11 @@ end.
 
 (*-------------------------------------------------
 $Log$
-Revision 1.1  2006/09/23 23:21:27  nvitya
-Initial revision
+Revision 1.2  2006/10/01 22:02:41  nvitya
+style updates mostly
+
+Revision 1.1.1.1  2006/09/23 23:21:27  nvitya
+initial import
 
 -------------------------------------------------*)
 

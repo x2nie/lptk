@@ -1,7 +1,8 @@
-{ gfxbase.pas: base functionality and OS dependent functions
-  File maintainer: nvitya@freemail.hu
-}
+{ $Id$ }
+
 unit lptk;
+
+// THE LPTK CORE
 
 {$include lptk_config.inc}
 
@@ -21,6 +22,43 @@ uses
     X, Xlib, XUtil, x11_xft
 {$endif}
  ;
+
+// CONSTANTS
+
+{$include lptk_consts.inc}
+
+{$ifdef win32}
+  {$include lptk_consts_w32.inc}
+{$else}
+  {$include lptk_consts_x11.inc}
+{$endif}
+
+{$INCLUDE lptk_intltexts.inc}
+
+const
+  ptkMessageQueueSize = 512;
+
+  MSG_KILLME = 9999;
+
+// BASIC TYPES
+
+{$ifdef Win32}
+type
+  TptkWinHandle   = HWND;
+  TptkFontData    = HFONT;
+  TptkFontHandle  = HFONT;
+  TptkGContext    = HDC;
+  TptkDisplay     = HDC;
+{$endif}
+
+{$ifdef x11}
+type
+  TptkWinHandle   = TXID;
+  TptkFontData    = PXftFont;
+  TptkFontHandle  = PXftFont;
+  TptkGContext    = Xlib.TGc;
+  TptkDisplay     = PXDisplay;
+{$endif}
 
 type
   TptkCoord = integer;     // we might use floating point coordinates in the future...
@@ -62,44 +100,6 @@ type
     procedure SetRight(value : TptkCoord);
   end;
 
-{$ifdef Win32}
-type
-  TptkWinHandle   = HWND;
-  TptkFontData = HFONT;
-  TptkFontHandle  = HFONT;
-  TptkGContext    = HDC;
-  TptkDisplay  = HDC;
-  {$ifndef FPC}
-  WndProc = TFNWndProc;
-  {$endif}
-{$endif}
-
-{$ifdef x11}
-type
-  TptkWinHandle   = TXID;
-  TptkDisplay  = PXDisplay;
-  TptkFontData = PXftFont;
-  TptkFontHandle  = PXftFont;
-  TptkGContext    = Xlib.TGc;
-{$endif}
-
-const
-  LINEFEEDSTRING = #13#10;
-
-{$INCLUDE lptk_intltexts.inc}
-
-{$ifdef win32}
-  {$include lptk_consts_w32.inc}
-{$else}
-  {$include lptk_consts_x11.inc}
-{$endif}
-
-const
-  ptkMessageQueueSize = 512;
-
-const
-  MSG_KILLME = 9999;
-
 type
   TptkMessageRec = record
     MsgCode : integer;
@@ -111,8 +111,7 @@ type
   end;
   PptkMessageRec = ^TptkMessageRec;
 
-var
-  ptkValidateMsgDest : boolean;
+// CLASSES
 
 type
   TptkFontResource = class
@@ -301,6 +300,22 @@ type
     property DrawOnBuffer : Boolean read FDrawOnBuffer write SetDrawOnBuffer;
   end;
 
+  TptkStyleBase = class
+  public
+    // Global font objects
+
+    DefaultFont : TptkFont;
+
+    MenuFont,
+    MenuAccelFont,
+    MenuDisabledFont : TptkFont;
+  public
+    procedure DrawButtonFace(canvas : TptkCanvas; x,y,w,h : TptkCoord); virtual; abstract;
+    procedure DrawControlFrame(canvas : TptkCanvas; x, y, w, h : TptkCoord); virtual; abstract;
+    procedure DrawDirectionArrow(canvas : TptkCanvas; x,y,w,h : TptkCoord; direction : integer); virtual; abstract;
+  end;
+
+// FUNCTIONS
   
 function ptkOpenDisplay(DisplayName : string) : boolean;
 procedure ptkCloseDisplay;
@@ -308,8 +323,6 @@ procedure ptkCloseDisplay;
 function utf8(const utf8str : string) : widestring;
 function u8(const utf8str : string) : widestring;
 function wsToUtf8(const wstr : widestring) : string;
-
-function ptkColorToRGB(col : TptkColor) : TptkColor;
 
 function ptkGetFont(desc : string) : TptkFont;
 function ptkGetFontFaceList : TStringList;
@@ -352,8 +365,11 @@ procedure ptkUnRegisterValidMsgDest(obj : TObject);
 function ptkGetFirstMessage : PptkMessageRec;
 procedure ptkDeleteFirstMessage;
 
-//procedure HideConsoleWindow;
-
+function ptkColorToRGB(col : TptkColor) : TptkColor;
+function ptkGetNamedColor(col : TptkColor) : TptkColor;
+procedure ptkSetNamedColor(colorid, rgbvalue : longword);
+function ptkGetNamedFontDesc(afontid : string) : string;
+procedure ptkSetNamedFont(afontid, afontdesc : string);
 
 function ptkImgLibAddImage(const imgid : string; img : TptkImage) : boolean;
 function ptkImgLibDeleteImage(const imgid : string; freeimg : boolean) : boolean;
@@ -362,10 +378,14 @@ function ptkImgLibGetImage(const imgid : string) : TptkImage;
 function ptkImgLibAddBMP(const imgid : string; bmpdata : pointer; bmpsize : integer) : TptkImage;
 function ptkImgLibAddMaskedBMP(const imgid : string; bmpdata : pointer; bmpsize : integer; mcx, mcy : integer) : TptkImage;
 
+// VARIABLES
+
 var
   ScreenWidth, ScreenHeight : integer;
 
   Display : TptkDisplay;
+  
+  ptkValidateMsgDest : boolean;
 
 {$ifdef Win32}
 
@@ -409,22 +429,50 @@ var
 
 var
   ptkImageLibrary : TStringList;   // this is public for listing
-
+  
+var
+  ptkstyle : TptkStyleBase;
+  
 implementation
 
-uses x11_keyconv, ptkstyle, ptkwidget, ptkform, ptkclipboard, ptkpopup, ptkstdimg, ptkbmpimage;
+uses {$ifndef Win32}x11_keyconv,{$endif}
+  ptkwidget, ptkform, ptkclipboard, ptkpopup,
+  ptkstdimg, ptkbmpimage,
+  ptkdefaultstyle;
 
 var
   FFontResourceList : TList;
 
+type
+  TNamedFontItem = class
+  public
+    FontID : string;
+    FontDesc : string;
+    constructor Create(AFontID, AFontDesc : string);
+  end;
+  
+constructor TNamedFontItem.Create(AFontID, AFontDesc: string);
+begin
+  FontId := afontid;
+  FontDesc := afontdesc;
+end;
 
-procedure ptkInternalInit;
+var
+  ptkNamedColors : array[0..255] of longword;
+  ptkNamedFonts : TList;
+
+procedure ptkInternalInit; // invoked from opendisplay
 begin
   FFontResourceList := TList.Create;
   ptkImageLibrary := TStringList.Create;
+
   InitClipboard;
 
   ptkCreateStandardImages;
+
+  ptkNamedFonts := TList.Create;
+  
+  ptkstyle := TptkDefaultStyle.Create;
 end;
 
 function utf8(const utf8str : string) : widestring;
@@ -613,16 +661,6 @@ begin
   end;
 end;
 
-function ptkColorToRGB(col : TptkColor) : TptkColor;
-begin
-  if (col and $80000000) <> 0 then
-  begin
-    // named color
-    result := guistyle.GetNamedColorRGB(col) or (col and $7F000000);  // keeping alpha
-  end
-  else result := col;
-end;
-
 {$include lptk_msgqueue.inc}
 
 {$ifdef Win32}
@@ -685,7 +723,7 @@ var
   fdesc : string;
 begin
   fdesc := desc;
-  if copy(fdesc,1,1)='#' then fdesc := guistyle.GetNamedFontDesc(copy(desc,2,length(desc)));
+  if copy(fdesc,1,1)='#' then fdesc := ptkGetNamedFontDesc(copy(desc,2,length(desc)));
   
   for n := 0 to FFontResourceList.Count-1 do
   begin
@@ -717,6 +755,74 @@ begin
     Result := nil;
   end;
 end;
+
+// STYLE SUPPORT
+
+function ptkColorToRGB(col : TptkColor) : TptkColor;
+begin
+  if (col and $80000000) <> 0 then
+  begin
+    // named color
+    result := ptkNamedColors[col and $FF] or (col and $7F000000);  // keeping alpha
+  end
+  else result := col;
+end;
+
+function ptkGetNamedColor(col : TptkColor) : TptkColor;
+begin
+  result := ptkNamedColors[col and $FF];
+end;
+
+procedure ptkSetNamedColor(colorid, rgbvalue : longword);
+var
+  i : longword;
+begin
+  if (colorid and $80000000) = 0 then Exit;
+  i := colorid and $FF;
+  ptkNamedColors[i] := rgbvalue;
+end;
+
+function ptkGetNamedFontDesc(afontid : string) : string;
+var
+  n : integer;
+begin
+  n:=0;
+  while (n < ptkNamedFonts.Count) and
+        (lowercase(TNamedFontItem(ptkNamedFonts[n]).FontID) <> lowercase(afontid)) do inc(n);
+
+  if n < ptkNamedFonts.Count then
+  begin
+    // found
+    result := TNamedFontItem(ptkNamedFonts[n]).FontDesc;
+  end
+  else
+  begin
+    Writeln('GetNamedFontDesc error: "'+afontid+'" is missing. Default is used.');
+    result := 'Arial-10';  // default font desc
+  end;
+end;
+
+
+procedure ptkSetNamedFont(afontid, afontdesc : string);
+var
+  n : integer;
+begin
+  n:=0;
+  while (n < ptkNamedFonts.Count) and (lowercase(TNamedFontItem(ptkNamedFonts[n]).FontID) <> lowercase(afontid)) do inc(n);
+
+  if n < ptkNamedFonts.Count then
+  begin
+    // already defined
+    TNamedFontItem(ptkNamedFonts[n]).FontDesc := afontdesc;
+  end
+  else
+  begin
+    ptkNamedFonts.Add(TNamedFontItem.Create(afontid, afontdesc));
+  end;
+end;
+
+
+// IMAGE LIBRARY
 
 function ptkImgLibGetImage(const imgid : string) : TptkImage;
 var
@@ -954,6 +1060,8 @@ begin
 
   ptkValidateMsgDest := True;
   ptkInitMsgQueue;
+  
+  ptkstyle := nil;
 end;
 
 

@@ -2,14 +2,12 @@
 
 unit wgedit;
 
-{$ifdef FPC}
-  {$mode delphi}{$H+}
-{$endif}
+{$include lptk_config.inc}
 
 interface
 
 uses
-  Classes, SysUtils, lptk, ptkstyle, ptkwidget;
+  Classes, SysUtils, lptk, ptkwidget;
 
 type
 
@@ -53,8 +51,8 @@ type
 
     procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
 
-    procedure HandleMouseDown(x,y : integer; button : word; shiftstate : word); override;
-    procedure HandleMouseUp(x,y : integer; button : word; shiftstate : word); override;
+    procedure HandleLeftMouseDown(x,y : integer; shiftstate : word); override;
+
     procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
 
     function SelectionText : WideString;
@@ -229,7 +227,7 @@ begin
   Canvas.DrawOnBuffer := true;
   
   Canvas.ClearClipRect;
-  DrawControlFrame(canvas,0,0,width,height);
+  ptkstyle.DrawControlFrame(canvas,0,0,width,height);
 {
   if Focused then
   begin
@@ -456,7 +454,7 @@ begin
               else inherited;
 end;
 
-procedure TwgEdit.HandleMouseDown(x, y : integer; button : word; shiftstate : word);
+procedure TwgEdit.HandleLeftMouseDown(x, y : integer; shiftstate : word);
 var
   s : WideString;
   n : integer;
@@ -465,7 +463,7 @@ var
   cx : integer;
   dtext : WideString;
 begin
-  inherited HandleMouseDown(x, y, button, shiftstate);
+  inherited HandleLeftMouseDown(x, y, shiftstate);
 
   // searching the appropriate character position
 
@@ -502,11 +500,6 @@ begin
   Repaint;
 end;
 
-procedure TwgEdit.HandleMouseUp(x, y: integer; button: word; shiftstate: word);
-begin
-  inherited HandleMouseUp(x, y, button, shiftstate);
-end;
-
 procedure TwgEdit.HandleMouseMove(x, y: integer; btnstate, shiftstate: word);
 var
   s : WideString;
@@ -517,7 +510,7 @@ var
   dtext : WideString;
 begin
 
-  if (btnstate and 1) = 0 then Exit;
+  if (btnstate and MOUSE_LEFT) = 0 then Exit;
 
   // searching the appropriate character position
   dtext := GetDrawText;

@@ -1,5 +1,10 @@
 // lptk2_w32.inc
 
+{$ifndef FPC}
+type
+  WndProc = TFNWndProc;
+{$endif}
+
 function ptkOpenDisplay(DisplayName : string) : boolean;
 var
   h : HWND;

@@ -11,7 +11,7 @@ unit ptkpopup;
 interface
 
 uses
-  Classes, SysUtils, lptk, ptkstyle, ptkwidget;
+  Classes, SysUtils, lptk, ptkwidget;
 
 type
 

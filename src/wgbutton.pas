@@ -98,7 +98,7 @@ function CreateButton(AOwner : TComponent; x, y, w : TptkCoord; txt8 : String; o
 
 implementation
 
-uses ptkstyle, ptkform;
+uses ptkform;
 
 function CreateButton(AOwner : TComponent; x, y, w : TptkCoord; txt8 : String; onclk : TNotifyEvent) : TwgButton;
 begin
@@ -444,8 +444,11 @@ end.
 
 (*-------------------------------------------------
 $Log$
-Revision 1.1  2006/09/23 23:21:28  nvitya
-Initial revision
+Revision 1.2  2006/10/01 22:02:41  nvitya
+style updates mostly
+
+Revision 1.1.1.1  2006/09/23 23:21:28  nvitya
+initial import
 
 -------------------------------------------------*)
 
