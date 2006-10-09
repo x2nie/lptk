@@ -292,6 +292,12 @@ type
 
     procedure DrawImage(x,y : TptkCoord; img : TptkImage);
     procedure DrawImagePart(x,y : TptkCoord; img : TptkImage; xi,yi,w,h : integer);
+    
+  public
+    procedure DrawButtonFace(x,y,w,h : TptkCoord);
+    procedure DrawControlFrame( x, y, w, h : TptkCoord);
+    procedure DrawDirectionArrow(x,y,w,h : TptkCoord; direction : integer);
+    
   public
 
     property Font : TptkFont read FCurFont write SetFont;

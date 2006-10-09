@@ -812,3 +812,19 @@ begin
 //  if FClipRectSet then
 //        SetClipRect(FClipRect);
 end;
+
+procedure TptkCanvas.DrawButtonFace(x,y,w,h : TptkCoord);
+begin
+  ptkstyle.DrawButtonFace(self,x,y,w,h);
+end;
+
+procedure TptkCanvas.DrawControlFrame( x, y, w, h : TptkCoord);
+begin
+  ptkstyle.DrawControlFrame(self, x,y,w,h);
+end;
+
+procedure TptkCanvas.DrawDirectionArrow(x,y,w,h : TptkCoord; direction : integer);
+begin
+  ptkstyle.DrawDirectionArrow(self, x,y,w,h, direction);
+end;
+
