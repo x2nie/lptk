@@ -14,7 +14,7 @@ interface
 
 uses
   Classes, SysUtils, X, XLib, Xutil;
-  
+
 type
   TPicture = longword;
 
@@ -28,7 +28,7 @@ type
                descent  : integer;
                height   : integer;
                max_advance_width : integer;
-               
+
                ptr1, ptr2 : Pointer;
              end;
   PXftFont = ^TXftFont;
@@ -44,7 +44,7 @@ type
                 pixel : longword;
                 color : TXRenderColor;
               end;
-              
+
   TXGlyphInfo = packed record
                   width   : word;
                   height  : word;
@@ -104,7 +104,7 @@ procedure XftTextExtents8(display : PXDisplay; fnt : PXftFont; txt : PChar; len 
 
 procedure XftDrawSetClip(draw : PXftDraw; rg : TRegion); cdecl;
 
-function XftListFonts(display : PXDisplay; screen : integer; params : array of const) : PFcFontSet; cdecl;
+function XftListFonts(display : PXDisplay; screen : integer; params : array of const) : PFcFontSet; cdecl; external 'libxft.so'; //* pbm
 function XftNameUnparse(pat : PFcPattern; dest : PChar; destlen : integer) : boolean; cdecl;
 procedure FcFontSetDestroy(fsp : PFcFontSet); cdecl;
 
@@ -131,7 +131,6 @@ procedure XftTextExtents8(display : PXDisplay; fnt : PXftFont; txt : PChar; len 
 
 procedure XftDrawSetClip(draw : PXftDraw; rg : TRegion); cdecl; external;
 
-function XftListFonts(display : PXDisplay; screen : integer; params : array of const) : PFcFontSet; cdecl; external;
 function XftNameUnparse(pat : PFcPattern; dest : PChar; destlen : integer) : boolean; cdecl; external;
 procedure FcFontSetDestroy(fsp : PFcFontSet); cdecl; external;
 

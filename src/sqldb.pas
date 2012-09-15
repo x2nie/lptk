@@ -1179,7 +1179,7 @@ end;
 procedure TSqlDBConnection.PopulateStringList16(sqltext : string; sl : TStringList; conv8to16, withID : boolean);
 var
   lsql : TSqlResult;
-  id : integer;
+  id : ptrint;
 begin
   sl.Clear;
   lsql := RunQuery(sqltext);
@@ -1531,6 +1531,9 @@ end;
 
 {--------------------------------------------------------------------------------
   $Log$
+  Revision 1.5  2012/09/15 10:15:52  nvitya
+  64-bit fixes
+
   Revision 1.4  2004/01/02 00:06:26  nvitya
   bigint bugfix
 

@@ -13,7 +13,7 @@ uses
   Classes, SysUtils, gfxbase, wgedit, unitkeys, schar16, gfxstyle,
   messagequeue, gfxwidget, gfxform, wglabel, wgbutton, popupwindow,
   wgscrollbar, wglistbox, gfxclipboard, wgmemo, wgchoicelist, wggrid, gfxdialogs,
-  wgcheckbox, sqldb, wgdbgrid, wgcustomgrid, testsql;
+  wgcheckbox, wgcustomgrid;
 
 type
 

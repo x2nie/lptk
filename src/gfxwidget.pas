@@ -1,6 +1,6 @@
 { gfxwidget.pas: Widget base definition
   File maintainer: nvitya@freemail.hu
-  
+
 History:
   2003-05-15: Container type widgets focus handling corrected (Focus propagation)
 }
@@ -28,7 +28,7 @@ type
     procedure SetEnabled(const AValue: boolean);
 
     procedure SetMouseCursor(cur : integer);
-    
+
   protected
     FFormDesigner : TObject;
 
@@ -47,7 +47,7 @@ type
     FBackgroundColor : TGfxColor;
 
     FVisible   : boolean;
-    
+
     FMouseCursor  : integer;
 
     FCanvas : TGfxCanvas;
@@ -65,12 +65,12 @@ type
     procedure SetWindowParameters; virtual;  // for X
     procedure AdjustWindowStyle(var ws,es : longword; var pwh : TWinHandle); virtual; // for win32
     procedure ReleaseWindow;
-    
+
     function GetCanvas : TGfxCanvas;
     procedure FreeCanvas;
 
     procedure SetBackgroundColor(color : TGfxColor);
-    
+
     procedure DoShow; virtual;
     procedure DoHide; virtual;
 
@@ -81,7 +81,7 @@ type
 
     procedure MsgKeyPress(var msg : TMessageRec); message MSG_KEYPRESS;
     procedure MsgKeyRelease(var msg : TMessageRec); message MSG_KEYRELEASE;
-    
+
     procedure MsgMouseDown(var msg : TMessageRec); message MSG_MOUSEDOWN;
     procedure MsgMouseUp(var msg : TMessageRec); message MSG_MOUSEUP;
     procedure MsgMouseMove(var msg : TMessageRec); message MSG_MOUSEMOVE;
@@ -182,7 +182,7 @@ type
     property Height : TGfxCoord read FHeight write FHeight;
 
     property Anchors : TAnchors read FAnchors write SetAnchors;
-    
+
   end;
 
 function FindWidget(wh : TWinHandle) : TWidget;
@@ -211,7 +211,7 @@ var
   p : PWidgetLookupRec;
 begin
   if wg = nil then Exit;
-  
+
   New(p);
   p^.wg := wg;
   p^.Next := nil;
@@ -275,9 +275,9 @@ end;
 procedure TWidget.SetActiveWidget(const AValue: TWidget);
 begin
   if FActiveWidget = AValue then exit;
-  
+
   if FFormDesigner <> nil then Exit;
-  
+
   if FActiveWidget <> nil then FActiveWidget.DoKillFocus;
   FActiveWidget := AValue;
   if FActiveWidget <> nil then FActiveWidget.DoSetFocus;
@@ -331,34 +331,34 @@ begin
   FLeft   := 0;
   FWidth  := 16;
   FHeight := 16;
-  
+
   FActiveWidget := nil;
   FVisible   := true;
   FEnabled   := true;
   FCanvas    := nil;
-  
+
   FFocusable := false;
   FFocused   := false;
   FTabOrder  := 0;
 
   FBackgroundColor := clWindowBackground;
-  
+
   FWPOverride := false;
 
   FSizeParams.min_width := 0;
   FSizeParams.max_width := 0;
   FSizeParams.min_height := 0;
   FSizeParams.max_height := 0;
-  
+
   FAnchors := [anLeft,anTop];
-  
+
   FMouseCursor := CUR_DEFAULT;
 
   if (Owner <> nil) and (Owner is TWidget) then FParent := TWidget(Owner)
                                            else FParent := nil;
-                                           
+
   RegisterValidDest(self);
-  
+
   OnKeyPress := nil;
 
   AfterCreate;
@@ -387,7 +387,7 @@ begin
   begin
     dh := h - height;
     height := h;
-  end else dh := 0;  
+  end else dh := 0;
 
   if FWinHandle > 0 then
   begin
@@ -478,7 +478,7 @@ begin
               if startwg = w then FoundIt := true
               else if w.TabOrder >= lasttaborder then
               begin
-                if (startwg = nil) or 
+                if (startwg = nil) or
                    (w.TabOrder < startwg.TabOrder) or
                    (not FoundIt and (w.TabOrder = startwg.TabOrder)) then
                 begin
@@ -502,7 +502,7 @@ begin
   if searchforward
     then wg := FindFocusWidget(startwg,sdNext)
     else wg := FindFocusWidget(startwg,sdPrev);
-    
+
   if wg = nil then
   begin
     if searchforward
@@ -536,9 +536,9 @@ var
   wg : TWidget;
 begin
   if Assigned(OnKeyPress) then OnKeyPress(self, keycode, shiftstate, consumed);
-  
+
   if consumed then Exit;
-  
+
   case keycode of
     KEY_ENTER, KEY_DOWN, KEY_RIGHT, KEY_TAB:
         begin
@@ -795,7 +795,7 @@ begin
   if FWPOverride then
   begin
 
-    attr.Override_Redirect := longbool(1);
+    attr.Override_Redirect := longint(1);
     attr.background_pixel := bColor;
     mask := CWOverrideRedirect; // or CWBackPixel;
 
@@ -903,7 +903,7 @@ begin
   FBackgroundColor := color;
 {$ifdef Win32}{$else}
   if FWinHandle > 0 then XSetWindowBackground(Display, FWinHandle, GfxColorToX(color));
-{$endif}  
+{$endif}
 end;
 
 procedure TWidget.DoShow;
@@ -1118,7 +1118,7 @@ begin
   FHeight := FHeight + msg.Param2;
 
   HandleResize(msg.Param1, msg.Param2);
-  
+
   if FFormDesigner <> nil then
   begin
     FFormDesigner.Dispatch(msg);
@@ -1158,7 +1158,7 @@ initialization
 begin
   FirstWidgetLookupRec := nil;
   LastWidgetLookupRec := nil;
-  
+
   FocusRoot := nil;
 end;
 

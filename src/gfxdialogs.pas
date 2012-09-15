@@ -280,7 +280,7 @@ uses
 {$ifdef Win32}
   windows
 {$else}
-  libc,
+  unitlibc,
   unixutil
 {$endif}
   ;
@@ -299,6 +299,17 @@ end;
 {$ifdef Win32}
 {$else}
 function GetGroupName(gid : integer) : string;
+begin
+  result := 'GroupName!';
+end;
+
+function GetUserName(uid : integer) : string;
+begin
+  result := 'UserName!';
+end;
+
+(*
+function GetGroupName(gid : integer) : string;
 var
   p : PGroup;
 begin
@@ -313,6 +324,7 @@ begin
   p := getpwuid(uid);
   if p <> nil then result := p^.pw_name else result := '';
 end;
+*)
 {$endif}
 
 
@@ -805,6 +817,7 @@ begin
 end;
 
 {$else}
+
 function EpochToDateTime(epoch : longint) : TDateTime;
 var
   w1,w2,w3,w4,w5,w6 : word;
@@ -847,9 +860,9 @@ begin
       if e.islink then
       begin
         SetLength(e.linktarget,256);
-        r := libc.readlink(PChar(fullname),@(e.linktarget[1]),sizeof(e.linktarget));
+        r := readlink(PChar(fullname),@(e.linktarget[1]),sizeof(e.linktarget));
         if r > 0 then SetLength(e.linktarget,r) else e.linktarget := '';
-        libc.stat(PChar(fullname),info);
+        stat(PChar(fullname),info);
       end;
 
       e.mode := info.st_mode;
