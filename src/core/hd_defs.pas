@@ -220,7 +220,10 @@ type
   TpgfFontBase = class
   end;
 
-  TpgfWindowBase = class(TComponent)
+  ThdComponent =class(TComponent)
+  end;
+
+  TpgfWindowBase = class(ThdComponent)
   protected
     FWindowType : TWindowType;
     FWindowAttributes : TWindowAttributes;

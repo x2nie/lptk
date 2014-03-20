@@ -51,9 +51,10 @@ type
 
     property Sizeable : boolean read FSizeable write FSizeable;
     property WindowPosition : TWindowPosition read FWindowPosition write FWindowPosition;
-    property WindowTitle : widestring read FWindowTitle write SetWindowTitle;
 
     property ModalResult : integer read FModalResult write FModalResult;
+  published
+    property WindowTitle : widestring read FWindowTitle write SetWindowTitle;
   end;
 
 

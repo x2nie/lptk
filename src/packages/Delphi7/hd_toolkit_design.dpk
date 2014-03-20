@@ -32,6 +32,7 @@ requires
   designide;
 
 contains
-  hd_designer_delphi in '..\hd_designer_delphi.pas';
+  hd_designer_delphi in '..\hd_designer_delphi.pas',
+  hd_expert in 'hd_expert.pas';
 
 end.

@@ -64,14 +64,20 @@ type
 
 implementation
 
-uses {QClipbrd,} DesignEditors{, ClxEditors};
+uses {QClipbrd,} DesignEditors{, ClxEditors}, math;
+
+
+
 
 constructor ThdDesignerForm.Create(AOwner: TComponent);
+var h, w: integer;
 begin
   inherited Create(AOwner);
   FComponentDesigner := ActiveDesigner;
   RegisterDesignNotification(Self);
-  SetPosition(200, ComponentDesigner.Environment.GetMainWindowSize.Bottom + 2, Width, Height);
+  w := max(Width, 100);
+  h := max(Height, 100);
+  SetPosition(200, ComponentDesigner.Environment.GetMainWindowSize.Bottom + 2, w, h);
 end;
 
 destructor ThdDesignerForm.Destroy;
