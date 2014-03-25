@@ -26,7 +26,7 @@ type
 
   TAnchor = (anLeft,anRight,anTop,anBottom);
   TAnchors = set of TAnchor;
-
+  TWidgetStyle = set of (wsContainer, wsNoFocus);
   TClipboardKeyType = (ckNone, ckCopy, ckPaste, ckCut);
 
 const
@@ -83,6 +83,20 @@ type
   { TpgfWindow }
 
   TpgfWindow = class(TpgfWindowImpl)
+  private
+    FTop: TpgfCoord;
+    FMinWidth: TpgfCoord;
+    FLeft: TpgfCoord;
+    FHeight: TpgfCoord;
+    FWidth: TpgfCoord;
+    FMinHeight: TpgfCoord;
+    FWindowAttributes: TWindowAttributes;
+    FWindowType: TWindowType;
+    //function HandleIsValid: boolean;
+    procedure SetHeight(const Value: TpgfCoord);
+    procedure SetLeft(const Value: TpgfCoord);
+    procedure SetTop(const Value: TpgfCoord);
+    procedure SetWidth(const Value: TpgfCoord);
   protected
     { these fields are defined in the TpgfWindowBase. They are window handle creating parameters.
 
@@ -112,10 +126,10 @@ type
     property WindowAttributes : TWindowAttributes read FWindowAttributes write FWindowAttributes;
     property ParentWindow : TpgfWindow read FParentWindow write FParentWindow;
 
-    property Left   : TpgfCoord read FLeft write FLeft;
-    property Top    : TpgfCoord read FTop write FTop;
-    property Width  : TpgfCoord read FWidth write FWidth;
-    property Height : TpgfCoord read FHeight write FHeight;
+    property Left   : TpgfCoord read FLeft write SetLeft;
+    property Top    : TpgfCoord read FTop write SetTop;
+    property Width  : TpgfCoord read FWidth write SetWidth;
+    property Height : TpgfCoord read FHeight write SetHeight;
     property MinWidth  : TpgfCoord read FMinWidth write FMinWidth;
     property MinHeight : TpgfCoord read FMinHeight write FMinHeight;
 
@@ -1115,6 +1129,35 @@ procedure TpgfWindow.UpdateWindowPosition;
 begin
   if HasHandle then
     DoUpdateWindowPosition(FLeft, FTop, FWidth, FHeight);
+end;
+
+{function TpgfWindow.HandleIsValid: boolean;
+begin
+
+end;      }
+
+procedure TpgfWindow.SetHeight(const Value: TpgfCoord);
+begin
+  FHeight := Value;
+  UpdateWindowPosition();
+end;
+
+procedure TpgfWindow.SetLeft(const Value: TpgfCoord);
+begin
+  FLeft := Value;
+  UpdateWindowPosition();
+end;
+
+procedure TpgfWindow.SetTop(const Value: TpgfCoord);
+begin
+  FTop := Value;
+  UpdateWindowPosition();
+end;
+
+procedure TpgfWindow.SetWidth(const Value: TpgfCoord);
+begin
+  FWidth := Value;
+  UpdateWindowPosition();
 end;
 
 { TpgfImage }

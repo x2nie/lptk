@@ -22,6 +22,7 @@ package hd_toolkit;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
+{$DESCRIPTION 'HD toolkit'}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -32,6 +33,7 @@ contains
   hd_stdimages in '..\..\core\hd_stdimages.pas',
   hd_widget in '..\..\core\hd_widget.pas',
   hd_defs in '..\..\core\hd_defs.pas',
-  hd_form in '..\..\core\hd_form.pas';
+  hd_form in '..\..\core\hd_form.pas',
+  hd_platform_win in '..\..\core\hd_platform_win.pas';
 
 end.

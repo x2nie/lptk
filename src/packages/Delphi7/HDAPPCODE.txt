@@ -1,0 +1,44 @@
+program %s;
+
+uses
+  Classes, SysUtils,
+  hd_defs, hd_main, hd_form, hd_widget;
+
+
+{$R *.res}
+
+begin
+  pgfOpenDisplay('');
+  
+  pgfRunMessageLoop;
+end.
+|unit %s;
+
+{$ifdef fpc}
+{$mode delphi}
+{$endif}
+
+interface
+
+uses  
+  Classes, SysUtils, hd_defs, hd_main, hd_form, hd_widget;
+
+type
+  T%s = class(T%s)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  %1:s: T%1:s;
+
+implementation
+
+{$R *.dfm}
+
+
+end.
+|
+|

@@ -38,7 +38,8 @@ uses hd_defs, hd_main, hd_form;
 
 procedure Register;
 begin
-  RegisterCustomModule (TpgfForm, ThdFormModule);
+//  RegisterCustomModule (TpgfForm, ThdFormModule);
+  RegisterCustomModule (TpgfForm, TCustomModule);
   //RegisterCustomModule (TPanel, TPanelModule);
   RegisterLibraryExpert(TPanelEditExpert.Create);
 

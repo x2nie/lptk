@@ -20,6 +20,7 @@ type
     FAlignRect : TpgfRect;
 
     FOnScreen : boolean;
+    FWidgetStyle: TWidgetStyle;
     procedure SetActiveWidget(const AValue: TpgfWidget);
     procedure SetEnabled(const AValue: boolean);
     procedure SetVisible(const AValue: boolean);
@@ -89,8 +90,11 @@ type
     procedure HandleMouseEnter; virtual;
     procedure HandleMouseExit; virtual;
 
+
   public
     function FindFocusWidget(startwg : TpgfWidget; direction : TFocusSearchDirection) : TpgfWidget;
+    property WidgetStyle : TWidgetStyle read FWidgetStyle write FWidgetStyle;
+  public
 
   public
     procedure HandleAlignments(dwidth, dheight : TpgfCoord); virtual;
@@ -115,6 +119,7 @@ type
   public
     property Parent : TpgfWidget read FParent write FParent;
 
+  published
     property ActiveWidget : TpgfWidget read FActiveWidget write SetActiveWidget;
 
     property Visible : boolean read FVisible write SetVisible;
@@ -126,6 +131,10 @@ type
     property Anchors : TAnchors read FAnchors write FAnchors;
 
     property Align : TAlign read FAlign write FAlign;
+    property Left;
+    property Top;
+    property Width;
+    property Height;
   end;
 
 var

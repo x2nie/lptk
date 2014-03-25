@@ -29,10 +29,14 @@ package hd_toolkit_design;
 requires
   rtl,
   hd_toolkit,
-  designide;
+  designide,
+  vcl,
+  vclactnband,
+  vclx;
 
 contains
   hd_designer_delphi in '..\hd_designer_delphi.pas',
-  hd_expert in 'hd_expert.pas';
+  hd_sprig in '..\hd_sprig.pas',
+  hd_app_expert in 'hd_app_expert.pas';
 
 end.

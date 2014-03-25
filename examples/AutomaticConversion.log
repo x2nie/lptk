@@ -1,0 +1,23 @@
+* Converting file E:\v\Githubs\hd_toolkit\examples\Project1.dpr *
+Added defines -dBorland -dVer150 -dDelphi7 -dCompiler6_Up -dPUREPASCAL in custom options
+Found all unit files
+* Fixing used units for file E:\v\Githubs\hd_toolkit\examples\Project1.dpr *
+
+*** Converting unit files belonging to project/package ***
+* Converting file E:\v\Githubs\hd_toolkit\examples\Unit1.pas *
+
+*** Converting unit files found during conversion ***
+* Converting file E:\v\Githubs\hd_toolkit\src\core\hd_defs.pas *
+Repairing include files : ..\src\core\pgf_config.inc
+* Converting file E:\v\Githubs\hd_toolkit\src\core\hd_form.pas *
+Repairing include files : ..\src\core\pgf_config.inc
+* Converting file E:\v\Githubs\hd_toolkit\src\core\hd_main.pas *
+Repairing include files : ..\src\core\pgf_config.inc; ..\src\core\pgf_msgqueue.inc
+* Converting file E:\v\Githubs\hd_toolkit\src\core\hd_widget.pas *
+Repairing include files : ..\src\core\pgf_config.inc
+* Fixing used units for file E:\v\Githubs\hd_toolkit\examples\Unit1.pas *
+* Fixing used units for file E:\v\Githubs\hd_toolkit\src\core\hd_defs.pas *
+* Fixing used units for file E:\v\Githubs\hd_toolkit\src\core\hd_form.pas *
+* Fixing used units for file E:\v\Githubs\hd_toolkit\src\core\hd_main.pas *
+* Fixing used units for file E:\v\Githubs\hd_toolkit\src\core\hd_widget.pas *
+Conversion Ready.

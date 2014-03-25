@@ -29,7 +29,7 @@ type
     procedure PasteComponents(AOwner, AParent: TComponent;
       const Components: IDesignerSelections);
     procedure SetSelection(const Components: IDesignerSelections);
-    function UniqueName(Component: TComponent): string; virtual; abstract;
+    function UniqueName(Component: TComponent): string; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -62,11 +62,22 @@ type
     property ComponentDesigner: IComponentDesigner read FComponentDesigner;
   end;
 
+
+procedure Register;
+
 implementation
 
 uses {QClipbrd,} DesignEditors{, ClxEditors}, math;
 
+procedure Register;
+begin
+//  RegisterCustomModule (TpgfForm, ThdFormModule);
+  RegisterCustomModule (TpgfForm, TCustomModule);
+  //RegisterCustomModule (TPanel, TPanelModule);
+//  RegisterLibraryExpert(TPanelEditExpert.Create);
+//  RegisterDesignNotification(ThdDesignerForm as IDesignNotification);
 
+end;
 
 
 constructor ThdDesignerForm.Create(AOwner: TComponent);
@@ -233,8 +244,8 @@ begin
     FDesigner := nil;
     FComponentDesigner := nil;
   end
-  else if FDesigner = nil then {  Designer already "closed" }  
-    FComponentDesigner := nil; { Release the reference to the FComponentDesigner to not AV on shutdown }  
+  else if FDesigner = nil then {  Designer already "closed" }
+    FComponentDesigner := nil; { Release the reference to the FComponentDesigner to not AV on shutdown }
 end;
 
 procedure ThdDesignerForm.DesignerOpened(const Designer: IDesigner; AResurrecting: Boolean);
@@ -254,5 +265,14 @@ begin
   Result := taQT;
 end;
 {$ENDIF}
+
+function ThdDesignerForm.UniqueName(Component: TComponent): string;
+var i : integer;
+begin
+  i := 1;
+
+
+  Result := Component.ClassName+'_';// + Now,'yyymmddhhmmss')
+end;
 
 end.
