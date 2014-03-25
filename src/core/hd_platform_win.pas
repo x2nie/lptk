@@ -907,7 +907,7 @@ begin
     Self                        // window-creation data
     );
 
-//if not pgfDesigning then
+if not pgfDesigning then
 begin
   if waScreenCenterPos in FWindowAttributes then
   begin
