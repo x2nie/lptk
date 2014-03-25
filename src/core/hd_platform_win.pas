@@ -127,6 +127,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    function PaintTo(Dst: LongWord; X,Y, W, H: integer): boolean; virtual;
   end;
 
   TpgfWindowImpl = class(TpgfWindowBase)
@@ -815,7 +816,7 @@ var
 
   r : TRect;
 begin
-  if (FWinHandle > 0) or (pgfDesigning) then Exit;
+  if (FWinHandle > 0) {or (pgfDesigning)} then Exit;
 
   FWinStyle := WS_OVERLAPPEDWINDOW;
   FWinStyleEx := WS_EX_APPWINDOW;
@@ -904,6 +905,8 @@ begin
     Self                        // window-creation data
     );
 
+if not pgfDesigning then
+begin
   if waScreenCenterPos in FWindowAttributes then
   begin
     FLeft := (wdisp.ScreenWidth-FWidth) div 2;
@@ -927,11 +930,14 @@ begin
     FTop := r.Top;
   end;
 
+
   Windows.UpdateWindow(FWinHandle);
 
 // OS independent part:
 
 //  ptkSetMouseCursor(FWinHandle, FMouseCursor);
+
+end; //EOF not pgfDesigning
 
 end;
 
@@ -986,6 +992,9 @@ end;
 
 procedure TpgfWindowImpl.DoUpdateWindowPosition(aleft, atop, awidth, aheight: TpgfCoord);
 begin
+  if pgfDesigning then
+    exit;
+    
   Windows.SetWindowPos(
     WinHandle,0,
     aleft,atop,awidth,aheight,
@@ -1073,6 +1082,7 @@ begin
     FBufferBitmap := 0;
 
     if Fgc <> FWinGC then DeleteDC(Fgc);
+    Fgc := 0;
 
     Windows.ReleaseDC(FDrawWindow.FWinHandle, FWingc);
 
@@ -1286,6 +1296,16 @@ begin
     trunc(0.5 + x + xr + cos(a1+a2)*xr),
     trunc(0.5 + y + yr - sin(a1+a2)*yr)
   );
+end;
+
+function TpgfCanvasImpl.PaintTo(Dst: LongWord; X, Y, W, H: integer):boolean;
+begin
+  result := false;
+  if Fgc > 0 then
+    begin
+      BitBlt(Dst, x,y, w, h, Fgc, 0, 0, SRCCOPY);
+      result := true;
+    end;
 end;
 
 { TpgfFontResourceImpl }
