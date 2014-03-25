@@ -97,8 +97,8 @@ end;
 procedure TpgfForm.HandlePaint;
 begin
   canvas.BeginDraw;
-  //canvas.Clear(FBackgroundColor);
-  canvas.Clear($009955);
+  canvas.Clear(FBackgroundColor);
+  //canvas.Clear($009955);
   canvas.EndDraw(0,0,FWidth,FHeight);
 end;
 

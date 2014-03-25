@@ -159,8 +159,9 @@ procedure TpgfMediator.Paint;
       Brush.Color:= clBtnFace;
       FillRect(0,0,AWidget.Width,AWidget.Height);
       // outer frame
-      Pen.Color:=clGray;
+      {Pen.Color:=clGray;
       Rectangle(0,0,AWidget.Width,AWidget.Height);
+      }
       {// inner frame
       if AWidget.AcceptChildsAtDesignTime then begin
         Pen.Color:=clMaroon;
@@ -173,26 +174,26 @@ procedure TpgfMediator.Paint;
 
       AWidget.Canvas.BeginDraw;
       //TpgfWidgetAccess(AWidget).HandlePaint;
-      fillchar(msgp,sizeof(msgp),0);
+      //fillchar(msgp,sizeof(msgp),0);
       //pgfSendMessage(self, AWidget, PGFM_PAINT, msgp);
       AWidget.RePaint;
 
       //test canvas
-      AWidget.Canvas.DrawControlFrame(0,0,AWidget.Width, AWidget.Height);
+      {AWidget.Canvas.DrawControlFrame(0,0,AWidget.Width, AWidget.Height);
       AWidget.Canvas.SetColor(clRed);
       AWidget.Canvas.DrawLine(0,AWidget.Height,AWidget.Width,0);
 
       if AWidget.Canvas.PaintTo(LCLForm.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height) then
         TextOut(5,2,format('OK %d',[AWidget.WinHandle]) )
       else
-        TextOut(5,2,'failpaint');
+        TextOut(5,2,'failpaint');       }
 
       {bmp := TBitmap.Create;
       bmp.SetSize(AWidget.Width, AWidget.Height);
       AWidget.Canvas.PaintTo(bmp.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height);
       bmp.SaveToFile('c:\'+AWidget.Name+'.bmp' );
       bmp.Free;}
-
+      AWidget.Canvas.PaintTo(LCLForm.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height);
 
       AWidget.Canvas.EndDraw;
 
