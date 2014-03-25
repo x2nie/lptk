@@ -126,15 +126,25 @@ type
 
     property ActiveWidget : TpgfWidget read FActiveWidget write SetActiveWidget;
 
-    property Visible : boolean read FVisible write SetVisible;
-    property Enabled : boolean read FEnabled write SetEnabled;
-    property TabOrder  : integer read FTabOrder write FTabOrder;
+
+
+
     property Focusable : boolean read FFocusable write FFocusable;
     property Focused   : boolean read FFocused write FFocused;
 
-    property Anchors : TAnchors read FAnchors write FAnchors;
 
+
+  published
+
+    property Left;
+    property Top;
+    property Width;
+    property Height;
     property Align : TAlign read FAlign write FAlign;
+    property Anchors : TAnchors read FAnchors write FAnchors;
+    property Enabled : boolean read FEnabled write SetEnabled;
+    property TabOrder  : integer read FTabOrder write FTabOrder;
+    property Visible : boolean read FVisible write SetVisible;
   end;
 
 var
