@@ -210,7 +210,7 @@ procedure TpgfMediator.Paint;
         //then
         begin
           for i:=0 to AWidget.ComponentCount-1 do
-          if (AWidget.Components[i] is TpgfWidget) and (TpgfWidget(AWidget.Components[i]).Parent = Awidget)  then;
+          if (AWidget.Components[i] is TpgfWidget) and (TpgfWidget(AWidget.Components[i]).Parent = Awidget)  then
           begin
             SaveHandleState;
             Child:=TpgfWidget(AWidget.Components[i]);
