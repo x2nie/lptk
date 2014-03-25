@@ -150,6 +150,7 @@ procedure TpgfMediator.Paint;
     i: Integer;
     Child: TpgfWidget;
     msgp : TpgfMessageParams;
+    bmp : TBitmap;
   begin
     with LCLForm.Canvas do
     begin
@@ -182,9 +183,17 @@ procedure TpgfMediator.Paint;
       AWidget.Canvas.DrawLine(0,AWidget.Height,AWidget.Width,0);
 
       if AWidget.Canvas.PaintTo(LCLForm.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height) then
-        TextOut(5,2,'painted')
+        TextOut(5,2,format('OK %d',[AWidget.WinHandle]) )
       else
         TextOut(5,2,'failpaint');
+
+      {bmp := TBitmap.Create;
+      bmp.SetSize(AWidget.Width, AWidget.Height);
+      AWidget.Canvas.PaintTo(bmp.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height);
+      bmp.SaveToFile('c:\'+AWidget.Name+'.bmp' );
+      bmp.Free;}
+
+
       AWidget.Canvas.EndDraw;
 
 
@@ -194,7 +203,7 @@ procedure TpgfMediator.Paint;
         SaveHandleState;
         // clip client area
         //MoveWindowOrgEx(Handle,AWidget.BorderLeft,AWidget.BorderTop);
-        //MoveWindowOrgEx(Handle,0,0);
+        MoveWindowOrgEx(Handle,0,0);
         //if IntersectClipRect(Handle, 0, 0, AWidget.Width-AWidget.BorderLeft-AWidget.BorderRight,
         //                     AWidget.Height-AWidget.BorderTop-AWidget.BorderBottom)<>NullRegion
         //then
@@ -205,8 +214,8 @@ procedure TpgfMediator.Paint;
             SaveHandleState;
             Child:=TpgfWidget(AWidget.Components[i]);
             // clip child area
-            //MoveWindowOrgEx(Handle,Child.Left,Child.Top);
-            //if IntersectClipRect(Handle,0,0,Child.Width,Child.Height)<>NullRegion then
+            MoveWindowOrgEx(Handle,Child.Left,Child.Top);
+            if IntersectClipRect(Handle,0,0,Child.Width,Child.Height)<>NullRegion then
               PaintWidget(Child);
             RestoreHandleState;
           end;

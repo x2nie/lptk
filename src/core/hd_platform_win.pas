@@ -138,8 +138,10 @@ type
     FWinStyle, FWinStyleEx : longword;
     FParentWinHandle : TpgfWinHandle;
 
-    property WinHandle : TpgfWinHandle read FWinHandle;
+    //debug property WinHandle : TpgfWinHandle read FWinHandle;
 
+  public
+    property WinHandle : TpgfWinHandle read FWinHandle;
   protected
     procedure DoAllocateWindowHandle(aparent : TpgfWindowImpl);
     procedure DoReleaseWindowHandle;
@@ -816,7 +818,7 @@ var
 
   r : TRect;
 begin
-  if (FWinHandle > 0) {or (pgfDesigning)} then Exit;
+  if FWinHandle > 0 then Exit;
 
   FWinStyle := WS_OVERLAPPEDWINDOW;
   FWinStyleEx := WS_EX_APPWINDOW;
@@ -905,7 +907,7 @@ begin
     Self                        // window-creation data
     );
 
-if not pgfDesigning then
+//if not pgfDesigning then
 begin
   if waScreenCenterPos in FWindowAttributes then
   begin

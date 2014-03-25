@@ -9,16 +9,12 @@ interface
 uses
   Classes, SysUtils,
   hd_defs,
-{$IFDEF HDDESIGNTIME}
-  //hd_platform_designtime
-{$ELSE}
 {$ifdef Win32}
   hd_platform_win
 {$endif}
 {$ifdef UNIX}
   hd_platform_x11
 {$endif}
-{$ENDIF HDDESIGNTIME}
   ;
   
 type
@@ -87,10 +83,6 @@ type
   { TpgfWindow }
 
   TpgfWindow = class(TpgfWindowImpl)
-  private
-    FWindowAttributes: TWindowAttributes;
-    FWindowType: TWindowType;
-    HandleIsValid: boolean;
   protected
     { these fields are defined in the TpgfWindowBase. They are window handle creating parameters.
 
@@ -103,7 +95,6 @@ type
     FParentWindow : TpgfWindow;
 
     FCanvas : TpgfCanvas;
-
 
   public
     constructor Create(aowner : TComponent); override;
@@ -121,18 +112,18 @@ type
     property WindowAttributes : TWindowAttributes read FWindowAttributes write FWindowAttributes;
     property ParentWindow : TpgfWindow read FParentWindow write FParentWindow;
 
-
+    property Left   : TpgfCoord read FLeft write FLeft;
+    property Top    : TpgfCoord read FTop write FTop;
+    property Width  : TpgfCoord read FWidth write FWidth;
+    property Height : TpgfCoord read FHeight write FHeight;
+    property MinWidth  : TpgfCoord read FMinWidth write FMinWidth;
+    property MinHeight : TpgfCoord read FMinHeight write FMinHeight;
 
     property Canvas : TpgfCanvas read FCanvas;
 
   public
     function Right  : TpgfCoord;
     function Bottom : TpgfCoord;
-  published
-    property Left   ;
-    property Top    ;
-    property Width  ;
-    property Height ;
   end;
 
   { TpgfImage }
@@ -1071,13 +1062,13 @@ constructor TpgfWindow.Create(aowner: TComponent);
 begin
   inherited Create(aowner); // initialize the platform internals
 
-  {FTop    := 0;
+  FTop    := 0;
   FLeft   := 0;
   FWidth  := 16;
   FHeight := 16;
 
   FMinWidth  := 2;
-  FMinHeight := 2;}
+  FMinHeight := 2;
 
   FModalForWin := nil;
 
@@ -1117,17 +1108,16 @@ end;
 
 function TpgfWindow.Right: TpgfCoord;
 begin
-  result := Left + Width - 1;
+  result := FLeft + FWidth - 1;
 end;
 
 function TpgfWindow.Bottom: TpgfCoord;
 begin
-  result := Top + Height - 1;
+  result := FTop + FHeight - 1;
 end;
 
 procedure TpgfWindow.UpdateWindowPosition;
 begin
-
   if HasHandle then
     DoUpdateWindowPosition(FLeft, FTop, FWidth, FHeight);
 end;

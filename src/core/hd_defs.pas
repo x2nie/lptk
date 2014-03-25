@@ -234,12 +234,6 @@ type
     // make some setup before the window shows
     procedure AdjustWindowStyle; virtual;    // forms modify the window creation parameters
     procedure SetWindowParameters; virtual;  // invoked after the window is created
-    property MinWidth  : TpgfCoord read FMinWidth write FMinWidth;
-    property MinHeight : TpgfCoord read FMinHeight write FMinHeight;      
-    property Left   : TpgfCoord read FLeft write FLeft;
-    property Top    : TpgfCoord read FTop write FTop;
-    property Width  : TpgfCoord read FWidth write FWidth;
-    property Height : TpgfCoord read FHeight write FHeight;    
   end;
 
   TpgfDisplayBase = class

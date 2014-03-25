@@ -192,7 +192,8 @@ var
 begin
   Canvas.BeginDraw;
 
-  Canvas.Clear(clButtonFace);
+  //Canvas.Clear(clButtonFace);
+  Canvas.Clear(clSelection);
   Canvas.ClearClipRect;
 
   if not FDown then Canvas.SetColor(clHilite1)

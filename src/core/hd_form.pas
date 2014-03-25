@@ -67,8 +67,7 @@ function WidgetParentForm(wg : TpgfWidget) : TpgfForm;
 
 implementation
 
-uses hd_main,
-  hd_platform_win;
+uses hd_main;
 
 function WidgetParentForm(wg : TpgfWidget) : TpgfForm;
 var
@@ -98,7 +97,8 @@ end;
 procedure TpgfForm.HandlePaint;
 begin
   canvas.BeginDraw;
-  canvas.Clear(FBackgroundColor);
+  //canvas.Clear(FBackgroundColor);
+  canvas.Clear($009955);
   canvas.EndDraw(0,0,FWidth,FHeight);
 end;
 
