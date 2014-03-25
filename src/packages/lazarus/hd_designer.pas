@@ -29,6 +29,8 @@ type
     function ParentAcceptsChild(Parent: TComponent;
                 Child: TComponentClass): boolean; override;
   public
+
+  public
     // needed by TpgfWidget
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -51,7 +53,7 @@ type
 procedure Register;
 
 implementation
-uses wgbutton;
+uses Controls, wgbutton;
 
 procedure Register;
 begin
@@ -243,9 +245,10 @@ end;
 function TpgfMediator.ParentAcceptsChild(Parent: TComponent;
   Child: TComponentClass): boolean;
 begin
-  result := true;
-  //Result:=(Parent is TpgfWidget) and TpgfWidget(Parent).IsContainer
-    // and Child.InheritsFrom(TpgfComponent);
+  //result := true;
+  Result:=(Parent is TpgfWidget) //and TpgfWidget(Parent).IsContainer
+    and Child.InheritsFrom(ThdComponent)
+    or (not Child.InheritsFrom(TControl))
     //and (TpgfWidget(Parent).AcceptChildsAtDesignTime);
 end;
 
