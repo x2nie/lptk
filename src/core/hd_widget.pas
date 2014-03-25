@@ -123,6 +123,12 @@ type
 
   public
     property Parent : TpgfWidget read FParent write FParent;
+  published
+    property Left   ;
+    property Top    ;
+    property Width  ;
+    property Height ;
+    property MinWidth;
 
     property ActiveWidget : TpgfWidget read FActiveWidget write SetActiveWidget;
 

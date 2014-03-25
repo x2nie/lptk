@@ -12,6 +12,9 @@ uses
   Classes, SysUtils, hd_defs, hd_main, hd_widget;
 
 type
+
+  { TwgButton }
+
   TwgButton = class(TpgfWidget)
   private
     FImageName: string;
@@ -53,6 +56,7 @@ type
 
     procedure HandleMouseExit; override;
     procedure HandleMouseEnter; override;
+    procedure SetName(const NewName: TComponentName); override;
 
   public
     OnClick : TNotifyEvent;
@@ -192,8 +196,7 @@ var
 begin
   Canvas.BeginDraw;
 
-  //Canvas.Clear(clButtonFace);
-  Canvas.Clear(clSelection);
+  Canvas.Clear(clButtonFace);
   Canvas.ClearClipRect;
 
   if not FDown then Canvas.SetColor(clHilite1)
@@ -344,7 +347,8 @@ begin
   else inherited;
 end;
 
-procedure TwgButton.HandleKeyChar(var keycode, shiftstate: word; var consumed: boolean);
+procedure TwgButton.HandleKeyChar(var keycode: word; var shiftstate: word;
+  var consumed: boolean);
 begin
   if (keycode = KEY_ENTER) or (keycode = KEY_SPACE)
     then Consumed := true
@@ -391,6 +395,12 @@ begin
      FDown := TRUE;
      RePaint;
   end;
+end;
+
+procedure TwgButton.SetName(const NewName: TComponentName);
+begin
+  if Name=Text then Text:=NewName;
+  inherited SetName(NewName);
 end;
 
 procedure TwgButton.Click;

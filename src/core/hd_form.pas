@@ -38,6 +38,7 @@ type
     procedure HandlePaint; override;
 
     procedure HandleClose; virtual;
+    procedure SetName(const NewName: TComponentName); override;
 
   public
     constructor Create(aowner : TComponent); override;
@@ -97,8 +98,7 @@ end;
 procedure TpgfForm.HandlePaint;
 begin
   canvas.BeginDraw;
-  //canvas.Clear(FBackgroundColor);
-  canvas.Clear($009955);
+  canvas.Clear(FBackgroundColor);
   canvas.EndDraw(0,0,FWidth,FHeight);
 end;
 
@@ -230,6 +230,12 @@ begin
   begin
     Halt(0);
   end;
+end;
+
+procedure TpgfForm.SetName(const NewName: TComponentName);
+begin
+  if Name=Caption then Caption:=NewName;
+  inherited SetName(NewName);
 end;
 
 initialization
