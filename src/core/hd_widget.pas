@@ -42,6 +42,7 @@ type
 
     procedure DoAlign(aalign : TAlign);
 
+
   public
     constructor Create(aowner : TComponent); override;
     destructor Destroy; override;
@@ -88,7 +89,15 @@ type
 
     procedure HandleMouseEnter; virtual;
     procedure HandleMouseExit; virtual;
-
+  protected
+    {designer need}
+    //procedure SetName(const NewName: TComponentName); override;
+    procedure SetParentComponent(Value: TComponent); override;
+    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
+  public
+    {designer need}
+    function HasParent: Boolean; override;
+    function GetParentComponent: TComponent; override;
   public
     function FindFocusWidget(startwg : TpgfWidget; direction : TFocusSearchDirection) : TpgfWidget;
 
@@ -883,6 +892,33 @@ begin
   MoveAndResize(aleft, atop, awidth, aheight);
 end;
 
+
+procedure TpgfWidget.GetChildren(Proc: TGetChildProc; Root: TComponent);
+var
+  i: Integer;
+begin
+  for i := 0 to ComponentCount-1 do
+  begin
+    if Components[i].Owner=Root then
+      Proc(Components[i]);
+  end;
+end;
+
+procedure TpgfWidget.SetParentComponent(Value: TComponent);
+begin
+  if Value is TpgfWidget then
+    Parent:=TpgfWidget(Value);
+end;
+
+function TpgfWidget.GetParentComponent: TComponent;
+begin
+  result := Parent;
+end;
+
+function TpgfWidget.HasParent: Boolean;
+begin
+  Result:=Parent<>nil;
+end;
 
 initialization
 begin

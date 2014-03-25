@@ -39,3 +39,7 @@ local.properties
 *.dcu
 *.ppu
 *.~*
+*.o
+*.dof
+*.cfg
+*.exe

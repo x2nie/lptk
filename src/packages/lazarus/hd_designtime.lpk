@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="hd_designtime"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="..\..\core;..\..\widget"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Other>
+        <CompilerMessages>
+          <MsgFileName Value=""/>
+        </CompilerMessages>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Files Count="6">
+      <Item1>
+        <Filename Value="hd_designer.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="hd_designer"/>
+      </Item1>
+      <Item2>
+        <Filename Value="..\..\core\hd_form.pas"/>
+        <UnitName Value="hd_form"/>
+      </Item2>
+      <Item3>
+        <Filename Value="..\..\core\hd_main.pas"/>
+        <UnitName Value="hd_main"/>
+      </Item3>
+      <Item4>
+        <Filename Value="..\..\core\hd_widget.pas"/>
+        <UnitName Value="hd_widget"/>
+      </Item4>
+      <Item5>
+        <Filename Value="..\..\core\hd_defs.pas"/>
+        <UnitName Value="hd_defs"/>
+      </Item5>
+      <Item6>
+        <Filename Value="..\..\widget\wgbutton.pas"/>
+        <UnitName Value="wgbutton"/>
+      </Item6>
+    </Files>
+    <Type Value="RunAndDesignTime"/>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="IDEIntf"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

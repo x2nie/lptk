@@ -1,4 +1,4 @@
-unit hd_platform_win;
+unit hd_platform_designtime;
 
 // platform dependent workout for the pgfdefs
 // only the very necessary code
@@ -11,7 +11,7 @@ interface
 uses
   Classes, SysUtils,
   windows {$ifndef FPC},messages{$endif},
-  hd_defs;
+  hd_defs, Controls, graphics;
 
 type
   TpgfWinHandle   = HWND;
@@ -129,8 +129,22 @@ type
     destructor Destroy; override;
   end;
 
-  TpgfWindowImpl = class(TpgfWindowBase)
+  TpgfWindowImpl = class(TWinControl)
+  private
+    function GetFLeft: integer;
+    procedure SetFLeft(const Value: integer);
+    function GetFTop: integer;
+    procedure SetFTop(const Value: integer);
+    function GetFWidth: integer;
+    procedure SetFWidth(const Value: integer);
+    function GetFHeight: integer;
+    procedure SetFHeight(const Value: integer);
   protected
+    FWindowType : TWindowType;
+    FMinWidth: TpgfCoord;
+    FMinHeight: TpgfCoord;
+    FWindowAttributes : TWindowAttributes;
+    
     FWinHandle : TpgfWinHandle;
     FModalForWin : TpgfWindowImpl;
 
@@ -139,6 +153,10 @@ type
 
     property WinHandle : TpgfWinHandle read FWinHandle;
 
+    property FLeft : integer read GetFLeft write SetFLeft;
+    property FTop : integer read GetFTop write SetFTop;
+    property FWidth : integer read GetFWidth write SetFWidth;
+    property FHeight : integer read GetFHeight write SetFHeight;
   protected
     procedure DoAllocateWindowHandle(aparent : TpgfWindowImpl);
     procedure DoReleaseWindowHandle;
@@ -153,7 +171,13 @@ type
     procedure DoSetWindowTitle(const atitle : widestring);
 
   public
+    property MinWidth  : TpgfCoord read FMinWidth write FMinWidth;
+    property MinHeight : TpgfCoord read FMinHeight write FMinHeight;      
+  
     constructor Create(aowner : TComponent); override;
+    // make some setup before the window shows
+    procedure AdjustWindowStyle; virtual;    // forms modify the window creation parameters
+    procedure SetWindowParameters; virtual;  // invoked after the window is created    
   end;
 
   { TpgfDisplayImpl }
@@ -210,7 +234,7 @@ type
 
 implementation
 
-uses hd_main, hd_widget, hd_form;
+uses dialogs, hd_main, hd_widget, hd_form;
 
 var
   wdisp : TpgfDisplay;
@@ -324,325 +348,6 @@ end;
 
 *)
 
-function pgfWindowProc(hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
-var
-  w : TpgfWindowImpl;
-  kwg, mwg, wwg, pwg : TpgfWidget;
-  kcode,i : integer;
-  sstate : integer;
-  h : THANDLE;
-  p : PChar;
-  pt : TPOINT;
-  r  : TRECT;
-  blockmsg : boolean;
-
-  msgp : TpgfMessageParams;
-  mcode : integer;
-
-  wmsg: TMsg;
-
-  PaintStruct: TPaintStruct;
-begin
-//  writeln('WND=',IntToHex(hwnd,8),' MSG=',IntToHex(uMsg,4),' wp=',IntToHex(wparam,8), ' lp=',IntToHex(lparam,8));
-
-  if uMsg = WM_CREATE then
-  begin
-    w := TpgfWindowImpl(PCreateStruct(lParam)^.lpCreateParams);
-
-    w.FWinHandle := hwnd; // this is very important, because number of messages sent
-                          // before the createwindow returns the window handle
-
-    Windows.SetWindowLong(hwnd, GWL_USERDATA, LongWord(w));
-  end;
-
-  w := TpgfWindowImpl(Windows.GetWindowLong(hwnd, GWL_USERDATA));
-
-  result := 0;
-
-  if not Assigned(w) then
-  begin
-    Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
-    Exit;
-  end;
-
-  blockmsg := false;
-  fillchar(msgp,sizeof(msgp),0);
-
-  case uMsg of
-
-    WM_CHAR,
-    WM_KEYUP,
-    WM_KEYDOWN:
-    begin
-      //Writeln('KeyMsg: ',umsg,' wp=',IntToHex(wParam,4),' lp=',IntToHex(lparam,8));
-
-      kwg := FindKeyboardFocus;
-      if kwg <> nil then w := kwg;
-
-      sstate := 0;
-      if GetKeyState(VK_SHIFT) < 0 then sstate := sstate + ss_shift;
-      if GetKeyState(VK_MENU) < 0 then sstate := sstate + ss_alt;
-      if GetKeyState(VK_CONTROL) < 0 then sstate := sstate + ss_control;
-
-      kcode := (lParam shr 16) and $1FF;
-
-      msgp.keyboard.keycode := kcode;
-      msgp.keyboard.shiftstate := sstate;
-
-      if uMsg = WM_KEYDOWN then
-      begin
-        //Writeln('PGFM_KEYPRESS: ',IntToHex(kcode,4),' (',kcode,')');
-
-        pgfSendMessage(nil, w, PGFM_KEYPRESS, msgp);
-
-        // generating WM_CHAR
-        fillchar(wmsg,sizeof(wmsg),0);
-
-        wmsg.hwnd := hwnd;
-        wmsg.message := uMsg;
-        wmsg.wParam := wParam;
-        wmsg.lParam := lParam;
-
-        Windows.TranslateMessage( {$ifdef FPC}@{$endif} wmsg);
-        // TranslateMessage sends WM_CHAR ocassionally
-        // but NOBODY KNOWS WHEN!
-
-        // lets generate the PGFM_KEYCHAR for some special keys
-        // based on this table of Windows virtual keys
-        case wParam of
-        $70..$7B,  // F1..F12
-        $21..$24,  // home, end, pageup, pagedn
-        $2D..$2E,  // insert, delete
-        $25..$28:  // arrows
-          begin
-            msgp.keyboard.keycode := kcode or $FF00; // scan code + $FF00
-            pgfSendMessage(nil, w, PGFM_KEYCHAR, msgp);
-          end;
-        end;
-      end
-      else if uMsg = WM_KEYUP then
-      begin
-        pgfSendMessage(nil, w, PGFM_KEYRELEASE, msgp);
-      end
-      else if uMsg = WM_CHAR then
-      begin
-        msgp.keyboard.keycode := wParam;
-        pgfSendMessage(nil, w, PGFM_KEYCHAR, msgp);
-      end;
-
-    end;
-
-(*
-    WM_SETCURSOR:
-    begin
-      //Writeln('Hittest: ',IntToHex((lParam and $FFFF),4));
-      if (lParam and $FFFF) <= 1 then
-      begin
-        ptkSetMouseCursor(wg.WinHandle, wg.MouseCursor);
-        result := 1;
-      end
-      else Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
-    end;
-*)
-
-    WM_MOUSEMOVE,
-    WM_LBUTTONDOWN,
-    WM_LBUTTONUP,
-    WM_LBUTTONDBLCLK,
-    WM_RBUTTONDOWN,
-    WM_RBUTTONUP:
-    begin
-      msgp.mouse.x := SmallInt(lParam and $FFFF);
-      msgp.mouse.y := SmallInt((lParam and $FFFF0000) shr 16);
-
-      case uMsg of
-        WM_MOUSEMOVE: mcode := PGFM_MOUSEMOVE;
-        WM_LBUTTONDOWN, WM_RBUTTONDOWN: mcode := PGFM_MOUSEDOWN;
-        WM_LBUTTONUP, WM_RBUTTONUP: mcode := PGFM_MOUSEUP;
-        WM_LBUTTONDBLCLK: mcode := PGFM_DOUBLECLICK;
-      else
-        mcode := 0;
-      end;
-
-      {if (pgfPopupListFirst <> nil) and (mcode = PGFM_MOUSEDOWN) then
-      begin
-        pt.x := x;
-        pt.y := y;
-
-        ClientToScreen(w.WinHandle, pt);
-
-        h := WindowFromPoint(pt);
-        wwg := GetMyWidgetFromHandle(h);
-
-        pwg := wwg;
-        while (pwg <> nil) and (pwg.ParentWindow <> nil) do pwg := pwg.ParentWindow;
-
-        if ((pwg = nil) or (not PopupListFind(pwg))) and (not PopupDontCloseWidget(wwg)) then
-        begin
-          ClosePopups;
-
-          pgfSendMessage(nil, wwg, MSG_POPUPCLOSE, msgp );
-        end;
-      end;}
-
-      case uMsg of
-        WM_MOUSEMOVE:
-          begin
-            i := 0;
-            if (wParam and MK_LBUTTON) <> 0 then i := i or MOUSE_LEFT;
-            if (wParam and MK_RBUTTON) <> 0 then i := i or MOUSE_RIGHT;
-            if (wParam and MK_MBUTTON) <> 0 then i := i or MOUSE_MIDDLE;
-            msgp.mouse.buttons := i;
-          end;
-        WM_LBUTTONDOWN, WM_LBUTTONUP, WM_LBUTTONDBLCLK: msgp.mouse.buttons := MOUSE_LEFT;
-        WM_RBUTTONDOWN, WM_RBUTTONUP: msgp.mouse.buttons := MOUSE_RIGHT;
-      end;
-
-      sstate := 0;
-      if (wParam and MK_CONTROL) <> 0 then sstate := sstate or ss_control;
-      if (wParam and MK_SHIFT)   <> 0 then sstate := sstate or ss_shift;
-      msgp.mouse.shiftstate := sstate;
-
-      if mcode <> 0 then pgfSendMessage(nil, w, mcode, msgp);
-{
-      if uMsg = WM_MOUSEMOVE then
-      begin
-        // OK! Windoze doesn't provide MOUSEENTER and MOUSEEXIT messages, so we
-        // have to generate implicitly 'couse we need it for buttons
-
-        GetCursorPos(PT);
-        h := WindowFromPoint(PT);
-        if h <> MouseFocusedWH then
-        begin
-          if MouseFocusedWH > 0 then
-          begin
-             mwg := GetMyWidgetFromHandle(MouseFocusedWH);
-             if mwg <> nil then pgfSendMessage(nil, mwg, PGFM_MOUSEEXIT);
-          end;
-
-          mwg := GetMyWidgetFromHandle(h);
-          if mwg <> nil then
-          begin
-            MouseFocusedWH := h;
-            pgfSendMessage(nil, mwg, PGFM_MOUSEENTER);
-          end
-          else
-          begin
-            MouseFocusedWH := 0;
-          end;
-        end;
-      end;
-}
-    end;
-
-    WM_SIZE:
-    begin
-      // note that WM_SIZING allows some control on sizeing
-
-      //writeln('WM_SIZE: wp=',IntToHex(wparam,8), ' lp=',IntToHex(lparam,8));
-
-      msgp.rect.Width := smallint(lParam and $FFFF);
-      msgp.rect.Height := smallint((lParam and $FFFF0000) shr 16);
-
-      //writeln('WM_SIZE: width=',msgp.rect.width, ' height=',msgp.rect.height);
-
-      // skip minimize...
-      if lparam <> 0 then pgfSendMessage(nil, w, PGFM_RESIZE, msgp);
-    end;
-
-
-    WM_MOVE:
-    begin
-      // window decoration correction ...
-      if (GetWindowLong(w.WinHandle, GWL_STYLE) and WS_CHILD) = 0 then
-      begin
-        GetWindowRect(w.WinHandle, r);
-        msgp.rect.Left := r.Left;
-        msgp.rect.top := r.Top;
-      end
-      else
-      begin
-        msgp.rect.Left := smallint(lParam and $FFFF);
-        msgp.rect.Top  := smallint((lParam and $FFFF0000) shr 16);
-      end;
-      
-      pgfSendMessage(nil, w, PGFM_MOVE, msgp);
-    end;
-
-(*
-    WM_MOUSEWHEEL:
-    begin
-      //writeln('MWHEEL: wp=',IntToHex(wparam,8), ' lp=',IntToHex(lparam,8)); // and $FF00) shr 8);
-
-      pt.x := (lParam and $FFFF);
-      pt.y := ((lParam and $FFFF0000) shr 16);
-
-      h := WindowFromPoint(pt); //, CWP_SKIPINVISIBLE or CWP_SKIPDISABLED);
-      if h > 0 then
-      begin
-        wg := TWidget(Windows.GetWindowLong(h, GWL_USERDATA));
-      end;
-
-      if wg <> nil then
-      begin
-        if int(wParam) < 0 then SendMessage(nil, wg, MSG_SCROLL, 1, 3, 0)
-                           else SendMessage(nil, wg, MSG_SCROLL, 0, 3, 0);
-      end;
-    end;
-*)
-    WM_ACTIVATE:
-    begin
-      if ((wParam and $FFFF) = WA_INACTIVE) then pgfSendMessage(nil, w, PGFM_DEACTIVATE)
-                                            else pgfSendMessage(nil, w, PGFM_ACTIVATE);
-    end;
-
-    WM_TIMER:
-    begin
-      //Writeln('TIMER EVENT!!!');
-      // used for event wait timeout
-      result := 0;
-    end;
-
-(*
-    WM_NCACTIVATE:
-    begin
-      if (ptkTopModalForm <> nil) then
-      begin
-        if (wParam = 0) and (ptkTopModalForm = wg) then
-        begin
-          blockmsg := true;
-        end
-        else if (wParam <> 0) and (ptkTopModalForm <> wg) then
-        begin
-          blockmsg := true;
-        end;
-      end;
-
-      if (PopupListFirst <> nil) and (PopupListFirst.Visible) then BlockMsg := True;
-
-      //writeln('ncactivate: ', ord(BlockMsg));
-
-      if not BlockMsg then
-        Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
-
-    end;
-*)
-
-    WM_CLOSE:  pgfSendMessage(nil, w, PGFM_CLOSE, msgp);
-
-    WM_PAINT:
-      begin
-        Windows.BeginPaint(w.WinHandle, {$ifdef FPC}@{$endif} PaintStruct);
-
-        pgfSendMessage(nil, w, PGFM_PAINT, msgp);
-
-        Windows.EndPaint(w.WinHandle, {$ifdef FPC}@{$endif} PaintStruct);
-      end;
-
-  else
-    Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
-  end;
-end;
 
 { TpgfDisplayImpl }
 
@@ -652,58 +357,6 @@ begin
 
   FInitialized := false;
 
-  {$I-}
-  Writeln('PGF-Win32');
-  if ioresult <> 0 then
-  begin
-    Assign(output,'nul');
-    rewrite(output);
-  end;
-  {$I+}
-
-  FDisplay := Windows.GetDC(0);
-
-  //Writeln('Screen resolution: ',ScreenWidth,'x',ScreenHeight);
-
-  with WindowClass do
-  begin
-    style := CS_HREDRAW or CS_VREDRAW or CS_OWNDC or CS_DBLCLKS;
-    lpfnWndProc := WndProc(@pgfWindowProc);
-    hInstance := MainInstance;
-    hIcon := LoadIcon(0, IDI_APPLICATION);
-    hCursor := LoadCursor(0, IDC_ARROW);
-    hbrBackground := 0; //COLOR_WINDOW;
-    lpszClassName := 'PGFWIN';
-  end;
-  Windows.RegisterClass( {$ifdef FPC}@{$endif} WindowClass);
-
-  with WidgetClass do
-  begin
-    style := CS_OWNDC or CS_DBLCLKS;
-    lpfnWndProc := WndProc(@pgfWindowProc);
-    hInstance := MainInstance;
-    hIcon := 0;
-    hCursor := 0;
-    hbrBackground := 0; //COLOR_BACKGROUND;
-    lpszClassName := 'PGFWIDGET';
-  end;
-  Windows.RegisterClass( {$ifdef FPC}@{$endif} WidgetClass);
-
-  hcr_default := LoadCursor(0, IDC_ARROW);
-  hcr_dir_ew  := LoadCursor(0, IDC_SIZEWE);
-  hcr_dir_ns  := LoadCursor(0, IDC_SIZENS);
-  hcr_edit    := LoadCursor(0, IDC_IBEAM);
-
-  hcr_dir_nwse := LoadCursor(0, IDC_SIZENWSE);
-  hcr_DIR_NESW := LoadCursor(0, IDC_SIZENESW);
-
-  hcr_MOVE     := LoadCursor(0, IDC_SIZEALL);
-
-  hcr_CROSSHAIR := LoadCursor(0, IDC_CROSS);
-
-  FInitialized := True;
-
-  wdisp := TpgfDisplay(self);
 end;
 
 destructor TpgfDisplayImpl.Destroy;
@@ -725,38 +378,7 @@ var
   timerwnd : HWND;
   mp : boolean;
 begin
-  timerid := 0;
-  timerwnd := 0;
-
-  if (atimeoutms >= 0) and (not DoMessagesPending) then
-  begin
-    // handling waiting timeout
-    if atimeoutms > 0 then
-    begin
-      timerwnd := pgfMainForm.WinHandle; 
-      timerid := Windows.SetTimer(timerwnd, 1, atimeoutms, nil);
-    end
-    else
-    begin
-      Exit;
-    end;
-  end;
-
-  // Some Win98 hack
-  if (GetVersion() < $80000000)
-    then Windows.GetMessageW( {$ifdef FPC}@{$endif} Msg, 0, 0, 0)   //NT
-    else Windows.GetMessage( {$ifdef FPC}@{$endif} Msg, 0, 0, 0);   //Win98
-
-  //  Writeln('Message: ',msg.message,' wp=',IntToHex(msg.wparam,4),
-  //    ' lp=',intToHex(msg.lparam,8),
-  //    ' px=',msg.pt.x, ' py=',msg.pt.y );
-
-  Windows.DispatchMessage( {$ifdef FPC}@{$endif} msg);
-
-  if timerid > 0 then
-  begin
-    Windows.KillTimer(timerwnd,1);
-  end;
+  
 
 end;
 
@@ -807,147 +429,17 @@ end;
 { TpgfWindowImpl }
 
 procedure TpgfWindowImpl.DoAllocateWindowHandle(aparent : TpgfWindowImpl);
-var
-  wcname, wname : string;
-  mid : dword;
 
-  rwidth, rheight : integer;
-
-  r : TRect;
 begin
-  if (FWinHandle > 0) or (pgfDesigning) then Exit;
-
-  FWinStyle := WS_OVERLAPPEDWINDOW;
-  FWinStyleEx := WS_EX_APPWINDOW;
-  mid := 0;
-  wcname := 'PGFWIN';
-
-  if aparent <> nil then
-  begin
-    FParentWinHandle := aparent.WinHandle;
-  end
-  else FParentWinHandle := 0;
-
-  if FWindowType = wtChild then
-  begin
-    FWinStyle := WS_CHILD;
-    FWinStyleEx := 0;
-    mid := 1;
-    wcname := 'PGFWIDGET';
-  end
-  else if FWindowType in [wtPopup] then
-  begin
-    FWinStyle := WS_POPUP;
-    FWinStyleEx := WS_EX_TOOLWINDOW;
-  end;
-
-  if FWindowType = wtModalForm then
-  begin
-    // for modal windows, this is necessary
-    FWinStyle := WS_OVERLAPPEDWINDOW or WS_POPUPWINDOW;
-    FWinStyle := FWinStyle and not (WS_MINIMIZEBOX);
-    FWinStyleEx := 0;
-  end;
-
-  AdjustWindowStyle;
-
-{
-  if pgfMainForm <> nil then
-  begin
-    FParentWinHandle := ptkMainForm.WinHandle;
-    FWinStyle := WS_OVERLAPPEDWINDOW;
-    FWinStyleEx := 0;
-  end;
-}
-
-  if waAutoPos in FWindowAttributes then
-  begin
-    FLeft := TpgfCoord(CW_USEDEFAULT);
-    FTop  := TpgfCoord(CW_USEDEFAULT);
-  end;
-
-  if (FWindowType <> wtChild) and not (waSizeable in FWindowAttributes)  then
-  begin
-    FWinStyle := FWinStyle and not (WS_SIZEBOX or WS_MAXIMIZEBOX or WS_MINIMIZEBOX);
-  end;
-
-  FWinStyle := FWinStyle or WS_CLIPCHILDREN or WS_CLIPSIBLINGS;
-
-  wname := '';
-
-  rwidth := FWidth;
-  rheight := FHeight;
-
-  if (FWinStyle and WS_CHILD) = 0 then
-  begin
-    r.Left := FLeft;
-    r.Top  := FTop;
-    r.Right := FLeft + FWidth;
-    r.Bottom := FTop + FHeight;
-    AdjustWindowRectEx(r, FWinStyle, false, FWinStyleEx);
-    rwidth := r.Right - r.Left;
-    rheight := r.Bottom - r.Top;
-  end;
-
-  FWinHandle := Windows.CreateWindowEx(
-    FWinStyleEx,		// extended window style
-    PChar(wcname),          	// registered class name
-    PChar(wname),		// window name
-    FWinStyle,			// window style
-    FLeft,			// horizontal position of window
-    FTop,			// vertical position of window
-    rwidth,			// window width
-    rheight,			// window height
-    FParentWinHandle,		// handle to parent or owner window
-    mid,			// menu handle or child identifier
-    MainInstance,		// handle to application instance
-    Self                        // window-creation data
-    );
-
-  if waScreenCenterPos in FWindowAttributes then
-  begin
-    FLeft := (wdisp.ScreenWidth-FWidth) div 2;
-    FTop := (wdisp.ScreenHeight-FHeight) div 2;
-    DoMoveWindow(FLeft,FTop);
-  end;
-
-  SetWindowParameters; // the forms require some adjustments before the Window appears
-
-  BringWindowToTop(FWinHandle);
-
-  if FWindowType in [wtPopup] then Windows.ShowWindow(FWinHandle, SW_SHOWNOACTIVATE)
-                              else Windows.ShowWindow(FWinHandle, SW_SHOWNORMAL);
-
-  if (waAutoPos in FWindowAttributes) or
-     (waScreenCenterPos in FWindowAttributes) then
-  begin
-    // get the proper position
-    GetWindowRect(FWinHandle, r);
-    FLeft := r.Left;
-    FTop := r.Top;
-  end;
-
-  Windows.UpdateWindow(FWinHandle);
-
-// OS independent part:
-
-//  ptkSetMouseCursor(FWinHandle, FMouseCursor);
-
 end;
 
 procedure TpgfWindowImpl.DoReleaseWindowHandle;
 begin
-  if FWinHandle <= 0 then Exit;
 
-  windows.DestroyWindow(FWinHandle);
-
-  FWinHandle := 0;
 end;
 
 procedure TpgfWindowImpl.DoMoveWindow(x, y: TpgfCoord);
 begin
-  if (FWinHandle > 0) and not pgfDesigning then
-    Windows.SetWindowPos(WinHandle,0,x,y,0,0,SWP_NOZORDER or SWP_NOSIZE or SWP_NOREDRAW);
 end;
 
 {
@@ -966,11 +458,7 @@ procedure TpgfWindowImpl.DoSetWindowTitle(const atitle: widestring);
 var
   s8 : string;
 begin
-  if FWinHandle <= 0 then Exit;
-
-  s8 := atitle;
-
-  SetWindowText(FWinHandle, PChar(s8));
+  Text := atitle; 
 end;
 
 constructor TpgfWindowImpl.Create(aowner: TComponent);
@@ -986,11 +474,57 @@ end;
 
 procedure TpgfWindowImpl.DoUpdateWindowPosition(aleft, atop, awidth, aheight: TpgfCoord);
 begin
-  Windows.SetWindowPos(
-    WinHandle,0,
-    aleft,atop,awidth,aheight,
-    SWP_NOZORDER or SWP_NOREDRAW
-  );
+  self.SetBounds(aleft, atop, awidth, aheight);
+end;
+
+procedure TpgfWindowImpl.AdjustWindowStyle;
+begin
+
+end;
+
+procedure TpgfWindowImpl.SetWindowParameters;
+begin
+
+end;
+
+function TpgfWindowImpl.GetFLeft: integer;
+begin
+  result := inherited left;
+end;
+
+procedure TpgfWindowImpl.SetFLeft(const Value: integer);
+begin
+  Left := value;
+end;
+
+function TpgfWindowImpl.GetFTop: integer;
+begin
+  result := inherited top;
+end;
+
+procedure TpgfWindowImpl.SetFTop(const Value: integer);
+begin
+  top := value;
+end;
+
+function TpgfWindowImpl.GetFWidth: integer;
+begin
+  result := width;
+end;
+
+procedure TpgfWindowImpl.SetFWidth(const Value: integer);
+begin
+  width := value;
+end;
+
+function TpgfWindowImpl.GetFHeight: integer;
+begin
+  result := height;
+end;
+
+procedure TpgfWindowImpl.SetFHeight(const Value: integer);
+begin
+  Height := value;
 end;
 
 { TpgfCanvasImpl }
@@ -1535,6 +1069,7 @@ initialization
 begin
   wdisp := nil;
   MouseFocusedWH := 0;
+  showmessage('HDPLATFORM DESIGNTIME LOADED!');
 end;
 
 end.

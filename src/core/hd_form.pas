@@ -18,7 +18,7 @@ type
     FParentForm : TpgfForm;
 
     FWindowPosition : TWindowPosition;
-    FWindowTitle : widestring;
+    FCaption : widestring;
     FSizeable : boolean;
 
     FBackgroundColor : TpgfColor;
@@ -26,7 +26,7 @@ type
     procedure AdjustWindowStyle; override;
     procedure SetWindowParameters; override;
 
-    procedure SetWindowTitle(const AValue: widestring);
+    procedure SetCaption(const AValue: widestring);
 
   protected
     procedure MsgActivate(var msg : TpgfMessageRec); message PGFM_ACTIVATE;
@@ -54,7 +54,7 @@ type
 
     property ModalResult : integer read FModalResult write FModalResult;
   published
-    property WindowTitle : widestring read FWindowTitle write SetWindowTitle;
+    property Caption : widestring read FCaption write SetCaption;
   end;
 
 
@@ -67,7 +67,8 @@ function WidgetParentForm(wg : TpgfWidget) : TpgfForm;
 
 implementation
 
-uses hd_main;
+uses hd_main,
+  hd_platform_win;
 
 function WidgetParentForm(wg : TpgfWidget) : TpgfForm;
 var
@@ -88,10 +89,10 @@ end;
 
 { TpgfForm }
 
-procedure TpgfForm.SetWindowTitle(const AValue: widestring);
+procedure TpgfForm.SetCaption(const AValue: widestring);
 begin
-  FWindowTitle := avalue;
-  inherited DoSetWindowTitle(FWindowTitle);
+  FCaption := avalue;
+  inherited DoSetWindowTitle(FCaption);
 end;
 
 procedure TpgfForm.HandlePaint;
@@ -127,15 +128,15 @@ end;
 procedure TpgfForm.SetWindowParameters;
 begin
   inherited;
-  
-  DoSetWindowTitle(FWindowTitle);
+
+  DoSetWindowTitle(FCaption);
 end;
 
 constructor TpgfForm.Create(aowner: TComponent);
 begin
   inherited;
   FWindowPosition := wpAuto;
-  FWindowTitle := '';
+  FCaption := '';
   FSizeable := true;
   FParentForm := nil;
   FBackgroundColor := clWindowBackground;
