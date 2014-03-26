@@ -3,6 +3,7 @@
   <Package Version="4">
     <PathDelim Value="\"/>
     <Name Value="hd_designtime"/>
+    <Author Value="x2nie"/>
     <CompilerOptions>
       <Version Value="11"/>
       <PathDelim Value="\"/>
@@ -17,7 +18,10 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Files Count="6">
+    <Description Value="integrating PasGF to Lazarus IDE"/>
+    <License Value="LGLP 2.1 with linking exception"/>
+    <Version Minor="1"/>
+    <Files Count="8">
       <Item1>
         <Filename Value="hd_designer.pas"/>
         <HasRegisterProc Value="True"/>
@@ -40,9 +44,17 @@
         <UnitName Value="hd_defs"/>
       </Item5>
       <Item6>
-        <Filename Value="..\..\widget\wgbutton.pas"/>
-        <UnitName Value="wgbutton"/>
+        <Filename Value="..\..\widget\hd_button.pas"/>
+        <UnitName Value="hd_button"/>
       </Item6>
+      <Item7>
+        <Filename Value="..\..\widget\wgtrackbar.pas"/>
+        <UnitName Value="wgtrackbar"/>
+      </Item7>
+      <Item8>
+        <Filename Value="..\..\widget\wgprogress.pas"/>
+        <UnitName Value="wgprogress"/>
+      </Item8>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="2">

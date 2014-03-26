@@ -53,12 +53,12 @@ type
 procedure Register;
 
 implementation
-uses Controls, wgbutton;
+uses Controls, hd_button,wgprogress, wgtrackbar;
 
 procedure Register;
 begin
   FormEditingHook.RegisterDesignerMediator(TpgfMediator);
-  RegisterComponents('Standard',[TwgButton{, TpgfMemo}]);
+  RegisterComponents('Standard',[TwgButton{, TpgfMemo}, TwgProgressbar, TwgTrackbar]);
   RegisterProjectFileDescriptor(TFileDescPascalUnitWithPgfForm.Create,
                                 FileDescGroupName);
 end;
@@ -75,7 +75,7 @@ end;
 
 function TFileDescPascalUnitWithPgfForm.GetInterfaceUsesSection: string;
 begin
-  Result:='Classes, SysUtils, hd_base, hd_main, hd_form';
+  Result:='Classes, SysUtils, hd_defs, hd_main, hd_form';
 end;
 
 function TFileDescPascalUnitWithPgfForm.GetLocalizedName: string;

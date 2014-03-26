@@ -154,6 +154,8 @@ function FindKeyboardFocus : TpgfWidget;
 
 implementation
 
+uses hd_form;
+
 function FindKeyboardFocus : TpgfWidget;
 begin
   Result := nil;
@@ -912,6 +914,16 @@ begin
     if Components[i].Owner=Root then
       Proc(Components[i]);
   end;
+  {for i:=0 to ChildCount-1 do
+      if Children[i].Owner=Root then
+        Proc(Children[i]);
+
+  if self is TMyForm then
+  begin
+    for i := 0 to ComponentCount-1 do
+        if not (Components[i] is TpgfWidget) then
+           Proc(Components[i])
+  end}
 end;
 
 procedure TpgfWidget.SetParentComponent(Value: TComponent);

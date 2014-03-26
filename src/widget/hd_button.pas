@@ -1,4 +1,4 @@
-unit wgbutton;
+unit hd_button;
 
 // Button Widget
 
@@ -12,11 +12,15 @@ uses
   Classes, SysUtils, hd_defs, hd_main, hd_widget;
 
 type
+
+  { TwgButton }
+
   TwgButton = class(TpgfWidget)
   private
     FImageName: string;
     FClicked : Boolean;
     FImage : TpgfImage;
+    FOnClick: TNotifyEvent;
     FShowImage : Boolean;
     FClickOnPush : Boolean;
     FDown : Boolean;
@@ -55,7 +59,7 @@ type
     procedure HandleMouseEnter; override;
 
   public
-    OnClick : TNotifyEvent;
+    //OnClick : TNotifyEvent;
 
   public
     constructor Create(AOwner : TComponent); override;
@@ -89,6 +93,7 @@ type
 
     property ModalResult : integer read FModalResult write FModalResult;
 
+    property OnClick : TNotifyEvent read FOnClick write FOnClick;
   end;
 
 function CreateButton(AOwner : TComponent; x, y, w : TpgfCoord; txt8 : String; onclk : TNotifyEvent) : TwgButton;
@@ -162,7 +167,7 @@ begin
   FHeight := FFont.Height + 8;
   FWidth := 96;
   FFocusable := True;
-  OnClick := nil;
+  FOnClick := nil;
   FDown := False;
   FClicked := False;
   FDown := False;
@@ -192,8 +197,8 @@ var
 begin
   Canvas.BeginDraw;
 
-  //Canvas.Clear(clButtonFace);
-  Canvas.Clear(clSelection);
+  Canvas.Clear(clButtonFace);
+  //Canvas.Clear(clSelection);
   Canvas.ClearClipRect;
 
   if not FDown then Canvas.SetColor(clHilite1)
@@ -344,7 +349,8 @@ begin
   else inherited;
 end;
 
-procedure TwgButton.HandleKeyChar(var keycode, shiftstate: word; var consumed: boolean);
+procedure TwgButton.HandleKeyChar(var keycode: word; var shiftstate: word;
+  var consumed: boolean);
 begin
   if (keycode = KEY_ENTER) or (keycode = KEY_SPACE)
     then Consumed := true
@@ -400,7 +406,7 @@ begin
   pform := WidgetParentForm(self);
   if pform <> nil then pform.ModalResult := self.ModalResult;
 
-  if Assigned(OnClick) then OnClick(self);
+  if Assigned(FOnClick) then FOnClick(self);
 end;
 
 procedure TwgButton.SetImageMargin(const Value: integer);
