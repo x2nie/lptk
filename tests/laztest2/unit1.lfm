@@ -1,0 +1,30 @@
+object pgfForm1: TpgfForm1
+  Left = 233
+  Top = 134
+  Width = 137
+  Height = 83
+  Align = alNone
+  Anchors = [anLeft, anTop]
+  Enabled = True
+  TabOrder = 0
+  Visible = True
+  Caption = 'Aloha'
+  object wgButton1: TwgButton
+    Left = 8
+    Top = 24
+    Width = 50
+    Height = 26
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+    TabOrder = 0
+    Visible = True
+    Text = 'Button'
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+  end
+end

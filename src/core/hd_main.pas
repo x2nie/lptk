@@ -355,6 +355,15 @@ type
     procedure InvertCaret;
   end;
 
+  { TApplication }
+
+  TApplication = class(TComponent)
+  public
+    procedure Initialize;
+    procedure Run;
+    procedure CreateForm(InstanceClass: TComponentClass; out Reference);
+  end;
+
 var
   pgfDisp   : TpgfDisplay;
   pgfStyle  : TpgfStyle;
@@ -399,15 +408,17 @@ function wsToUtf8(const wstr : widestring) : string;
 procedure pgfInitTimers;
 procedure pgfCheckTimers;
 function pgfClosestTimer(ctime : TDateTime; amaxtime : integer) : integer;
+function Application: TApplication;
 
 implementation
 
 uses
-  hd_imgfmt_bmp, hd_stdimages;
+  hd_imgfmt_bmp, hd_stdimages, hd_form;
 
 var
   pgfCaretCanvas : TpgfCanvas;
   pgfCaretTimer  : TpgfTimer;
+  pgfApplication : TApplication; //simulation
 
 var
   pgfTimers : TList;
@@ -422,6 +433,67 @@ type
     FontDesc : string;
     constructor Create(AFontID, AFontDesc : string);
   end;
+
+{ TApplication }
+function Application: TApplication;
+begin
+  if pgfApplication = nil then
+     pgfApplication := TApplication.Create(nil);
+  result := pgfApplication;
+end;
+
+procedure TApplication.Initialize;
+begin
+  pgfOpenDisplay('');
+end;
+
+procedure TApplication.Run;
+begin
+  pgfRunMessageLoop;
+end;
+
+procedure TApplication.CreateForm(InstanceClass: TComponentClass; out Reference
+  );
+var
+  Instance: TComponent;
+  ok: boolean;
+  //AForm: TForm;
+begin
+  // Allocate the instance, without calling the constructor
+  Instance := TComponent(InstanceClass.NewInstance);
+  // set the Reference before the constructor is called, so that
+  // events and constructors can refer to it
+  TComponent(Reference) := Instance;
+
+  ok:=false;
+  try
+    Instance.Create(Self);
+    if Instance is TpgfForm then
+       TpgfForm(instance).Show;
+    ok:=true;
+  finally
+    if not ok then begin
+      TComponent(Reference) := nil;
+      //if FCreatingForm=Instance then
+        //FCreatingForm:=nil;
+    end;
+  end;
+
+  {if (Instance is TForm) then
+  begin
+    AForm := TForm(Instance);
+    UpdateMainForm(AForm);
+    if FMainForm = AForm then
+      AForm.HandleNeeded;
+    if AForm.FormStyle = fsSplash then
+    begin
+      // show the splash form and handle the paint message
+      AForm.Show;
+      AForm.Invalidate;
+      ProcessMessages;
+    end;
+  end;}
+end;
 
 constructor TNamedFontItem.Create(AFontID, AFontDesc: string);
 begin

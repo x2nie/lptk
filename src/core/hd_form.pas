@@ -146,7 +146,7 @@ begin
   FModalResult := 0;
 
   FPrevModalForm := nil;
-  
+  InitInheritedComponent (self, TpgfForm);
   AfterCreate;
 end;
 
