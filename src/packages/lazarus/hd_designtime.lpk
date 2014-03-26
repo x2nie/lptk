@@ -21,7 +21,7 @@
     <Description Value="integrating PasGF to Lazarus IDE"/>
     <License Value="LGLP 2.1 with linking exception"/>
     <Version Minor="1"/>
-    <Files Count="8">
+    <Files Count="9">
       <Item1>
         <Filename Value="hd_designer.pas"/>
         <HasRegisterProc Value="True"/>
@@ -55,6 +55,11 @@
         <Filename Value="..\..\widget\wgprogress.pas"/>
         <UnitName Value="wgprogress"/>
       </Item8>
+      <Item9>
+        <Filename Value="hd_application.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="hd_application"/>
+      </Item9>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="2">

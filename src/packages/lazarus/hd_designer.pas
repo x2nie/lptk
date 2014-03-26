@@ -39,16 +39,6 @@ type
   end;
 
 
-  { TFileDescPascalUnitWithPgfForm }
-
-  TFileDescPascalUnitWithPgfForm = class(TFileDescPascalUnitWithResource)
-  public
-    constructor Create; override;
-    function GetInterfaceUsesSection: string; override;
-    function GetLocalizedName: string; override;
-    function GetLocalizedDescription: string; override;
-  end;
-
 
 procedure Register;
 
@@ -59,34 +49,9 @@ procedure Register;
 begin
   FormEditingHook.RegisterDesignerMediator(TpgfMediator);
   RegisterComponents('Standard',[TwgButton{, TpgfMemo}, TwgProgressbar, TwgTrackbar]);
-  RegisterProjectFileDescriptor(TFileDescPascalUnitWithPgfForm.Create,
-                                FileDescGroupName);
 end;
 
-{ TFileDescPascalUnitWithPgfForm }
 
-constructor TFileDescPascalUnitWithPgfForm.Create;
-begin
-  inherited Create;
-  Name:='pgfForm';
-  ResourceClass:=TpgfForm;
-  UseCreateFormStatements:=false;
-end;
-
-function TFileDescPascalUnitWithPgfForm.GetInterfaceUsesSection: string;
-begin
-  Result:='Classes, SysUtils, hd_defs, hd_main, hd_form';
-end;
-
-function TFileDescPascalUnitWithPgfForm.GetLocalizedName: string;
-begin
-  Result:='pgfForm';
-end;
-
-function TFileDescPascalUnitWithPgfForm.GetLocalizedDescription: string;
-begin
-  Result:='Create a new pgfForm for hdGUI Application';
-end;
 
 
 
