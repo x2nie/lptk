@@ -469,7 +469,8 @@ begin
   try
     Instance.Create(Self);
     if Instance is TpgfForm then
-       TpgfForm(instance).Show;
+       if TpgfForm(instance).Visible then
+           TpgfForm(instance).Show;
     ok:=true;
   finally
     if not ok then begin

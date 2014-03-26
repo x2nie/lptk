@@ -1,7 +1,7 @@
 object pgfForm1: TpgfForm1
-  Left = 233
-  Top = 134
-  Width = 137
+  Left = 229
+  Top = 179
+  Width = 170
   Height = 83
   Align = alNone
   Anchors = [anLeft, anTop]
@@ -26,5 +26,25 @@ object pgfForm1: TpgfForm1
     GroupIndex = 0
     AllowAllUp = False
     ModalResult = 0
+    OnClick = wgButton1Click
+  end
+  object wgButton2: TwgButton
+    Left = 72
+    Top = 16
+    Width = 74
+    Height = 34
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+    TabOrder = 0
+    Visible = True
+    Text = 'Form 2'
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+    OnClick = wgButton2Click
   end
 end
