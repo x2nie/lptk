@@ -1,7 +1,7 @@
 object pgfForm1: TpgfForm1
-  Left = 240
-  Top = 186
-  Width = 170
+  Left = 244
+  Top = 184
+  Width = 358
   Height = 83
   Align = alNone
   Anchors = [anLeft, anTop]
@@ -10,9 +10,9 @@ object pgfForm1: TpgfForm1
   Visible = True
   Caption = 'Aloha'
   object wgButton1: TwgButton
-    Left = 8
-    Top = 24
-    Width = 50
+    Left = 240
+    Top = 2
+    Width = 68
     Height = 26
     Align = alNone
     Anchors = [anLeft, anTop]
@@ -21,6 +21,7 @@ object pgfForm1: TpgfForm1
     Visible = True
     Text = 'Button'
     FontDesc = '#Label1'
+    ImageName = 'stdimg.exit'
     ImageMargin = 3
     ImageSpacing = -1
     GroupIndex = 0
@@ -29,10 +30,10 @@ object pgfForm1: TpgfForm1
     OnClick = wgButton1Click
   end
   object wgButton2: TwgButton
-    Left = 72
-    Top = 16
-    Width = 74
-    Height = 34
+    Left = 56
+    Top = 40
+    Width = 114
+    Height = 26
     Align = alNone
     Anchors = [anLeft, anTop]
     Enabled = True
@@ -40,6 +41,7 @@ object pgfForm1: TpgfForm1
     Visible = True
     Text = 'Form 2'
     FontDesc = '#Label1'
+    ImageName = 'stdimg.folderopen'
     ImageMargin = 3
     ImageSpacing = -1
     GroupIndex = 0

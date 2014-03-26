@@ -7,7 +7,7 @@ unit Unit1;
 interface
 
 uses
-  Classes, SysUtils, hd_defs, hd_main, hd_form, hd_button;
+  Classes, SysUtils, hd_defs, hd_main, hd_form,hd_imgfmt_bmp, hd_button;
 
 type
 

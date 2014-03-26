@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="9"/>
+    <BuildModes Active="Default"/>
+    <Units Count="4">
+      <Unit0>
+        <Filename Value="stdimglist.dpr"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="3"/>
+        <CursorPos X="17" Y="53"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="..\src\core\hd_form.pas"/>
+        <UnitName Value="hd_form"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="135"/>
+        <CursorPos X="53" Y="141"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\src\core\hd_main.pas"/>
+        <UnitName Value="hd_main"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="606"/>
+        <CursorPos X="12" Y="623"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\src\core\hd_stdimages.pas"/>
+        <UnitName Value="hd_stdimages"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="11" Y="12"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit3>
+    </Units>
+    <General>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <JumpHistory Count="13" HistoryIndex="12">
+      <Position1>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="14" Column="3" TopLine="1"/>
+      </Position1>
+      <Position2>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="10" Column="6" TopLine="1"/>
+      </Position2>
+      <Position3>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="11" Column="3" TopLine="1"/>
+      </Position3>
+      <Position4>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="19" Column="20" TopLine="1"/>
+      </Position4>
+      <Position5>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="11" Column="44" TopLine="3"/>
+      </Position5>
+      <Position6>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="15" Column="3" TopLine="4"/>
+      </Position6>
+      <Position7>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="33" Column="10" TopLine="23"/>
+      </Position7>
+      <Position8>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="85" Column="1" TopLine="69"/>
+      </Position8>
+      <Position9>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="21" Column="3" TopLine="11"/>
+      </Position9>
+      <Position10>
+        <Filename Value="..\src\core\hd_form.pas"/>
+        <Caret Line="150" Column="3" TopLine="135"/>
+      </Position10>
+      <Position11>
+        <Filename Value="stdimglist.dpr"/>
+        <Caret Line="53" Column="17" TopLine="46"/>
+      </Position11>
+      <Position12>
+        <Filename Value="..\src\core\hd_main.pas"/>
+        <Caret Line="371" Column="25" TopLine="361"/>
+      </Position12>
+      <Position13>
+        <Filename Value="..\src\core\hd_main.pas"/>
+        <Caret Line="623" Column="12" TopLine="606"/>
+      </Position13>
+    </JumpHistory>
+  </ProjectSession>
+  <EditorMacros Count="0"/>
+</CONFIG>

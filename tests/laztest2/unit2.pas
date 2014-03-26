@@ -7,7 +7,7 @@ unit Unit2;
 interface
 
 uses
-  Classes, SysUtils, hd_defs, hd_main, hd_form, hd_button, hd_progressbar;
+  Classes, SysUtils, hd_defs, hd_main, hd_form, hd_stdimages, hd_button, hd_progressbar;
 
 type
 

@@ -1,18 +1,11 @@
 program stdimglist;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 {$APPTYPE CONSOLE}
 
 uses
-
-  hd_defs, hd_main, hd_form, hd_imgfmt_bmp,//, wgedit, wgmemo,
-
   Classes, SysUtils,
-  //wglabel,
-  hd_button;
+  pgf_defs, pgf_main, pgf_form, pgf_imgfmt_bmp,
+  wglabel, wgbutton, wgedit, wgmemo;
 
 type
 
@@ -30,7 +23,7 @@ type
 procedure TmyForm.AfterCreate;
 begin
   SetPosition(100,100,700,500);
-  Caption := 'PasGF Standard Image Listing';
+  WindowTitle := 'PasGF Standard Image Listing';
 end;
 
 procedure TmyForm.HandlePaint;
