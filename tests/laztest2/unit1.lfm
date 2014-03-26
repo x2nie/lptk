@@ -1,6 +1,6 @@
 object pgfForm1: TpgfForm1
-  Left = 229
-  Top = 179
+  Left = 240
+  Top = 186
   Width = 170
   Height = 83
   Align = alNone

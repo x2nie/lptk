@@ -43,7 +43,7 @@ type
 procedure Register;
 
 implementation
-uses Controls, hd_button,wgprogress, wgtrackbar;
+uses Controls, hd_button,hd_progressbar, wgtrackbar;
 
 procedure Register;
 begin

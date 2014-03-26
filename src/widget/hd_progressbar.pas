@@ -1,4 +1,4 @@
-unit wgprogress;
+unit hd_progressbar;
 
 { feature-requests or bug-reports - mail to: erik@grohnwaldt.de
     History
@@ -40,7 +40,7 @@ type
 
 	    procedure StepIt;
 	    procedure StepBy(aStep : longint);
-
+  published
 	    property DisplayPercent : boolean read FDisplayPercent write SetDisplayPercent;
 	    property Max : longint read FMax write SetMax;
 	    property Min : longint read FMin write SetMin;

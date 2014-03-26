@@ -46,12 +46,14 @@
         <Filename Value="unit1.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="pgfForm1"/>
+        <HasResources Value="True"/>
         <UnitName Value="Unit1"/>
       </Unit1>
       <Unit2>
         <Filename Value="unit2.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="pgfForm2"/>
+        <HasResources Value="True"/>
         <UnitName Value="Unit2"/>
       </Unit2>
     </Units>

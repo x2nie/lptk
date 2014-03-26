@@ -7,7 +7,7 @@ unit Unit2;
 interface
 
 uses
-  Classes, SysUtils, hd_defs, hd_main, hd_form, hd_button;
+  Classes, SysUtils, hd_defs, hd_main, hd_form, hd_button, hd_progressbar;
 
 type
 
@@ -15,6 +15,7 @@ type
 
   TpgfForm2 = class(TpgfForm)
     wgButton1: TwgButton;
+    wgProgressbar1: TwgProgressbar;
     procedure wgButton1Click(Sender: TObject);
   private
     { private declarations }

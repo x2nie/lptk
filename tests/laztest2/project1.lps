@@ -4,154 +4,242 @@
     <PathDelim Value="\"/>
     <Version Value="9"/>
     <BuildModes Active="Default"/>
-    <Units Count="7">
+    <Units Count="10">
       <Unit0>
         <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="project1"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="15" Y="15"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="unit1.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="pgfForm1"/>
+        <HasResources Value="True"/>
         <UnitName Value="Unit1"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="28"/>
-        <CursorPos X="9" Y="44"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="11"/>
+        <CursorPos X="3" Y="38"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
+        <Filename Value="unit2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="pgfForm2"/>
+        <HasResources Value="True"/>
+        <UnitName Value="Unit2"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="74" Y="10"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit2>
+      <Unit3>
         <Filename Value="..\..\src\core\hd_main.pas"/>
         <UnitName Value="hd_main"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="465"/>
-        <CursorPos X="8" Y="473"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="..\..\src\core\hd_platform_win.pas"/>
-        <UnitName Value="hd_platform_win"/>
-        <EditorIndex Value="4"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="154"/>
-        <CursorPos X="3" Y="164"/>
-        <UsageCount Value="10"/>
+        <TopLine Value="1143"/>
+        <CursorPos X="42" Y="1168"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit3>
       <Unit4>
-        <Filename Value="..\..\src\core\hd_defs.pas"/>
-        <UnitName Value="hd_defs"/>
+        <Filename Value="..\..\src\core\hd_platform_win.pas"/>
+        <UnitName Value="hd_platform_win"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="229"/>
-        <CursorPos X="3" Y="239"/>
-        <UsageCount Value="10"/>
+        <TopLine Value="860"/>
+        <CursorPos X="37" Y="842"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit4>
       <Unit5>
+        <Filename Value="..\..\src\core\hd_defs.pas"/>
+        <UnitName Value="hd_defs"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="219"/>
+        <CursorPos X="31" Y="224"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
         <Filename Value="..\..\src\core\hd_form.pas"/>
         <UnitName Value="hd_form"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="133"/>
-        <CursorPos X="29" Y="146"/>
+        <TopLine Value="100"/>
+        <CursorPos X="17" Y="107"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\..\src\core\hd_widget.pas"/>
+        <UnitName Value="hd_widget"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="399"/>
+        <CursorPos X="33" Y="410"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="unit2.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="pgfForm2"/>
-        <UnitName Value="Unit2"/>
-        <EditorIndex Value="1"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="..\..\src\widget\hd_progressbar.pas"/>
+        <UnitName Value="hd_progressbar"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="20"/>
-        <CursorPos X="14" Y="36"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="10"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
-      </Unit6>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\..\src\packages\lazarus\hd_designer.pas"/>
+        <UnitName Value="hd_designer"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="36"/>
+        <CursorPos X="40" Y="46"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit9>
     </Units>
     <General>
       <ActiveWindowIndexAtStart Value="0"/>
     </General>
-    <JumpHistory Count="16" HistoryIndex="15">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="364" Column="15" TopLine="350"/>
       </Position1>
       <Position2>
         <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="440" Column="20" TopLine="430"/>
+        <Caret Line="472" Column="32" TopLine="467"/>
       </Position2>
       <Position3>
         <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="364" Column="15" TopLine="350"/>
+        <Caret Line="445" Column="39" TopLine="436"/>
       </Position3>
       <Position4>
         <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="472" Column="32" TopLine="467"/>
+        <Caret Line="744" Column="45" TopLine="733"/>
       </Position4>
       <Position5>
         <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="445" Column="39" TopLine="436"/>
+        <Caret Line="368" Column="3" TopLine="358"/>
       </Position5>
       <Position6>
         <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="744" Column="45" TopLine="733"/>
+        <Caret Line="282" Column="3" TopLine="272"/>
       </Position6>
       <Position7>
-        <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="368" Column="3" TopLine="358"/>
+        <Filename Value="..\..\src\core\hd_platform_win.pas"/>
+        <Caret Line="164" Column="3" TopLine="154"/>
       </Position7>
       <Position8>
         <Filename Value="..\..\src\core\hd_main.pas"/>
         <Caret Line="282" Column="3" TopLine="272"/>
       </Position8>
       <Position9>
-        <Filename Value="..\..\src\core\hd_platform_win.pas"/>
-        <Caret Line="164" Column="3" TopLine="154"/>
+        <Filename Value="..\..\src\core\hd_main.pas"/>
+        <Caret Line="470" Column="25" TopLine="454"/>
       </Position9>
       <Position10>
         <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="282" Column="3" TopLine="272"/>
+        <Caret Line="445" Column="14" TopLine="404"/>
       </Position10>
       <Position11>
-        <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="470" Column="25" TopLine="454"/>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="7" Column="24" TopLine="1"/>
       </Position11>
       <Position12>
-        <Filename Value="..\..\src\core\hd_main.pas"/>
-        <Caret Line="445" Column="14" TopLine="404"/>
+        <Filename Value="unit2.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position12>
       <Position13>
         <Filename Value="unit1.pas"/>
         <Caret Line="7" Column="24" TopLine="1"/>
       </Position13>
       <Position14>
-        <Filename Value="unit2.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position14>
-      <Position15>
-        <Filename Value="unit1.pas"/>
-        <Caret Line="7" Column="24" TopLine="1"/>
-      </Position15>
-      <Position16>
         <Filename Value="unit1.pas"/>
         <Caret Line="38" Column="28" TopLine="22"/>
+      </Position14>
+      <Position15>
+        <Filename Value="unit2.pas"/>
+        <Caret Line="36" Column="14" TopLine="20"/>
+      </Position15>
+      <Position16>
+        <Filename Value="unit2.pas"/>
+        <Caret Line="4" Column="40" TopLine="1"/>
       </Position16>
+      <Position17>
+        <Filename Value="..\..\src\core\hd_main.pas"/>
+        <Caret Line="473" Column="8" TopLine="407"/>
+      </Position17>
+      <Position18>
+        <Filename Value="..\..\src\core\hd_widget.pas"/>
+        <Caret Line="107" Column="25" TopLine="92"/>
+      </Position18>
+      <Position19>
+        <Filename Value="..\..\src\core\hd_widget.pas"/>
+        <Caret Line="198" Column="32" TopLine="167"/>
+      </Position19>
+      <Position20>
+        <Filename Value="..\..\src\core\hd_widget.pas"/>
+        <Caret Line="403" Column="32" TopLine="390"/>
+      </Position20>
+      <Position21>
+        <Filename Value="..\..\src\core\hd_main.pas"/>
+        <Caret Line="103" Column="35" TopLine="84"/>
+      </Position21>
+      <Position22>
+        <Filename Value="..\..\src\core\hd_main.pas"/>
+        <Caret Line="1168" Column="42" TopLine="1143"/>
+      </Position22>
+      <Position23>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="44" Column="9" TopLine="28"/>
+      </Position23>
+      <Position24>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="38" Column="3" TopLine="28"/>
+      </Position24>
+      <Position25>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="44" Column="3" TopLine="28"/>
+      </Position25>
+      <Position26>
+        <Filename Value="unit2.pas"/>
+        <Caret Line="4" Column="40" TopLine="1"/>
+      </Position26>
+      <Position27>
+        <Filename Value="..\..\src\core\hd_defs.pas"/>
+        <Caret Line="229" Column="5" TopLine="219"/>
+      </Position27>
+      <Position28>
+        <Filename Value="..\..\src\packages\lazarus\hd_designer.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position28>
+      <Position29>
+        <Filename Value="..\..\src\packages\lazarus\hd_designer.pas"/>
+        <Caret Line="46" Column="29" TopLine="36"/>
+      </Position29>
+      <Position30>
+        <Filename Value="unit2.pas"/>
+        <Caret Line="37" Column="3" TopLine="21"/>
+      </Position30>
     </JumpHistory>
   </ProjectSession>
   <EditorMacros Count="0"/>

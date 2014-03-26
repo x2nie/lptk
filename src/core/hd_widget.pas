@@ -424,6 +424,8 @@ var
   n : integer;
   c : TComponent;
 begin
+  if pgfDesigning then
+     exit;
   for n := 0 to ComponentCount-1 do
   begin
     c := Components[n];
