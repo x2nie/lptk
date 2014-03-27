@@ -1,0 +1,24 @@
+object MyForm13: TMyForm13
+  Left = 294
+  Top = 218
+  Width = 257
+  Height = 116
+  Visible = False
+  Caption = 'MyForm13cap'
+  object GB: TMyGroupBox
+    Left = 43
+    Top = 12
+    Width = 150
+    Height = 50
+    Visible = False
+    Caption = 'G bel'
+    object bt: TMyButton
+      Left = 19
+      Top = 4
+      Width = 70
+      Height = 73
+      Visible = False
+      Caption = 'solider'
+    end
+  end
+end

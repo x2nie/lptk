@@ -53,7 +53,7 @@ type
 procedure Register;
 
 implementation
-uses Controls, wgbutton;
+uses Controls, hd_button;
 
 procedure Register;
 begin
@@ -75,7 +75,7 @@ end;
 
 function TFileDescPascalUnitWithPgfForm.GetInterfaceUsesSection: string;
 begin
-  Result:='Classes, SysUtils, hd_base, hd_main, hd_form';
+  Result:='Classes, SysUtils, hd_defs, hd_main, hd_form';
 end;
 
 function TFileDescPascalUnitWithPgfForm.GetLocalizedName: string;

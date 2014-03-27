@@ -40,8 +40,8 @@
         <UnitName Value="hd_defs"/>
       </Item5>
       <Item6>
-        <Filename Value="..\..\widget\wgbutton.pas"/>
-        <UnitName Value="wgbutton"/>
+        <Filename Value="..\..\widget\hd_button.pas"/>
+        <UnitName Value="hd_button"/>
       </Item6>
     </Files>
     <Type Value="RunAndDesignTime"/>

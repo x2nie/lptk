@@ -1,0 +1,123 @@
+object pgfForm1: TpgfForm1
+  Left = 321
+  Top = 339
+  Width = 306
+  Height = 226
+  Align = alNone
+  Anchors = [anLeft, anTop]
+  Enabled = True
+  TabOrder = 0
+  Visible = True
+  object wgButton1: TwgButton
+    Left = 0
+    Top = 176
+    Width = 306
+    Height = 50
+    Align = alBottom
+    Anchors = [anLeft, anTop]
+    Enabled = True
+    TabOrder = 0
+    Visible = True
+    Text = 'Button'
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+  end
+  object wgButton2: TwgButton
+    Left = 0
+    Top = 144
+    Width = 306
+    Height = 32
+    Align = alBottom
+    Anchors = [anLeft, anTop]
+    Enabled = False
+    TabOrder = 0
+    Visible = True
+    Text = 'Button'
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+  end
+  object wgButton3: TwgButton
+    Left = 0
+    Top = 0
+    Width = 88
+    Height = 144
+    Align = alLeft
+    Anchors = [anLeft, anTop]
+    Enabled = False
+    TabOrder = 0
+    Visible = True
+    Text = 'Button'
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+  end
+  object PopupMenu1: TPopupMenu
+    left = 64867
+    top = 65395
+  end
+  object wgButton4: TwgButton
+    Left = 96
+    Top = 48
+    Width = 88
+    Height = 50
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+    TabOrder = 0
+    Visible = True
+    Text = 'Button'
+    FontDesc = '#Label1'
+    ImageName = 'stdimg.close3'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+  end
+  object wgButton5: TwgButton
+    Left = 208
+    Top = 48
+    Width = 50
+    Height = 50
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+    TabOrder = 0
+    Visible = True
+    Text = 'Button'
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+  end
+  object wgButton6: TwgButton
+    Left = 188
+    Top = 24
+    Width = 50
+    Height = 50
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+    TabOrder = 0
+    Visible = True
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+  end
+end

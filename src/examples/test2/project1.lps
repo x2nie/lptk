@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="9"/>
+    <BuildModes Active="Default"/>
+    <Units Count="19">
+      <Unit0>
+        <Filename Value="project1.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="project1"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="115"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="unit2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="pgfForm1"/>
+        <HasResources Value="True"/>
+        <UnitName Value="Unit2"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="29" Y="8"/>
+        <UsageCount Value="115"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="unit1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="pgfForm2"/>
+        <HasResources Value="True"/>
+        <UnitName Value="Unit1"/>
+        <EditorIndex Value="15"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="58" Y="8"/>
+        <UsageCount Value="24"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\..\core\hd_form.pas"/>
+        <UnitName Value="hd_form"/>
+        <EditorIndex Value="18"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="53"/>
+        <CursorPos X="37" Y="53"/>
+        <UsageCount Value="57"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="..\..\core\hd_defs.pas"/>
+        <UnitName Value="hd_defs"/>
+        <EditorIndex Value="10"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="197"/>
+        <CursorPos X="42" Y="229"/>
+        <UsageCount Value="57"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\..\core\hd_widget.pas"/>
+        <UnitName Value="hd_widget"/>
+        <EditorIndex Value="11"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="618"/>
+        <CursorPos X="27" Y="644"/>
+        <UsageCount Value="57"/>
+        <Bookmarks Count="1">
+          <Item0 X="3" Y="184" ID="9"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\..\core\hd_main.pas"/>
+        <UnitName Value="hd_main"/>
+        <EditorIndex Value="13"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="666"/>
+        <CursorPos X="31" Y="681"/>
+        <UsageCount Value="57"/>
+        <Loaded Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\..\core\hd_platform_win.pas"/>
+        <UnitName Value="hd_platform_win"/>
+        <EditorIndex Value="17"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="689"/>
+        <CursorPos X="1" Y="720"/>
+        <UsageCount Value="57"/>
+        <Loaded Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="..\..\packages\lazarus\hd_designer.pas"/>
+        <UnitName Value="hd_designer"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="59"/>
+        <CursorPos X="38" Y="78"/>
+        <UsageCount Value="57"/>
+        <Loaded Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\..\core\hd_stdimages.pas"/>
+        <UnitName Value="hd_stdimages"/>
+        <EditorIndex Value="16"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="91"/>
+        <CursorPos X="27" Y="100"/>
+        <UsageCount Value="57"/>
+        <Loaded Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="..\..\widget\hd_button.pas"/>
+        <UnitName Value="hd_button"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="14"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="60"/>
+        <CursorPos X="21" Y="78"/>
+        <UsageCount Value="57"/>
+        <Loaded Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="unit2.lfm"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="C:\lazarus\lcl\interfaces\win32\interfaces.pp"/>
+        <UnitName Value="Interfaces"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="19"/>
+        <CursorPos X="7" Y="27"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="C:\lazarus\lcl\forms.pp"/>
+        <UnitName Value="Forms"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="114"/>
+        <CursorPos X="1" Y="114"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="C:\lazarus\lcl\include\customform.inc"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\inc\objpash.inc"/>
+        <EditorIndex Value="9"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="201"/>
+        <CursorPos X="21" Y="218"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <UnitName Value="Controls"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1332"/>
+        <CursorPos X="15" Y="1351"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="3137"/>
+        <CursorPos X="37" Y="3168"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="12"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1693"/>
+        <CursorPos X="15" Y="1711"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit18>
+    </Units>
+    <General>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <Caret Line="1340" Column="41" TopLine="1334"/>
+      </Position1>
+      <Position2>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <Caret Line="1343" Column="25" TopLine="1334"/>
+      </Position2>
+      <Position3>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <Caret Line="1344" Column="26" TopLine="1334"/>
+      </Position3>
+      <Position4>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <Caret Line="1345" Column="19" TopLine="1334"/>
+      </Position4>
+      <Position5>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <Caret Line="1346" Column="42" TopLine="1334"/>
+      </Position5>
+      <Position6>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <Caret Line="1360" Column="30" TopLine="1334"/>
+      </Position6>
+      <Position7>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <Caret Line="1376" Column="24" TopLine="1346"/>
+      </Position7>
+      <Position8>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <Caret Line="3099" Column="19" TopLine="3061"/>
+      </Position8>
+      <Position9>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <Caret Line="4710" Column="27" TopLine="4678"/>
+      </Position9>
+      <Position10>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <Caret Line="4715" Column="27" TopLine="4683"/>
+      </Position10>
+      <Position11>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <Caret Line="4717" Column="14" TopLine="4685"/>
+      </Position11>
+      <Position12>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <Caret Line="4721" Column="23" TopLine="4689"/>
+      </Position12>
+      <Position13>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <Caret Line="4723" Column="31" TopLine="4691"/>
+      </Position13>
+      <Position14>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <Caret Line="4741" Column="19" TopLine="4709"/>
+      </Position14>
+      <Position15>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <Caret Line="1396" Column="55" TopLine="1365"/>
+      </Position15>
+      <Position16>
+        <Filename Value="..\..\core\hd_widget.pas"/>
+        <Caret Line="47" Column="5" TopLine="33"/>
+      </Position16>
+      <Position17>
+        <Filename Value="..\..\core\hd_widget.pas"/>
+        <Caret Line="98" Column="22" TopLine="67"/>
+      </Position17>
+      <Position18>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <Caret Line="4758" Column="95" TopLine="4732"/>
+      </Position18>
+      <Position19>
+        <Filename Value="..\..\core\hd_widget.pas"/>
+        <Caret Line="647" Column="3" TopLine="635"/>
+      </Position19>
+      <Position20>
+        <Filename Value="..\..\core\hd_widget.pas"/>
+        <Caret Line="98" Column="22" TopLine="80"/>
+      </Position20>
+      <Position21>
+        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <Caret Line="3168" Column="37" TopLine="3137"/>
+      </Position21>
+      <Position22>
+        <Filename Value="..\..\widget\hd_button.pas"/>
+        <Caret Line="160" Column="3" TopLine="148"/>
+      </Position22>
+      <Position23>
+        <Filename Value="..\..\core\hd_form.pas"/>
+        <Caret Line="95" Column="1" TopLine="90"/>
+      </Position23>
+      <Position24>
+        <Filename Value="..\..\core\hd_widget.pas"/>
+        <Caret Line="646" Column="38" TopLine="625"/>
+      </Position24>
+      <Position25>
+        <Filename Value="..\..\core\hd_form.pas"/>
+        <Caret Line="35" Column="52" TopLine="2"/>
+      </Position25>
+      <Position26>
+        <Filename Value="..\..\core\hd_form.pas"/>
+        <Caret Line="151" Column="5" TopLine="130"/>
+      </Position26>
+      <Position27>
+        <Filename Value="..\..\core\hd_form.pas"/>
+        <Caret Line="18" Column="7" TopLine="8"/>
+      </Position27>
+      <Position28>
+        <Filename Value="unit2.pas"/>
+        <Caret Line="8" Column="29" TopLine="1"/>
+      </Position28>
+      <Position29>
+        <Filename Value="..\..\core\hd_widget.pas"/>
+        <Caret Line="46" Column="52" TopLine="22"/>
+      </Position29>
+      <Position30>
+        <Filename Value="..\..\core\hd_widget.pas"/>
+        <Caret Line="98" Column="22" TopLine="67"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectSession>
+  <EditorMacros Count="0"/>
+</CONFIG>

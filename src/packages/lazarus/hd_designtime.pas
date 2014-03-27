@@ -7,7 +7,7 @@ unit hd_designtime;
 interface
 
 uses
-  hd_designer, hd_form, hd_main, hd_widget, hd_defs, wgbutton, 
+  hd_designer, hd_form, hd_main, hd_widget, hd_defs, hd_button, 
   LazarusPackageIntf;
 
 implementation

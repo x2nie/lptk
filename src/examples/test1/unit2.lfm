@@ -1,0 +1,15 @@
+object pgfForm1: TpgfForm1
+  left = 268
+  top = 145
+  object wgButton1: TwgButton
+    Text = '88'
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+    left = 83
+    top = 46
+  end
+end

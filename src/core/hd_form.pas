@@ -10,7 +10,10 @@ uses
 type
   TWindowPosition = (wpUser, wpAuto, wpScreenCenter);
 
+  { TpgfForm }
+
   TpgfForm = class(TpgfWidget)
+  private
   protected
     FPrevModalForm : TpgfForm;
     FModalResult : integer;
@@ -18,7 +21,7 @@ type
     FParentForm : TpgfForm;
 
     FWindowPosition : TWindowPosition;
-    FCaption : widestring;
+    //FCaption : widestring;
     FSizeable : boolean;
 
     FBackgroundColor : TpgfColor;
@@ -26,7 +29,8 @@ type
     procedure AdjustWindowStyle; override;
     procedure SetWindowParameters; override;
 
-    procedure SetCaption(const AValue: widestring);
+    //procedure SetCaption(const AValue: widestring);
+    procedure SetText(AValue: widestring); override;
 
   protected
     procedure MsgActivate(var msg : TpgfMessageRec); message PGFM_ACTIVATE;
@@ -54,7 +58,7 @@ type
 
     property ModalResult : integer read FModalResult write FModalResult;
   published
-    property Caption : widestring read FCaption write SetCaption;
+    property Caption : widestring read FText write SetText;
   end;
 
 
@@ -88,10 +92,10 @@ end;
 
 { TpgfForm }
 
-procedure TpgfForm.SetCaption(const AValue: widestring);
+procedure TpgfForm.SetText(AValue: widestring);
 begin
-  FCaption := avalue;
-  inherited DoSetWindowTitle(FCaption);
+  inherited SetText(AValue);
+  inherited DoSetWindowTitle(FText);
 end;
 
 procedure TpgfForm.HandlePaint;
@@ -101,6 +105,12 @@ begin
   //canvas.Clear($009955);
   canvas.EndDraw(0,0,FWidth,FHeight);
 end;
+
+{procedure TpgfForm.SetCaption(AValue: widestring);
+begin
+  if FCaption=AValue then Exit;
+  FCaption:=AValue;
+end;}
 
 procedure TpgfForm.AdjustWindowStyle;
 begin
@@ -129,14 +139,14 @@ procedure TpgfForm.SetWindowParameters;
 begin
   inherited;
 
-  DoSetWindowTitle(FCaption);
+  DoSetWindowTitle(Text);
 end;
 
 constructor TpgfForm.Create(aowner: TComponent);
 begin
   inherited;
   FWindowPosition := wpAuto;
-  FCaption := '';
+  //FCaption := '';
   FSizeable := true;
   FParentForm := nil;
   FBackgroundColor := clWindowBackground;

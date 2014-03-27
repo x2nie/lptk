@@ -5,7 +5,7 @@ program stdimglist;
 uses
   Classes, SysUtils,
   pgf_defs, pgf_main, pgf_form, pgf_imgfmt_bmp,
-  wglabel, wgbutton, wgedit, wgmemo;
+  wglabel, hd_button, wgedit, wgmemo;
 
 type
 

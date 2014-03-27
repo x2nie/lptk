@@ -1,4 +1,4 @@
-unit wgbutton;
+unit hd_button;
 
 // Button Widget
 
@@ -37,7 +37,7 @@ type
     procedure SetAllowAllUp(const Value: boolean);
 
   protected
-    FText : WideString;
+    //FText : WideString;
     FFont : TpgfFont;
     procedure SetShowImage(AValue : Boolean);
 
@@ -75,7 +75,7 @@ type
 
   published
 
-    property Text : WideString read FText write SetText;
+    property Text;// : WideString read FText write SetText;
 
     property FontDesc : string read GetFontDesc write SetFontDesc;
 
@@ -157,7 +157,7 @@ end;
 constructor TwgButton.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
-  FText := u8('Button');
+  FText := u8(self.Name);
   FFont := pgfGetFont('#Label1');
   FHeight := FFont.Height + 8;
   FWidth := 96;

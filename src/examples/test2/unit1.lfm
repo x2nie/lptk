@@ -1,0 +1,46 @@
+object pgfForm2: TpgfForm2
+  Left = 286
+  Top = 126
+  Width = 264
+  Height = 136
+  Align = alNone
+  Anchors = [anLeft, anTop]
+  Enabled = True
+  TabOrder = 0
+  Visible = True
+  object wgButton1: TwgButton
+    Left = 64
+    Top = 21
+    Width = 88
+    Height = 50
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+    TabOrder = 0
+    Visible = True
+    Text = 'Button'
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+  end
+  object wgButton2: TwgButton
+    Left = 64
+    Top = 80
+    Width = 89
+    Height = 26
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+    TabOrder = 0
+    Visible = True
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+  end
+end
