@@ -43,7 +43,7 @@ type
 procedure Register;
 
 implementation
-uses Controls, hd_button,hd_progressbar, wgtrackbar;
+uses Controls, hd_button,hd_progressbar, hd_trackbar;
 
 procedure Register;
 begin
@@ -149,11 +149,11 @@ procedure TpgfMediator.Paint;
       {AWidget.Canvas.DrawControlFrame(0,0,AWidget.Width, AWidget.Height);
       AWidget.Canvas.SetColor(clRed);
       AWidget.Canvas.DrawLine(0,AWidget.Height,AWidget.Width,0);
-
+}
       if AWidget.Canvas.PaintTo(LCLForm.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height) then
         TextOut(5,2,format('OK %d',[AWidget.WinHandle]) )
       else
-        TextOut(5,2,'failpaint');       }
+        TextOut(5,2,'failpaint');
 
       {bmp := TBitmap.Create;
       bmp.SetSize(AWidget.Width, AWidget.Height);

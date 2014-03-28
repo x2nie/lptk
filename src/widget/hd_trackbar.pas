@@ -1,4 +1,4 @@
-unit wgtrackbar;
+unit hd_trackbar;
 
 { feature requests or bugs? - mail to: erik@grohnwaldt.de
     25.05.2003	0.1	Initial release

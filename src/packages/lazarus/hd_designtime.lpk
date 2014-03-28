@@ -48,8 +48,8 @@
         <UnitName Value="hd_button"/>
       </Item6>
       <Item7>
-        <Filename Value="..\..\widget\wgtrackbar.pas"/>
-        <UnitName Value="wgtrackbar"/>
+        <Filename Value="..\..\widget\hd_trackbar.pas"/>
+        <UnitName Value="hd_trackbar"/>
       </Item7>
       <Item8>
         <Filename Value="..\..\widget\hd_progressbar.pas"/>

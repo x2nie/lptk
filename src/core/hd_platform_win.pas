@@ -854,14 +854,14 @@ begin
 
   AdjustWindowStyle;
 
-
+{
   if (pgfMainForm <> nil) and (FWinStyleEx = WS_EX_APPWINDOW ) then
   begin
     //FParentWinHandle := ptkMainForm.WinHandle;
     FWinStyle := WS_OVERLAPPEDWINDOW;
     FWinStyleEx := 0;
   end;
-
+}
 
   if waAutoPos in FWindowAttributes then
   begin

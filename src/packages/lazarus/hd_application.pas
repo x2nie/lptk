@@ -28,6 +28,8 @@ type
     function GetLocalizedName: string; override;
     function GetLocalizedDescription: string; override;
     function GetUnitDirectives: string; override;
+    //function GetImplementationSource(const Filename, SourceName,
+       //                              ResourceName: string): string; override;
   end;
 
 
@@ -82,6 +84,12 @@ begin
            +'{$endif}';
 end;
 
+{function TFileDescPascalUnitWithPgfForm.GetImplementationSource(const Filename,
+  SourceName, ResourceName: string): string;
+begin
+  Result:='{$R *.dfm}'+LineEnding+LineEnding;
+end;}
+
 { TProjectApplicationDescriptor }
 
 constructor THDApplicationDescriptor.Create;
@@ -117,7 +125,7 @@ var
 begin
   Result:=inherited InitProject(AProject);
 
-  MainFile:=AProject.CreateProjectFile('project1.lpr');
+  MainFile:=AProject.CreateProjectFile('project1.dpr');
   MainFile.IsPartOfProject:=true;
   AProject.AddFile(MainFile,false);
   AProject.MainFileID:=0;
@@ -129,7 +137,7 @@ begin
   NewSource:='program Project1;'+LineEnding
     +LineEnding
     +'{$ifdef fpc}'+LineEnding
-    +'{$mode objfpc}{$H+}'+LineEnding
+    +'{$mode delphi}{$H+}'+LineEnding
     +'{$endif}'+LineEnding
     +LineEnding
     +'uses'+LineEnding
@@ -149,7 +157,7 @@ begin
   AProject.MainFile.SetSourceText(NewSource,true);
 
   // add lcl pp/pas dirs to source search path
-  AProject.AddPackageDependency('LCL');
+  AProject.AddPackageDependency('FCL');
   AProject.LazCompilerOptions.Win32GraphicApp:=true;
   AProject.LazCompilerOptions.UnitOutputDirectory:='lib'+PathDelim+'$(TargetCPU)-$(TargetOS)';
   AProject.LazCompilerOptions.TargetFilename:='project1';

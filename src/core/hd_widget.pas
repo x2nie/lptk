@@ -39,9 +39,12 @@ type
     FActiveWidget : TpgfWidget;
 
     FAlign : TAlign;
+    FText  : widestring;
 
     procedure DoAlign(aalign : TAlign);
+    procedure SetText(AValue: widestring); virtual;
 
+    property Text : widestring read FText write SetText;
 
   public
     constructor Create(aowner : TComponent); override;
@@ -91,7 +94,7 @@ type
     procedure HandleMouseExit; virtual;
   protected
     {designer need}
-    //procedure SetName(const NewName: TComponentName); override;
+    procedure SetName(const NewName: TComponentName); override;
     procedure SetParentComponent(Value: TComponent); override;
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
@@ -175,6 +178,12 @@ begin
   if FEnabled=AValue then exit;
   FEnabled:=AValue;
   RePaint;
+end;
+
+procedure TpgfWidget.SetText(AValue: widestring);
+begin
+  if FText=AValue then Exit;
+  FText:=AValue;
 end;
 
 procedure TpgfWidget.SetActiveWidget(const AValue: TpgfWidget);
@@ -624,6 +633,19 @@ end;
 procedure TpgfWidget.HandleMouseExit;
 begin
   //
+end;
+
+procedure TpgfWidget.SetName(const NewName: TComponentName);
+var
+  ChangeText: Boolean;
+begin
+  if Name=NewName then exit;
+  ChangeText :=
+    {(csSetCaption in ControlStyle) and} not (csLoading in ComponentState) and
+    (Name = Text) and
+    ((Owner = nil) or not (Owner is TpgfWidget) or not (csLoading in TpgfWidget(Owner).ComponentState));
+  inherited SetName(NewName);
+  if ChangeText then Text := NewName;
 end;
 
 function TpgfWidget.FindFocusWidget(startwg: TpgfWidget; direction: TFocusSearchDirection): TpgfWidget;
