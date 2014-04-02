@@ -15,7 +15,7 @@ type
 
   TpgfMediator = class(TDesignerMediator)
   private
-    m_pgfForm: TpgfForm;
+    FlpForm: TlpForm;
   public
     // needed by the lazarus form editor
     class function CreateMediator(TheOwner, aForm: TComponent): TDesignerMediator;
@@ -36,7 +36,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     //procedure InvalidateRect(Sender: TObject; ARect: TRect; Erase: boolean);
-    property pgfForm: TpgfForm read m_pgfForm;
+    property pgfForm: TlpForm read FlpForm;
   end;
 
 
@@ -73,7 +73,7 @@ begin
 
   Result:=inherited CreateMediator(TheOwner, aForm);
   Mediator:=TpgfMediator(Result);
-  Mediator.m_pgfForm:=aForm as TpgfForm;
+  Mediator.FlpForm:=aForm as TlpForm;
   //Mediator.m_pgfForm.show();//allocate windowhandle
 
   //Mediator.m_pgfForm.FormDesigner:=Mediator;
@@ -81,7 +81,7 @@ end;
 
 class function TpgfMediator.FormClass: TComponentClass;
 begin
-  Result := TpgfForm;
+  Result := TlpForm;
 end;
 
 procedure TpgfMediator.GetBounds(AComponent: TComponent; out CurBounds: TRect);
@@ -207,9 +207,9 @@ procedure TpgfMediator.Paint;
   end;
 
 begin
-  m_pgfForm.show();//allocate windowhandle
-  PaintWidget(m_pgfForm);
-  m_pgfForm.Hide();
+  FlpForm.show();//allocate windowhandle
+  PaintWidget(FlpForm);
+  FlpForm.Hide();
 
 //  m_pgfForm.Invalidate;
   inherited Paint;

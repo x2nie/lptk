@@ -401,7 +401,7 @@ end;
 
 procedure TlpButton.Click;
 var
-  pform : TpgfForm;
+  pform : TlpForm;
 begin
   pform := WidgetParentForm(self);
   if pform <> nil then pform.ModalResult := self.ModalResult;

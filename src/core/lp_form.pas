@@ -12,12 +12,12 @@ type
 
   { TpgfForm }
 
-  TpgfForm = class(TpgfWidget)
+  TlpForm = class(TpgfWidget)
   protected
-    FPrevModalForm : TpgfForm;
+    FPrevModalForm : TlpForm;
     FModalResult : integer;
 
-    FParentForm : TpgfForm;
+    FParentForm : TlpForm;
 
     FWindowPosition : TWindowPosition;
     //FCaption : widestring;
@@ -62,26 +62,26 @@ type
 
 
 var
-  pgfMainForm : TpgfForm;
+  pgfMainForm : TlpForm;
 
-  pgfTopModalForm : TpgfForm;
+  pgfTopModalForm : TlpForm;
 
-function WidgetParentForm(wg : TpgfWidget) : TpgfForm;
+function WidgetParentForm(wg : TpgfWidget) : TlpForm;
 
 implementation
 
 uses lp_main;
 
-function WidgetParentForm(wg : TpgfWidget) : TpgfForm;
+function WidgetParentForm(wg : TpgfWidget) : TlpForm;
 var
   w : TpgfWidget;
 begin
   w := wg;
   while w <> nil do
   begin
-    if w is TpgfForm then
+    if w is TlpForm then
     begin
-      Result := TpgfForm(w);
+      Result := TlpForm(w);
       Exit;
     end;
     w := w.Parent;
@@ -91,13 +91,13 @@ end;
 
 { TpgfForm }
 
-procedure TpgfForm.SetText(AValue: widestring);
+procedure TlpForm.SetText(AValue: widestring);
 begin
   inherited SetText(AValue);
   inherited DoSetWindowTitle(FText);
 end;
 
-procedure TpgfForm.HandlePaint;
+procedure TlpForm.HandlePaint;
 begin
   canvas.BeginDraw;
   canvas.Clear(FBackgroundColor);
@@ -105,7 +105,7 @@ begin
   canvas.EndDraw(0,0,FWidth,FHeight);
 end;
 
-procedure TpgfForm.AdjustWindowStyle;
+procedure TlpForm.AdjustWindowStyle;
 begin
   if pgfMainForm = nil then pgfMainForm := self;
   
@@ -128,14 +128,14 @@ begin
     else Exclude(FWindowAttributes, waSizeable);
 end;
 
-procedure TpgfForm.SetWindowParameters;
+procedure TlpForm.SetWindowParameters;
 begin
   inherited;
 
   DoSetWindowTitle(Text);
 end;
 
-constructor TpgfForm.Create(aowner: TComponent);
+constructor TlpForm.Create(aowner: TComponent);
 begin
   inherited;
   FWindowPosition := wpAuto;
@@ -150,23 +150,23 @@ begin
 
   FPrevModalForm := nil;
   try
-    InitInheritedComponent (self, TpgfForm);
+    InitInheritedComponent (self, TlpForm);
   except
   end;
   AfterCreate;
 end;
 
-procedure TpgfForm.AfterCreate;
+procedure TlpForm.AfterCreate;
 begin
   // for the user
 end;
 
-procedure TpgfForm.Show;
+procedure TlpForm.Show;
 begin
   HandleShow;
 end;
 
-function TpgfForm.ShowModal: integer;
+function TlpForm.ShowModal: integer;
 begin
   FPrevModalForm := pgfTopModalForm;
   pgfTopModalForm := self;
@@ -190,7 +190,7 @@ begin
   Result := ModalResult;
 end;
 
-procedure TpgfForm.MsgActivate(var msg: TpgfMessageRec);
+procedure TlpForm.MsgActivate(var msg: TpgfMessageRec);
 begin
   if (pgfTopModalForm = nil) or (pgfTopModalForm = self) then
   begin
@@ -207,29 +207,29 @@ begin
   end;
 end;
 
-procedure TpgfForm.MsgDeActivate(var msg: TpgfMessageRec);
+procedure TlpForm.MsgDeActivate(var msg: TpgfMessageRec);
 begin
   if ActiveWidget <> nil then ActiveWidget.KillFocus;
 end;
 
-procedure TpgfForm.MsgClose(var msg: TpgfMessageRec);
+procedure TlpForm.MsgClose(var msg: TpgfMessageRec);
 begin
   HandleClose;
 end;
 
-procedure TpgfForm.HandleClose;
+procedure TlpForm.HandleClose;
 begin
   Close;
 end;
 
-procedure TpgfForm.Hide;
+procedure TlpForm.Hide;
 begin
   if (pgfTopModalForm = self) then pgfTopModalForm := self.FPrevModalForm;
   HandleHide;
   if ModalResult = 0 then ModalResult := -1;
 end;
 
-procedure TpgfForm.Close;
+procedure TlpForm.Close;
 begin
   Hide;
   if pgfMainForm = self then

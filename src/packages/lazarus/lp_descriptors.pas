@@ -10,7 +10,7 @@ uses
 type
   { TProjectApplicationDescriptor }
 
-  THDApplicationDescriptor = class(TProjectDescriptor)
+  TlptkApplicationDescriptor = class(TProjectDescriptor)
   public
     constructor Create; override;
     function GetLocalizedName: string; override;
@@ -21,7 +21,7 @@ type
 
 { TFileDescPascalUnitWithPgfForm }
 
-  TFileDescPascalUnitWithPgfForm = class(TFileDescPascalUnitWithResource)
+  TFileDescPascalUnitWithLpForm = class(TFileDescPascalUnitWithResource)
   public
     constructor Create; override;
     function GetInterfaceUsesSection: string; override;
@@ -41,42 +41,42 @@ uses lp_designer;
 procedure Register;
 begin
   //FileDescPascalUnitWithPgfForm := TFileDescPascalUnitWithPgfForm.Create();
-  RegisterProjectFileDescriptor(TFileDescPascalUnitWithPgfForm.Create,
+  RegisterProjectFileDescriptor(TFileDescPascalUnitWithLpForm.Create,
                                 FileDescGroupName);
-  RegisterProjectDescriptor(THDApplicationDescriptor.Create);
+  RegisterProjectDescriptor(TlptkApplicationDescriptor.Create);
 end;
 
 function FileDescriptorHDForm() : TProjectFileDescriptor;
 begin
-  Result:=ProjectFileDescriptors.FindByName('pgfForm');
+  Result:=ProjectFileDescriptors.FindByName('lpForm');
 end;
 
-{ TFileDescPascalUnitWithPgfForm }
+{ TFileDescPascalUnitWithlpForm }
 
-constructor TFileDescPascalUnitWithPgfForm.Create;
+constructor TFileDescPascalUnitWithLpForm.Create;
 begin
   inherited Create;
-  Name:='pgfForm';
-  ResourceClass:=TpgfForm;
+  Name:='lpForm';
+  ResourceClass:=TlpForm;
   UseCreateFormStatements:=true;
 end;
 
-function TFileDescPascalUnitWithPgfForm.GetInterfaceUsesSection: string;
+function TFileDescPascalUnitWithLpForm.GetInterfaceUsesSection: string;
 begin
-  Result:='Classes, SysUtils, hd_defs, hd_main, hd_form';
+  Result:='Classes, SysUtils, lp_defs, lp_main, lp_form';
 end;
 
-function TFileDescPascalUnitWithPgfForm.GetLocalizedName: string;
+function TFileDescPascalUnitWithLpForm.GetLocalizedName: string;
 begin
-  Result:='pgfForm';
+  Result:='lpForm';
 end;
 
-function TFileDescPascalUnitWithPgfForm.GetLocalizedDescription: string;
+function TFileDescPascalUnitWithLpForm.GetLocalizedDescription: string;
 begin
-  Result:='Create a new pgfForm for HD Application';
+  Result:='Create a new lpForm for LPTK Application';
 end;
 
-function TFileDescPascalUnitWithPgfForm.GetUnitDirectives: string;
+function TFileDescPascalUnitWithLpForm.GetUnitDirectives: string;
 begin
   result := inherited GetUnitDirectives();
   result := '{$ifdef fpc}'+ LineEnding
@@ -84,7 +84,7 @@ begin
            +'{$endif}';
 end;
 
-{function TFileDescPascalUnitWithPgfForm.GetImplementationSource(const Filename,
+{function TFileDescPascalUnitWithlpForm.GetImplementationSource(const Filename,
   SourceName, ResourceName: string): string;
 begin
   Result:='{$R *.dfm}'+LineEnding+LineEnding;
@@ -92,32 +92,32 @@ end;}
 
 { TProjectApplicationDescriptor }
 
-constructor THDApplicationDescriptor.Create;
+constructor TlptkApplicationDescriptor.Create;
 begin
   inherited;
-  Name := 'HD Application';  
+  Name := 'A LPTK Application';
 end;
 
-function THDApplicationDescriptor.CreateStartFiles(
+function TlptkApplicationDescriptor.CreateStartFiles(
   AProject: TLazProject): TModalResult;
 begin
   Result:=LazarusIDE.DoNewEditorFile(FileDescriptorHDForm,'','',
                          [nfIsPartOfProject,nfOpenInEditor,nfCreateDefaultSrc]);
 end;
 
-function THDApplicationDescriptor.GetLocalizedDescription: string;
+function TlptkApplicationDescriptor.GetLocalizedDescription: string;
 begin
-  Result := 'HD Toolkit Application'+LineEnding+LineEnding
-           +'An application based on the HD Toolkit.'+LineEnding
-           +'The program file is automatically maintained by Lazarus.';
+  Result := 'LPTK Application'+LineEnding+LineEnding
+           +'An application based on the LPTK.'+LineEnding
+           +'The program files is automatically maintained by Lazarus.';
 end;
 
-function THDApplicationDescriptor.GetLocalizedName: string;
+function TlptkApplicationDescriptor.GetLocalizedName: string;
 begin
-  Result := 'HD Toolkit Application';
+  Result := 'A LPTK Application';
 end;
 
-function THDApplicationDescriptor.InitProject(
+function TlptkApplicationDescriptor.InitProject(
   AProject: TLazProject): TModalResult;
 var
   NewSource: String;
@@ -145,7 +145,7 @@ begin
     //+'  cthreads,'+LineEnding
     //+'  {$ENDIF}{$ENDIF}'+LineEnding
     //+'  Interfaces, // this includes the LCL widgetset'+LineEnding
-    +'  hd_defs, hd_main, hd_form '+LineEnding
+    +'  lp_defs, lp_main, lp_form '+LineEnding
     +'  { you can add units after this };'+LineEnding
     +LineEnding
     +'begin'+LineEnding
