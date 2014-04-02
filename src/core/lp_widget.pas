@@ -1,4 +1,4 @@
-unit hd_widget;
+unit lp_widget;
 
 {$include pgf_config.inc}
 
@@ -6,8 +6,8 @@ interface
 
 uses
   Classes, SysUtils,
-  hd_defs,
-  hd_main
+  lp_defs,
+  lp_main
   ;
 
 type
@@ -157,7 +157,7 @@ function FindKeyboardFocus : TpgfWidget;
 
 implementation
 
-uses hd_form;
+uses lp_form;
 
 function FindKeyboardFocus : TpgfWidget;
 begin

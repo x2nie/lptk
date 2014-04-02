@@ -1,4 +1,4 @@
-unit hd_progressbar;
+unit lp_progressbar;
 
 { feature-requests or bug-reports - mail to: erik@grohnwaldt.de
     History
@@ -14,7 +14,7 @@ unit hd_progressbar;
 
 interface
 
-uses classes, sysutils, hd_defs, hd_main, hd_widget;
+uses classes, sysutils, lp_defs, lp_main, lp_widget;
 
 type
     TwgProgressbar = class(TpgfWidget)

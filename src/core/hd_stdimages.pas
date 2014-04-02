@@ -7,7 +7,7 @@ unit hd_stdimages;
 interface
 
 uses
-  hd_main;
+  lp_main;
 
 procedure pgfCreateStandardImages;
 

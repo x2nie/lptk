@@ -1,11 +1,11 @@
-unit hd_form;
+unit lp_form;
 
 {$include pgf_config.inc}
 
 interface
 
 uses
-  Classes, SysUtils, hd_defs, hd_widget;
+  Classes, SysUtils, lp_defs, lp_widget;
   
 type
   TWindowPosition = (wpUser, wpAuto, wpScreenCenter);
@@ -70,7 +70,7 @@ function WidgetParentForm(wg : TpgfWidget) : TpgfForm;
 
 implementation
 
-uses hd_main;
+uses lp_main;
 
 function WidgetParentForm(wg : TpgfWidget) : TpgfForm;
 var

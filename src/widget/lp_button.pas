@@ -1,4 +1,4 @@
-unit hd_button;
+unit lp_button;
 
 // Button Widget
 
@@ -9,7 +9,7 @@ unit hd_button;
 interface
 
 uses
-  Classes, SysUtils, hd_defs, hd_main, hd_widget;
+  Classes, SysUtils, lp_defs, lp_main, lp_widget;
 
 type
 
@@ -100,7 +100,7 @@ function CreateButton(AOwner : TComponent; x, y, w : TpgfCoord; txt8 : String; o
 
 implementation
 
-uses hd_form;
+uses lp_form;
 
 function CreateButton(AOwner : TComponent; x, y, w : TpgfCoord; txt8 : String; onclk : TNotifyEvent) : TwgButton;
 begin

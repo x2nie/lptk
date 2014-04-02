@@ -2,7 +2,7 @@
 <CONFIG>
   <Package Version="4">
     <PathDelim Value="\"/>
-    <Name Value="hd_designtime"/>
+    <Name Value="lp_designtime"/>
     <Author Value="x2nie"/>
     <CompilerOptions>
       <Version Value="11"/>
@@ -23,42 +23,42 @@
     <Version Minor="1"/>
     <Files Count="9">
       <Item1>
-        <Filename Value="hd_designer.pas"/>
+        <Filename Value="lp_designer.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="hd_designer"/>
+        <UnitName Value="lp_designer"/>
       </Item1>
       <Item2>
-        <Filename Value="..\..\core\hd_form.pas"/>
-        <UnitName Value="hd_form"/>
+        <Filename Value="..\..\core\lp_form.pas"/>
+        <UnitName Value="lp_form"/>
       </Item2>
       <Item3>
-        <Filename Value="..\..\core\hd_main.pas"/>
-        <UnitName Value="hd_main"/>
+        <Filename Value="..\..\core\lp_main.pas"/>
+        <UnitName Value="lp_main"/>
       </Item3>
       <Item4>
-        <Filename Value="..\..\core\hd_widget.pas"/>
-        <UnitName Value="hd_widget"/>
+        <Filename Value="..\..\core\lp_widget.pas"/>
+        <UnitName Value="lp_widget"/>
       </Item4>
       <Item5>
-        <Filename Value="..\..\core\hd_defs.pas"/>
-        <UnitName Value="hd_defs"/>
+        <Filename Value="..\..\core\lp_defs.pas"/>
+        <UnitName Value="lp_defs"/>
       </Item5>
       <Item6>
-        <Filename Value="..\..\widget\hd_button.pas"/>
-        <UnitName Value="hd_button"/>
+        <Filename Value="..\..\widget\lp_button.pas"/>
+        <UnitName Value="lp_button"/>
       </Item6>
       <Item7>
-        <Filename Value="..\..\widget\hd_trackbar.pas"/>
-        <UnitName Value="hd_trackbar"/>
+        <Filename Value="..\..\widget\lp_trackbar.pas"/>
+        <UnitName Value="lp_trackbar"/>
       </Item7>
       <Item8>
-        <Filename Value="..\..\widget\hd_progressbar.pas"/>
-        <UnitName Value="hd_progressbar"/>
+        <Filename Value="..\..\widget\lp_progressbar.pas"/>
+        <UnitName Value="lp_progressbar"/>
       </Item8>
       <Item9>
-        <Filename Value="hd_application.pas"/>
+        <Filename Value="lp_descriptors.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="hd_application"/>
+        <UnitName Value="lp_descriptors"/>
       </Item9>
     </Files>
     <Type Value="RunAndDesignTime"/>

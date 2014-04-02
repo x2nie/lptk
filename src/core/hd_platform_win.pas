@@ -11,7 +11,7 @@ interface
 uses
   Classes, SysUtils,
   windows {$ifndef FPC},messages{$endif},
-  hd_defs;
+  lp_defs;
 
 type
   TpgfWinHandle   = HWND;
@@ -213,7 +213,7 @@ type
 
 implementation
 
-uses hd_main, hd_widget, hd_form;
+uses lp_main, lp_widget, lp_form;
 
 var
   wdisp : TpgfDisplay;

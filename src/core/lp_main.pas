@@ -1,4 +1,4 @@
-unit hd_main;
+unit lp_main;
 
 // Platform independent code
 
@@ -8,7 +8,7 @@ interface
 
 uses
   Classes, SysUtils,
-  hd_defs,
+  lp_defs,
 {$ifdef Win32}
   hd_platform_win
 {$endif}
@@ -413,7 +413,7 @@ function Application: TApplication;
 implementation
 
 uses
-  hd_imgfmt_bmp, hd_stdimages, hd_form;
+  hd_imgfmt_bmp, hd_stdimages, lp_form;
 
 var
   pgfCaretCanvas : TpgfCanvas;

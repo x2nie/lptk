@@ -1,4 +1,4 @@
-unit hd_defs;
+unit lp_defs;
 
 // platform independent class definitions for platform implementations
 // one big file, no includes

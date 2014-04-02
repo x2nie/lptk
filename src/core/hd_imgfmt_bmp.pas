@@ -9,7 +9,7 @@ unit hd_imgfmt_bmp;
 interface
 
 uses
-  Classes, SysUtils, hd_defs, hd_main;
+  Classes, SysUtils, lp_defs, lp_main;
 
 procedure ReadImage_BMP(img : TpgfImage; bmp: pointer; bmpsize: longword);
 function LoadImage_BMP(const AFileName : String) : TpgfImage;

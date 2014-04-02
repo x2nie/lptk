@@ -1,4 +1,4 @@
-unit hd_trackbar;
+unit lp_trackbar;
 
 { feature requests or bugs? - mail to: erik@grohnwaldt.de
     25.05.2003	0.1	Initial release
@@ -11,7 +11,7 @@ unit hd_trackbar;
 
 interface
 
-uses Classes, hd_defs, hd_main, hd_widget;
+uses Classes, lp_defs, lp_main, lp_widget;
 
 type
     TTrackBarChange = procedure(Sender : TObject; NewPosition : integer);

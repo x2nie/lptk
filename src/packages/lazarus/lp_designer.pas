@@ -1,4 +1,4 @@
-unit hd_designer;
+unit lp_designer;
 
 {$mode objfpc}{$H+}
 
@@ -6,7 +6,7 @@ interface
 
 uses
   LCLProc, LCLType, Classes, SysUtils, FormEditingIntf, LCLIntf, Graphics,
-  ProjectIntf, hd_defs, hd_main, hd_widget, hd_form{, hd_edit, hd_memo};
+  ProjectIntf, lp_defs, lp_main, lp_widget, lp_form{, hd_edit, hd_memo};
 
 type
 
@@ -22,8 +22,8 @@ type
     class function FormClass: TComponentClass; override;
     procedure GetBounds(AComponent: TComponent; out CurBounds: TRect); override;
     procedure SetBounds(AComponent: TComponent; NewBounds: TRect); override;
-    procedure GetClientArea(AComponent: TComponent; out
-            CurClientArea: TRect; out ScrollOffset: TPoint); override;
+    //procedure GetClientArea(AComponent: TComponent; out
+      //      CurClientArea: TRect; out ScrollOffset: TPoint); override;
     procedure Paint; override;
     function ComponentIsIcon(AComponent: TComponent): boolean; override;
     function ParentAcceptsChild(Parent: TComponent;
@@ -43,7 +43,7 @@ type
 procedure Register;
 
 implementation
-uses Controls, hd_button,hd_progressbar, hd_trackbar;
+uses Controls, lp_button,lp_progressbar, lp_trackbar;
 
 procedure Register;
 begin
@@ -90,7 +90,7 @@ begin
   if AComponent is TpgfWidget then
   begin
     w:=TpgfWidget(AComponent);
-    CurBounds:=Bounds(w.Left,w.Top,w.Width,w.Height);
+    CurBounds:=Bounds(w.Left,w.Top,{w.Left +} w.Width, {w.Top +} w.Height);
   end else
     inherited GetBounds(AComponent,CurBounds);
 end;
@@ -101,14 +101,19 @@ begin
     TpgfWidget(AComponent).SetPosition(NewBounds.Left,NewBounds.Top,
       NewBounds.Right-NewBounds.Left,NewBounds.Bottom-NewBounds.Top);
   end else
+  begin
+    if ComponentIsIcon(AComponent) then
+       SetComponentLeftTopOrDesignInfo(AComponent,NewBounds.Left,NewBounds.Top)
+    else
     inherited SetBounds(AComponent,NewBounds);
+  end;
 end;
 
-procedure TpgfMediator.GetClientArea(AComponent: TComponent; out
+{procedure TpgfMediator.GetClientArea(AComponent: TComponent; out
   CurClientArea: TRect; out ScrollOffset: TPoint);
 begin
   inherited GetClientArea(AComponent, CurClientArea, ScrollOffset);
-end;
+end;}
 
 procedure TpgfMediator.Paint;
 
@@ -118,6 +123,8 @@ procedure TpgfMediator.Paint;
     Child: TpgfWidget;
     msgp : TpgfMessageParams;
     bmp : TBitmap;
+    r : TRect;
+    p : TPoint;
   begin
     with LCLForm.Canvas do
     begin
@@ -149,13 +156,13 @@ procedure TpgfMediator.Paint;
       {AWidget.Canvas.DrawControlFrame(0,0,AWidget.Width, AWidget.Height);
       AWidget.Canvas.SetColor(clRed);
       AWidget.Canvas.DrawLine(0,AWidget.Height,AWidget.Width,0);
-}
+
       if AWidget.Canvas.PaintTo(LCLForm.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height) then
         TextOut(5,2,format('OK %d',[AWidget.WinHandle]) )
       else
         TextOut(5,2,'failpaint');
 
-      {bmp := TBitmap.Create;
+      bmp := TBitmap.Create;
       bmp.SetSize(AWidget.Width, AWidget.Height);
       AWidget.Canvas.PaintTo(bmp.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height);
       bmp.SaveToFile('c:\'+AWidget.Name+'.bmp' );
@@ -163,6 +170,11 @@ procedure TpgfMediator.Paint;
       AWidget.Canvas.PaintTo(LCLForm.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height);
 
       AWidget.Canvas.EndDraw;
+
+      //if csDesigning in AWidget.ComponentState then  TextOut(5,2,'design');
+      self.GetClientArea(Awidget, r, p );
+      Pen.Color:=clRed;
+      //Rectangle(r);
 
 
       // children
@@ -213,7 +225,7 @@ begin
   //result := true;
   Result:=(Parent is TpgfWidget) //and TpgfWidget(Parent).IsContainer
     and Child.InheritsFrom(ThdComponent)
-    or (not Child.InheritsFrom(TControl))
+    //or (not Child.InheritsFrom(TControl))
     //and (TpgfWidget(Parent).AcceptChildsAtDesignTime);
 end;
 

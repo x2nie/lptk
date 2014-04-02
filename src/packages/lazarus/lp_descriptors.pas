@@ -1,4 +1,4 @@
-unit hd_application;
+unit lp_descriptors;
 
 {$mode objfpc}{$H+}
 
@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LazIDEIntf, ProjectIntf, Controls, Forms,
-  hd_form;
+  lp_form;
 type
   { TProjectApplicationDescriptor }
 
@@ -36,7 +36,7 @@ type
 procedure Register;
 
 implementation
-uses hd_designer;
+uses lp_designer;
 
 procedure Register;
 begin

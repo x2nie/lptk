@@ -2,13 +2,13 @@
   This source is only used to compile and install the package.
  }
 
-unit hd_designtime;
+unit lp_designtime;
 
 interface
 
 uses
-  lp_designer, lp_form, lp_main, lp_widget, lp_defs, hd_button, hd_trackbar, 
-  hd_progressbar, lp_descriptors, LazarusPackageIntf;
+  lp_designer, lp_form, lp_main, lp_widget, lp_defs, lp_button, lp_trackbar, 
+  lp_progressbar, lp_descriptors, LazarusPackageIntf;
 
 implementation
 
@@ -19,5 +19,5 @@ begin
 end;
 
 initialization
-  RegisterPackage('hd_designtime', @Register);
+  RegisterPackage('lp_designtime', @Register);
 end.
