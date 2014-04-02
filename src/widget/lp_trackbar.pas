@@ -16,7 +16,7 @@ uses Classes, lp_defs, lp_main, lp_widget;
 type
     TTrackBarChange = procedure(Sender : TObject; NewPosition : integer);
     
-    TwgTrackbar = class(TpgfWidget)
+    TlpTrackbar = class(TpgfWidget)
 	private
 	    FSliderWidth : integer;
 	    FMin : integer;
@@ -47,20 +47,20 @@ type
 	    property SliderWidth : integer read FSliderWidth write SetSliderWidth;
     end;
 
-function CreateTrackbar(AOwner : TComponent; x, y, Width, Height : TpgfCoord) : TwgTrackBar;
+function CreateTrackbar(AOwner : TComponent; x, y, Width, Height : TpgfCoord) : TlpTrackbar;
 
 implementation
 
-function CreateTrackbar(AOwner : TComponent; x, y, Width, Height : TpgfCoord) : TwgTrackBar;
+function CreateTrackbar(AOwner : TComponent; x, y, Width, Height : TpgfCoord) : TlpTrackbar;
 begin
-  Result := TwgTrackBar.Create(AOwner);
+  Result := TlpTrackbar.Create(AOwner);
   Result.Left := x;
   Result.Top := y;
   Result.Width := Width;
   Result.Height := Height;
 end;
 
-procedure TwgTrackbar.SetSliderWidth(aValue : integer);
+procedure TlpTrackbar.SetSliderWidth(aValue : integer);
 begin
     if aValue <> FSliderWidth then
     begin
@@ -72,12 +72,12 @@ begin
     end;
 end;
 
-procedure TwgTrackbar.DoChange;
+procedure TlpTrackbar.DoChange;
 begin
     if assigned(onChange) then OnChange(self,Position);
 end;
 
-procedure TwgTrackbar.HandleLMouseUp(x,y : integer; shiftstate : word);
+procedure TlpTrackbar.HandleLMouseUp(x,y : integer; shiftstate : word);
 var
     p : integer;
     tmax, tmin : integer;
@@ -112,7 +112,7 @@ begin
     if Position <> OldPos then DoChange;
 end;
 
-procedure TwgTrackbar.HandleKeyPress(var KeyCode : word; var shiftstate : word; var consumed : boolean);
+procedure TlpTrackbar.HandleKeyPress(var KeyCode : word; var shiftstate : word; var consumed : boolean);
 var
     oldpos : integer;
 begin
@@ -142,7 +142,7 @@ begin
     if Position <> OldPos then DoChange;
 end;
 
-procedure TwgTrackbar.DrawSlider(p : integer);
+procedure TlpTrackbar.DrawSlider(p : integer);
 var
     h : integer;
 begin
@@ -184,7 +184,7 @@ begin
     end;
 end;
 
-procedure TwgTrackbar.HandlePaint;
+procedure TlpTrackbar.HandlePaint;
 var
     linepos : double;
     tmin, tmax : integer;
@@ -242,7 +242,7 @@ begin
     Canvas.EndDraw;
 end;
 
-procedure TwgTrackbar.SetOrientation(aValue : TOrientation);
+procedure TlpTrackbar.SetOrientation(aValue : TOrientation);
 begin
     if aValue <> FOrientation then
     begin
@@ -251,7 +251,7 @@ begin
     end;
 end;
 
-constructor TwgTrackbar.Create(aOwner : TComponent);
+constructor TlpTrackbar.Create(aOwner : TComponent);
 begin
     inherited Create(aOwner);
     FFocusable := true;
@@ -263,7 +263,7 @@ begin
     FBackgroundColor := clWindowBackground; //*clWidgetFrame;
 end;
 
-procedure TwgTrackbar.SetPosition(aValue : integer);
+procedure TlpTrackbar.SetPosition(aValue : integer);
 begin
     if aValue <> FPosition then
     begin
@@ -272,7 +272,7 @@ begin
     end;
 end;
 
-procedure TwgTrackbar.SetMax(aValue : integer);
+procedure TlpTrackbar.SetMax(aValue : integer);
 begin
     if aValue <> FMax then
     begin
@@ -281,7 +281,7 @@ begin
     end;
 end;
 
-procedure TwgTrackbar.SetMin(aValue : integer);
+procedure TlpTrackbar.SetMin(aValue : integer);
 begin
     if aValue <> FMin then
     begin

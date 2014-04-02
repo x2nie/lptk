@@ -7,15 +7,15 @@ unit lp_designtime;
 interface
 
 uses
-  lp_designer, lp_form, lp_main, lp_widget, lp_defs, lp_button, lp_trackbar, 
-  lp_progressbar, lp_descriptors, LazarusPackageIntf;
+  lp_form, lp_main, lp_widget, lp_defs, lp_button, lp_trackbar, 
+  lp_progressbar, lp_descriptors, lp_designer, LazarusPackageIntf;
 
 implementation
 
 procedure Register;
 begin
-  RegisterUnit('lp_designer', @lp_designer.Register);
   RegisterUnit('lp_descriptors', @lp_descriptors.Register);
+  RegisterUnit('lp_designer', @lp_designer.Register);
 end;
 
 initialization

@@ -13,9 +13,9 @@ uses
 
 type
 
-  { TwgButton }
+  { TlpButton }
 
-  TwgButton = class(TpgfWidget)
+  TlpButton = class(TpgfWidget)
   private
     FImageName: string;
     FClicked : Boolean;
@@ -96,15 +96,15 @@ type
     property OnClick : TNotifyEvent read FOnClick write FOnClick;
   end;
 
-function CreateButton(AOwner : TComponent; x, y, w : TpgfCoord; txt8 : String; onclk : TNotifyEvent) : TwgButton;
+function CreateButton(AOwner : TComponent; x, y, w : TpgfCoord; txt8 : String; onclk : TNotifyEvent) : TlpButton;
 
 implementation
 
 uses lp_form;
 
-function CreateButton(AOwner : TComponent; x, y, w : TpgfCoord; txt8 : String; onclk : TNotifyEvent) : TwgButton;
+function CreateButton(AOwner : TComponent; x, y, w : TpgfCoord; txt8 : String; onclk : TNotifyEvent) : TlpButton;
 begin
-  Result := TwgButton.Create(AOwner);
+  Result := TlpButton.Create(AOwner);
   Result.Left := x;
   Result.Top := y;
   Result.Text := utf8(txt8);
@@ -112,9 +112,9 @@ begin
   Result.OnClick := onclk;
 end;
 
-{ TwgButton }
+{ TlpButton }
 
-procedure TwgButton.SetDown(AValue : Boolean);
+procedure TlpButton.SetDown(AValue : Boolean);
 begin
   if AValue <> FDown then
   begin
@@ -123,7 +123,7 @@ begin
   end;
 end;
 
-procedure TwgButton.SetShowImage(AValue : Boolean);
+procedure TlpButton.SetShowImage(AValue : Boolean);
 begin
   if AValue <> FShowImage then
   begin
@@ -132,14 +132,14 @@ begin
   end;
 end;
 
-procedure TwgButton.SetText(const AValue : WideString);
+procedure TlpButton.SetText(const AValue : WideString);
 begin
   if FText=AValue then exit;
   FText:=AValue;
   RePaint;
 end;
 
-procedure TwgButton.SetImageName(const AValue: string);
+procedure TlpButton.SetImageName(const AValue: string);
 begin
   FImageName:=AValue;
   //FImage := pgfImgLibGetImage(FImageName);
@@ -147,19 +147,19 @@ begin
   //FShowImage := true;
 end;
 
-function TwgButton.GetFontDesc: string;
+function TlpButton.GetFontDesc: string;
 begin
   result := FFont.FontDesc;
 end;
 
-procedure TwgButton.SetFontDesc(const AValue: string);
+procedure TlpButton.SetFontDesc(const AValue: string);
 begin
   FFont.Free;
   FFont := pgfGetFont(AValue);
   RePaint;
 end;
 
-constructor TwgButton.Create(AOwner : TComponent);
+constructor TlpButton.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   //FText := u8('Button');
@@ -181,14 +181,14 @@ begin
   FModalResult := 0;
 end;
 
-destructor TwgButton.Destroy;
+destructor TlpButton.Destroy;
 begin
   FText := '';
   FFont.Free;
   inherited Destroy;
 end;
 
-procedure TwgButton.HandlePaint;
+procedure TlpButton.HandlePaint;
 var
   AText : WideString;
   x,y,iy,w : integer;
@@ -287,7 +287,7 @@ begin
   Canvas.EndDraw;
 end;
 
-procedure TwgButton.DoPush;
+procedure TlpButton.DoPush;
 var
   n : integer;
   c : TComponent;
@@ -298,9 +298,9 @@ begin
   for n:=0 to FParent.ComponentCount-1 do
   begin
     c := FParent.Components[n];
-    if (c <> self) and (c is TwgButton) then
+    if (c <> self) and (c is TlpButton) then
     begin
-      with TwgButton(c) do
+      with TlpButton(c) do
       begin
         if GroupIndex = self.GroupIndex then Down := false;
       end;
@@ -315,7 +315,7 @@ begin
   if FClickOnPush then Click;
 end;
 
-procedure TwgButton.DoRelease;
+procedure TlpButton.DoRelease;
 begin
   if AllowDown then
   begin
@@ -339,7 +339,7 @@ end;
 
 
 
-procedure TwgButton.HandleKeyPress(var keycode : word; var shiftstate : word; var consumed : boolean);
+procedure TlpButton.HandleKeyPress(var keycode : word; var shiftstate : word; var consumed : boolean);
 begin
   if (keycode = KEYSC_ENTER) or (keycode = KEYSC_SPACE) then
   begin
@@ -349,7 +349,7 @@ begin
   else inherited;
 end;
 
-procedure TwgButton.HandleKeyChar(var keycode: word; var shiftstate: word;
+procedure TlpButton.HandleKeyChar(var keycode: word; var shiftstate: word;
   var consumed: boolean);
 begin
   if (keycode = KEY_ENTER) or (keycode = KEY_SPACE)
@@ -357,7 +357,7 @@ begin
     else inherited;
 end;
 
-procedure TwgButton.HandleKeyRelease(var keycode : word; var shiftstate : word; var consumed : boolean);
+procedure TlpButton.HandleKeyRelease(var keycode : word; var shiftstate : word; var consumed : boolean);
 begin
   if (keycode = KEYSC_ENTER) or (keycode = KEYSC_SPACE) then
   begin
@@ -367,19 +367,19 @@ begin
   else inherited;
 end;
 
-procedure TwgButton.HandleLMouseDown(X, Y: Integer; ShiftState: Word);
+procedure TlpButton.HandleLMouseDown(X, Y: Integer; ShiftState: Word);
 begin
   inherited;
   DoPush;
 end;
 
-procedure TwgButton.HandleLMouseUp(x, y : integer; shiftstate : word);
+procedure TlpButton.HandleLMouseUp(x, y : integer; shiftstate : word);
 begin
   inherited;
   DoRelease;
 end;
 
-procedure TwgButton.HandleMouseExit;
+procedure TlpButton.HandleMouseExit;
 begin
   inherited HandleMouseExit;
   if FDown and (not AllowDown) then
@@ -389,7 +389,7 @@ begin
   end;
 end;
 
-procedure TwgButton.HandleMouseEnter;
+procedure TlpButton.HandleMouseEnter;
 begin
   inherited HandleMouseEnter;
   if FClicked and (not AllowDown) then
@@ -399,7 +399,7 @@ begin
   end;
 end;
 
-procedure TwgButton.Click;
+procedure TlpButton.Click;
 var
   pform : TpgfForm;
 begin
@@ -409,29 +409,29 @@ begin
   if Assigned(FOnClick) then FOnClick(self);
 end;
 
-procedure TwgButton.SetImageMargin(const Value: integer);
+procedure TlpButton.SetImageMargin(const Value: integer);
 begin
   FImageMargin := Value;
   Repaint;
 end;
 
-procedure TwgButton.SetImageSpacing(const Value: integer);
+procedure TlpButton.SetImageSpacing(const Value: integer);
 begin
   FImageSpacing := Value;
   Repaint;
 end;
 
-function TwgButton.GetAllowDown: Boolean;
+function TlpButton.GetAllowDown: Boolean;
 begin
   result := GroupIndex > 0;
 end;
 
-procedure TwgButton.SetAllowDown(const Value: Boolean);
+procedure TlpButton.SetAllowDown(const Value: Boolean);
 begin
   GroupIndex := 1;
 end;
 
-procedure TwgButton.SetAllowAllUp(const Value: boolean);
+procedure TlpButton.SetAllowAllUp(const Value: boolean);
 begin
   FAllowAllUp := Value;
 end;

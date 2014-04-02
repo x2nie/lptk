@@ -6,7 +6,8 @@ interface
 
 uses
   LCLProc, LCLType, Classes, SysUtils, FormEditingIntf, LCLIntf, Graphics,
-  ProjectIntf, lp_defs, lp_main, lp_widget, lp_form{, hd_edit, hd_memo};
+  ProjectIntf, lp_defs, lp_main, lp_widget, lp_form{, hd_edit, hd_memo}
+  ,LResources;
 
 type
 
@@ -48,7 +49,7 @@ uses Controls, lp_button,lp_progressbar, lp_trackbar;
 procedure Register;
 begin
   FormEditingHook.RegisterDesignerMediator(TpgfMediator);
-  RegisterComponents('Standard',[TwgButton{, TpgfMemo}, TwgProgressbar, TwgTrackbar]);
+  RegisterComponents('Standard',[TlpButton{, TpgfMemo}, TlpProgressbar, TlpTrackbar]);
 end;
 
 
@@ -245,5 +246,7 @@ begin
   inherited Destroy;
 end;
 
+initialization
+{$I lp_designtime.lrs}
 end.
 

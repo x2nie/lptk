@@ -23,42 +23,42 @@
     <Version Minor="1"/>
     <Files Count="9">
       <Item1>
-        <Filename Value="lp_designer.pas"/>
-        <HasRegisterProc Value="True"/>
-        <UnitName Value="lp_designer"/>
-      </Item1>
-      <Item2>
         <Filename Value="..\..\core\lp_form.pas"/>
         <UnitName Value="lp_form"/>
-      </Item2>
-      <Item3>
+      </Item1>
+      <Item2>
         <Filename Value="..\..\core\lp_main.pas"/>
         <UnitName Value="lp_main"/>
-      </Item3>
-      <Item4>
+      </Item2>
+      <Item3>
         <Filename Value="..\..\core\lp_widget.pas"/>
         <UnitName Value="lp_widget"/>
-      </Item4>
-      <Item5>
+      </Item3>
+      <Item4>
         <Filename Value="..\..\core\lp_defs.pas"/>
         <UnitName Value="lp_defs"/>
-      </Item5>
-      <Item6>
+      </Item4>
+      <Item5>
         <Filename Value="..\..\widget\lp_button.pas"/>
         <UnitName Value="lp_button"/>
-      </Item6>
-      <Item7>
+      </Item5>
+      <Item6>
         <Filename Value="..\..\widget\lp_trackbar.pas"/>
         <UnitName Value="lp_trackbar"/>
-      </Item7>
-      <Item8>
+      </Item6>
+      <Item7>
         <Filename Value="..\..\widget\lp_progressbar.pas"/>
         <UnitName Value="lp_progressbar"/>
-      </Item8>
-      <Item9>
+      </Item7>
+      <Item8>
         <Filename Value="lp_descriptors.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="lp_descriptors"/>
+      </Item8>
+      <Item9>
+        <Filename Value="lp_designer.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="lp_designer"/>
       </Item9>
     </Files>
     <Type Value="RunAndDesignTime"/>

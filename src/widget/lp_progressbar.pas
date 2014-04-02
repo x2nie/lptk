@@ -17,7 +17,7 @@ interface
 uses classes, sysutils, lp_defs, lp_main, lp_widget;
 
 type
-    TwgProgressbar = class(TpgfWidget)
+  TlpProgressbar = class(TpgfWidget)
 	private
 	    FPosition : longint;
 	    FMin : longint;
@@ -48,26 +48,26 @@ type
 	    property Step : longint read FStep write SetStep;
     end;
 
-function CreateProgressbar(AOwner : TComponent; x, y, Width, Height : TpgfCoord) : TwgProgressBar;
+function CreateProgressbar(AOwner : TComponent; x, y, Width, Height : TpgfCoord) : TlpProgressbar;
 
 implementation
 
-function CreateProgressbar(AOwner : TComponent; x, y, Width, Height: TpgfCoord) : TwgProgressBar;
+function CreateProgressbar(AOwner : TComponent; x, y, Width, Height: TpgfCoord) : TlpProgressbar;
 begin
-  Result := TwgProgressBar.Create(AOwner);
+  Result := TlpProgressbar.Create(AOwner);
   Result.Left := x;
   Result.Top := y;
   Result.Width := Width;
   Result.Height := Height;
 end;
 
-procedure TwgProgressbar.HandleResize(aWidth, aHeight : integer);
+procedure TlpProgressbar.HandleResize(aWidth, aHeight : integer);
 begin
     inherited HandleResize(aWidth, aHeight);
     RePaint;
 end;
 
-procedure TwgProgressbar.HandlePaint;
+procedure TlpProgressbar.HandlePaint;
 var
     aPos : longint;
     aG : longint;
@@ -114,17 +114,17 @@ begin
     Canvas.EndDraw;
 end;
 
-procedure TwgProgressbar.StepBy(aStep : longint);
+procedure TlpProgressbar.StepBy(aStep : longint);
 begin
     Position := Position + aStep;
 end;
 
-procedure TwgProgressbar.Stepit;
+procedure TlpProgressbar.Stepit;
 begin
     Position := Position + Step;
 end;
 
-procedure TwgProgressbar.SetStep(aValue : longint);
+procedure TlpProgressbar.SetStep(aValue : longint);
 begin
     if aValue = 0 then exit; // 0 is no valid step-length
     if aValue <> FStep then
@@ -133,7 +133,7 @@ begin
     end;
 end;
 
-procedure TwgProgressbar.SetDisplayPercent(aValue : boolean);
+procedure TlpProgressbar.SetDisplayPercent(aValue : boolean);
 begin
     if aValue <> FDisplayPercent then
     begin
@@ -142,7 +142,7 @@ begin
     end;
 end;
 
-procedure TwgProgressbar.SetMax(aValue : longint);
+procedure TlpProgressbar.SetMax(aValue : longint);
 begin
     if FMin > aValue then FMin := aValue - 1;		// correct wrong inputs
     if FPosition > aValue then FPosition := aValue;
@@ -153,7 +153,7 @@ begin
     end;
 end;
 
-procedure TwgProgressbar.SetMin(aValue : longint);
+procedure TlpProgressbar.SetMin(aValue : longint);
 begin
     if aValue > FPosition then FPosition := aValue;
     if aValue > FMax then FMax := aValue+1;
@@ -164,7 +164,7 @@ begin
     end;
 end;
 
-procedure TwgProgressbar.SetPosition(aValue : longint);
+procedure TlpProgressbar.SetPosition(aValue : longint);
 begin
     if aValue < Min then aValue := Min;	// correct wrong inputs
     if aValue > Max then aValue := Max;
@@ -175,7 +175,7 @@ begin
     end;
 end;
 
-constructor TwgProgressbar.Create(aOwner : TComponent);
+constructor TlpProgressbar.Create(aOwner : TComponent);
 begin
     inherited create(aOwner);
     FBackgroundColor := clWindowBackground;
