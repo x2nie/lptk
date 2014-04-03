@@ -1,5 +1,6 @@
-lpbutton.png
-lpedit.png
-lpform.png
-lpprogressbar.png
-lptrackbar.png
+tlpbutton.png
+tlpedit.png
+tlpform.png
+tlpprogressbar.png
+tlptrackbar.png
+tlptimer.png
