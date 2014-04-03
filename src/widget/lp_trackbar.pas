@@ -255,6 +255,8 @@ constructor TlpTrackbar.Create(aOwner : TComponent);
 begin
     inherited Create(aOwner);
     FFocusable := true;
+    FWidth := 96;
+    FHeight := 24;
     FMin := 0;
     FMax := 10;
     FPosition := 0;

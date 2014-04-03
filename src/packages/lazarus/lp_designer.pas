@@ -23,9 +23,10 @@ type
     class function FormClass: TComponentClass; override;
     procedure GetBounds(AComponent: TComponent; out CurBounds: TRect); override;
     procedure SetBounds(AComponent: TComponent; NewBounds: TRect); override;
-    //procedure GetClientArea(AComponent: TComponent; out
-      //      CurClientArea: TRect; out ScrollOffset: TPoint); override;
+    {procedure GetClientArea(AComponent: TComponent; out
+            CurClientArea: TRect; out ScrollOffset: TPoint); override;}
     procedure Paint; override;
+    procedure InitComponent(AComponent, NewParent: TComponent; NewBounds: TRect); override;
     function ComponentIsIcon(AComponent: TComponent): boolean; override;
     function ParentAcceptsChild(Parent: TComponent;
                 Child: TComponentClass): boolean; override;
@@ -213,6 +214,19 @@ begin
 
 //  m_pgfForm.Invalidate;
   inherited Paint;
+end;
+
+procedure TpgfMediator.InitComponent(AComponent, NewParent: TComponent;
+  NewBounds: TRect);
+begin
+  if AComponent is TpgfWidget then
+  begin
+    if (NewBounds.Right - NewBounds.Left = 50) and //set by customformeditor.pas #1384 - 1385
+       (NewBounds.Bottom - NewBounds.Top = 50) then
+     newBounds := Bounds(newBounds.Left, newBounds.Top,
+             TpgfWidget(AComponent).Width, TpgfWidget(AComponent).Height);
+  end;
+  inherited InitComponent(AComponent, NewParent, NewBounds);
 end;
 
 function TpgfMediator.ComponentIsIcon(AComponent: TComponent): boolean;
