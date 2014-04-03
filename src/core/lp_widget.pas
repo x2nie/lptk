@@ -930,12 +930,21 @@ end;
 procedure TpgfWidget.GetChildren(Proc: TGetChildProc; Root: TComponent);
 var
   i: Integer;
+  OwnedComponent: TComponent;
 begin
   for i := 0 to ComponentCount-1 do
   begin
     if Components[i].Owner=Root then
       Proc(Components[i]);
   end;
+  {inherited GetChildren(Proc, Root);
+  if Root = Self then begin
+    for I := 0 to ComponentCount - 1 do
+    begin
+      OwnedComponent := Components[I];
+      if not OwnedComponent.HasParent then Proc(OwnedComponent);
+    end;
+  end;}
   {for i:=0 to ChildCount-1 do
       if Children[i].Owner=Root then
         Proc(Children[i]);

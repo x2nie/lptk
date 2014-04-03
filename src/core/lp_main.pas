@@ -313,41 +313,43 @@ type
   end;
 
 type
-  TpgfTimer = class
+  TlpTimer = class(TlpComponent)
   private
     FEnabled : boolean;
     FNextAlarm : TDateTime;
+    FInterval: integer;
+    FOnTimer: TNotifyEvent;
     procedure SetEnabled(const AValue: boolean);
   public
-    Interval : integer;
-
-    OnTimer : TNotifyEvent;
-
-    constructor Create(ainterval : integer);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure CheckAlarm(ctime : TDateTime);
-
-    property Enabled : boolean read FEnabled write SetEnabled;
     property NextAlarm : TDateTime read FNextAlarm;
+  published
+
+
+    property Interval : integer read FInterval write FInterval ;
+    property Enabled : boolean read FEnabled write SetEnabled;
+    property OnTimer : TNotifyEvent read FOnTimer write FOnTimer;
   end;
 
 type
 
   { TpgfCaret }
 
-  TpgfCaret = class
+  TpgfCaret = class(TComponent)
   private
     FEnabled : boolean;
     FVisible : boolean;
     FInterval : integer;
     FCanvas  : TpgfCanvas;
     FTop, FLeft, FWidth, FHeight : TpgfCoord;
-    FTimer : TpgfTimer;
+    FTimer : TlpTimer;
 
     procedure OnTimerTime(sender : TObject);
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     
     procedure SetCaret(acanvas : TpgfCanvas; x,y,w,h : TpgfCoord);
@@ -417,7 +419,7 @@ uses
 
 var
   pgfCaretCanvas : TpgfCanvas;
-  pgfCaretTimer  : TpgfTimer;
+  pgfCaretTimer  : TlpTimer;
   pgfApplication : TApplication; //simulation
 
 var
@@ -541,21 +543,21 @@ begin
 
   for n:=1 to pgfTimers.Count do
   begin
-    TpgfTimer(pgfTimers[n-1]).CheckAlarm(ctime);
+    TlpTimer(pgfTimers[n-1]).CheckAlarm(ctime);
   end;
 end;
 
 function pgfClosestTimer(ctime : TDateTime; amaxtime : integer) : integer;
 var
   n : integer;
-  t : TpgfTimer;
+  t : TlpTimer;
   dt : TDateTime;
 begin
   dt := ctime + amaxtime * ONE_MILISEC;
 
   for n:=1 to pgfTimers.Count do
   begin
-    t := TpgfTimer(pgfTimers[n-1]);
+    t := TlpTimer(pgfTimers[n-1]);
     if t.Enabled and (t.NextAlarm < dt) then dt := t.NextAlarm;
   end;
 
@@ -563,7 +565,7 @@ begin
   if result < 0 then result := 0;
 end;
 
-procedure TpgfTimer.SetEnabled(const AValue: boolean);
+procedure TlpTimer.SetEnabled(const AValue: boolean);
 begin
   if not FEnabled and AValue then
   begin
@@ -572,15 +574,16 @@ begin
   FEnabled := AValue;
 end;
 
-constructor TpgfTimer.Create(ainterval: integer);
+constructor TlpTimer.Create(AOwner: TComponent);
 begin
-  interval := ainterval;
-  OnTimer := nil;
-  FEnabled := false;
+  inherited Create(AOwner);
+  Finterval := 1000;
+  //FOnTimer := nil;
+  //FEnabled := false;
   pgfTimers.Add(self);
 end;
 
-destructor TpgfTimer.Destroy;
+destructor TlpTimer.Destroy;
 var
   i : integer;
 begin
@@ -589,7 +592,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TpgfTimer.CheckAlarm(ctime: TDateTime);
+procedure TlpTimer.CheckAlarm(ctime: TDateTime);
 begin
   if not FEnabled then Exit;
 
@@ -604,7 +607,7 @@ begin
         FNextAlarm := FNextAlarm + interval * ONE_MILISEC;
     end;
 
-    if Assigned(OnTimer) then OnTimer(self);
+    if Assigned(FOnTimer) then FOnTimer(self);
   end;
 end;
 
@@ -618,7 +621,7 @@ begin
 
   pgfStyle := TpgfStyle.Create;
 
-  pgfCaret := TpgfCaret.Create;
+  pgfCaret := TpgfCaret.Create(nil);
   
   pgfImages := TpgfImages.Create;
   pgfCreateStandardImages; // in pgf_stdimages.pas
@@ -1526,7 +1529,7 @@ begin
   //Writeln('Caret timer2 ...');
 end;
 
-constructor TpgfCaret.Create;
+constructor TpgfCaret.Create(AOwner: TComponent);
 begin
   FEnabled := false;
   FInterval := 500;
@@ -1535,7 +1538,8 @@ begin
   FLeft := 0;
   FWidth := 1;
   FHeight := 8;
-  FTimer := TpgfTimer.Create(FInterval);
+  FTimer := TlpTimer.Create(self);
+  FTImer.Interval := FInterval;
   FTimer.OnTimer := self.OnTimerTime;
   FTimer.Enabled := true;
 end;

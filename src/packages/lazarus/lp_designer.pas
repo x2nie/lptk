@@ -49,7 +49,7 @@ uses Controls, lp_button,lp_progressbar, lp_trackbar;
 procedure Register;
 begin
   FormEditingHook.RegisterDesignerMediator(TpgfMediator);
-  RegisterComponents('Standard',[TlpButton{, TpgfMemo}, TlpProgressbar, TlpTrackbar]);
+  RegisterComponents('Standard',[TlpTImer, TlpButton{, TpgfMemo}, TlpProgressbar, TlpTrackbar]);
 end;
 
 
@@ -225,7 +225,7 @@ function TpgfMediator.ParentAcceptsChild(Parent: TComponent;
 begin
   //result := true;
   Result:=(Parent is TpgfWidget) //and TpgfWidget(Parent).IsContainer
-    and Child.InheritsFrom(ThdComponent)
+    and Child.InheritsFrom(TlpComponent)
     //or (not Child.InheritsFrom(TControl))
     //and (TpgfWidget(Parent).AcceptChildsAtDesignTime);
 end;

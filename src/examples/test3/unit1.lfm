@@ -1,0 +1,35 @@
+object frm1: Tfrm1
+  Left = 309
+  Top = 155
+  Width = 272
+  Height = 164
+  Align = alNone
+  Anchors = [anLeft, anTop]
+  Enabled = True
+  TabOrder = 0
+  Visible = True
+  Caption = 'frm1'
+  object lpTimer1: TlpTimer
+    Interval = 20
+    Enabled = True
+    OnTimer = lpTimer1Timer
+    left = 13
+    top = 5
+  end
+  object lpProgressbar1: TlpProgressbar
+    Left = 80
+    Top = 24
+    Width = 162
+    Height = 32
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+    TabOrder = 0
+    Visible = True
+    DisplayPercent = True
+    Max = 100
+    Min = 0
+    Position = 0
+    Step = 1
+  end
+end
