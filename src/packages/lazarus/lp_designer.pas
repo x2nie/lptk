@@ -31,7 +31,7 @@ type
     function ParentAcceptsChild(Parent: TComponent;
                 Child: TComponentClass): boolean; override;
   public
-
+    procedure OiNodeGetImageIndex(APersistent: TPersistent; var AIndex: integer); override;
   public
     // needed by TpgfWidget
     constructor Create(AOwner: TComponent); override;
@@ -242,6 +242,30 @@ begin
     and Child.InheritsFrom(TlpComponent)
     //or (not Child.InheritsFrom(TControl))
     //and (TpgfWidget(Parent).AcceptChildsAtDesignTime);
+end;
+
+procedure TpgfMediator.OiNodeGetImageIndex(APersistent: TPersistent;
+  var AIndex: integer);
+begin
+  if Assigned(APersistent) then
+    begin
+      {if (APersistent is TControl) and (csAcceptsControls in TControl(APersistent).ControlStyle) then
+        Result := 3
+      else
+      if (APersistent is TControl) then
+        Result := 2
+      else
+      if (APersistent is TComponent) then
+        Result := 1
+      else
+      if (APersistent is TCollection) then
+        Result := 4
+      else
+      if (APersistent is TCollectionItem) then
+        Result := 5;}
+      if APersistent is TpgfWidget then
+         AIndex := 2;
+    end;
 end;
 
 constructor TpgfMediator.Create(AOwner: TComponent);
