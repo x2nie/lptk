@@ -15,7 +15,8 @@ type
   TpgfCoord = integer;     // we might use floating point coordinates in the future...
 
   TpgfColor = longword;
-
+  TCursor   = -32768..32767;
+  
 {$ifndef FPC}
   PtrInt = integer;
 {$endif}
@@ -224,16 +225,24 @@ type
   end;
 
   TpgfWindowBase = class(TlpComponent)
+  private
+
   protected
     FWindowType : TWindowType;
     FWindowAttributes : TWindowAttributes;
     FTop, FLeft, FWidth, FHeight : TpgfCoord;
     FMinWidth, FMinHeight : TpgfCoord;
 
+    FCursor: TCursor;
+    procedure SetCursor(const Value: TCursor); virtual;
+  protected
+    procedure DoSetCursor;virtual; abstract;
   public
     // make some setup before the window shows
     procedure AdjustWindowStyle; virtual;    // forms modify the window creation parameters
     procedure SetWindowParameters; virtual;  // invoked after the window is created
+    
+    property Cursor: TCursor read FCursor write SetCursor;
   end;
 
   TpgfDisplayBase = class
@@ -279,6 +288,14 @@ end;
 procedure TpgfWindowBase.AdjustWindowStyle;
 begin
   // does nothing here
+end;
+
+procedure TpgfWindowBase.SetCursor(const Value: TCursor);
+begin
+  if Value = FCursor then
+    exit;
+  FCursor := Value;
+  DoSetCursor();
 end;
 
 procedure TpgfWindowBase.SetWindowParameters;

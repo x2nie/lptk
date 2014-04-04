@@ -154,6 +154,7 @@ type
     //procedure MoveToScreenCenter; override;
 
     procedure DoSetWindowTitle(const atitle : widestring);
+    procedure DoSetCursor;override;
 
   public
     constructor Create(aowner : TComponent); override;
@@ -1002,6 +1003,34 @@ begin
     aleft,atop,awidth,aheight,
     SWP_NOZORDER or SWP_NOREDRAW
   );
+end;
+
+procedure TpgfWindowImpl.DoSetCursor;
+var
+  hc: HCURSOR;
+begin
+  if not HasHandle then
+    Exit; //==>
+
+  case FMouseCursor of
+    mcSizeEW:     hc := wapplication.hcr_dir_ew;
+    mcSizeNS:     hc := wapplication.hcr_dir_ns;
+    mcIBeam:      hc := wapplication.hcr_edit;
+    mcSizeNWSE,
+    mcSizeSENW:   hc := wapplication.hcr_dir_nwse;
+    mcSizeNESW,
+    mcSizeSWNE:   hc := wapplication.hcr_dir_nesw;
+//    mcSizeSWNE:   hc := wapplication.hcr_dir_swne;
+//    mcSizeSENW:   hc := wapplication.hcr_dir_senw;
+    mcMove:       hc := wapplication.hcr_move;
+    mcCross:      hc := wapplication.hcr_crosshair;
+    mcHourGlass:  hc := wapplication.hcr_wait;
+    mcHand:       hc := wapplication.hcr_hand;
+  else
+    hc := wapplication.hcr_default;
+  end;
+
+  SetCursor(hc);
 end;
 
 { TpgfCanvasImpl }

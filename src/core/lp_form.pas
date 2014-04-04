@@ -145,6 +145,8 @@ begin
   FBackgroundColor := clWindowBackground;
   FMinWidth := 32;
   FMinHeight := 32;
+  FWidth := 320;
+  FHeight := 240;
 
   FModalResult := 0;
 

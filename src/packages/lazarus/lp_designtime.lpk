@@ -21,7 +21,7 @@
     <Description Value="integrating PasGF to Lazarus IDE"/>
     <License Value="LGLP 2.1 with linking exception"/>
     <Version Minor="1"/>
-    <Files Count="9">
+    <Files Count="10">
       <Item1>
         <Filename Value="..\..\core\lp_form.pas"/>
         <UnitName Value="lp_form"/>
@@ -60,6 +60,10 @@
         <HasRegisterProc Value="True"/>
         <UnitName Value="lp_designer"/>
       </Item9>
+      <Item10>
+        <Filename Value="..\..\widget\lp_edit.pas"/>
+        <UnitName Value="lp_edit"/>
+      </Item10>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="2">

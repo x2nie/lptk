@@ -45,12 +45,12 @@ type
 procedure Register;
 
 implementation
-uses Controls, lp_button,lp_progressbar, lp_trackbar;
+uses Controls, lp_button,lp_progressbar, lp_trackbar, lp_edit;
 
 procedure Register;
 begin
   FormEditingHook.RegisterDesignerMediator(TpgfMediator);
-  RegisterComponents('Standard',[TlpTImer, TlpButton{, TpgfMemo}, TlpProgressbar, TlpTrackbar]);
+  RegisterComponents('Standard',[TlpTImer, TlpButton, TlpEdit{, TpgfMemo}, TlpProgressbar, TlpTrackbar]);
 end;
 
 
@@ -196,10 +196,10 @@ var Bmp : TBitmap;
          PaintFormGrid(AWidget);
 
 
-      TextOut(5,2,format('has%d,@%s',[AWidget.ChildCount, AWidget.ParentName]) ) ;
+      //TextOut(5,2,format('has%d,@%s',[AWidget.ChildCount, AWidget.ParentName]) ) ;
 
       // children
-      if AWidget.ComponentCount>0 then
+      if AWidget.ChildCount>0 then
       begin
         SaveHandleState;
         // clip client area
@@ -209,11 +209,13 @@ var Bmp : TBitmap;
         //                     AWidget.Height-AWidget.BorderTop-AWidget.BorderBottom)<>NullRegion
         //then
         begin
-          for i:=0 to AWidget.ComponentCount-1 do
-          if (AWidget.Components[i] is TpgfWidget) and (TpgfWidget(AWidget.Components[i]).Parent = Awidget)  then
+          //for i:=0 to AWidget.ComponentCount-1 do
+          //if (AWidget.Components[i] is TpgfWidget) and (TpgfWidget(AWidget.Components[i]).Parent = Awidget)  then
+          for i:=0 to AWidget.ChildCount-1 do
           begin
             SaveHandleState;
-            Child:=TpgfWidget(AWidget.Components[i]);
+            //Child:=TpgfWidget(AWidget.Components[i]);
+            Child:=AWidget.Children[i];
             // clip child area
             MoveWindowOrgEx(Handle,Child.Left,Child.Top);
             if IntersectClipRect(Handle,0,0,Child.Width,Child.Height)<>NullRegion then
@@ -267,7 +269,7 @@ function TpgfMediator.ParentAcceptsChild(Parent: TComponent;
   Child: TComponentClass): boolean;
 begin
   //result := true;
-  Result:=(Parent is TpgfWidget) //and TpgfWidget(Parent).IsContainer
+  Result:=(Parent is TpgfWidget) and ( wsAcceptsChildren in TpgfWidget(Parent).WidgetStyle)
     and Child.InheritsFrom(TlpComponent)
     //or (not Child.InheritsFrom(TControl))
     //and (TpgfWidget(Parent).AcceptChildsAtDesignTime);

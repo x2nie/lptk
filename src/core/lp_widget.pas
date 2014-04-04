@@ -960,11 +960,11 @@ var
   i: Integer;
   OwnedComponent: TComponent;
 begin
-  for i := 0 to ComponentCount-1 do
+  {for i := 0 to ComponentCount-1 do
   begin
     if Components[i].Owner=Root then
       Proc(Components[i]);
-  end;
+  end;}
   //inherited GetChildren(Proc, Root);
   {if Root = Self then begin
     for I := 0 to ComponentCount - 1 do
@@ -978,7 +978,7 @@ begin
     Control := Controls[I];
     if Control.Owner = Root then Proc(Control);
   end;]}
-  {for i:=0 to ChildCount-1 do
+  for i:=0 to ChildCount-1 do
       if Children[i].Owner=Root then
         Proc(Children[i]);
 
@@ -988,7 +988,7 @@ begin
       OwnedComponent := Components[I];
       if not OwnedComponent.HasParent then Proc(OwnedComponent);
     end;
-
+  {
   if self is TMyForm then
   begin
     for i := 0 to ComponentCount-1 do
