@@ -118,22 +118,37 @@ begin
 end;}
 
 procedure TpgfMediator.Paint;
+var Bmp : TBitmap;
+
+  procedure PaintFormGrid(AWidget: TpgfWidget);
+  var x, y : integer;
+  const
+    gx = 8; //TODO: Link to: EnvironmentOptions.GridSizeX
+    gy = 8;
+  begin
+    for y := 0 to (Awidget.Height -1) div gy do
+      for x := 0 to (Awidget.Width -1) div gx do
+      begin
+        {LCLForm}BMP.Canvas.Pixels[x *gx, y *gy] := clBlack;
+      end;
+  end;
 
   procedure PaintWidget(AWidget: TpgfWidget);
   var
     i: Integer;
     Child: TpgfWidget;
     msgp : TpgfMessageParams;
-    bmp : TBitmap;
     r : TRect;
     p : TPoint;
   begin
-    with LCLForm.Canvas do
+    //with LCLForm.Canvas do
+    With Bmp.Canvas do
     begin
       // fill background
       Brush.Style:=bsSolid;
       Brush.Color:= clBtnFace;
       FillRect(0,0,AWidget.Width,AWidget.Height);
+
       // outer frame
       {Pen.Color:=clGray;
       Rectangle(0,0,AWidget.Width,AWidget.Height);
@@ -169,15 +184,19 @@ procedure TpgfMediator.Paint;
       AWidget.Canvas.PaintTo(bmp.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height);
       bmp.SaveToFile('c:\'+AWidget.Name+'.bmp' );
       bmp.Free;}
-      AWidget.Canvas.PaintTo(LCLForm.Canvas.Handle, 0,0, AWidget.Width, AWidget.Height);
+      AWidget.Canvas.PaintTo({LCLForm.Canvas.}Handle, 0,0, AWidget.Width, AWidget.Height);
 
       AWidget.Canvas.EndDraw;
 
       //if csDesigning in AWidget.ComponentState then  TextOut(5,2,'design');
-      self.GetClientArea(Awidget, r, p );
-      Pen.Color:=clRed;
+      //self.GetClientArea(Awidget, r, p );
+      //Pen.Color:=clRed;
       //Rectangle(r);
+      if AWidget is TlpForm then
+         PaintFormGrid(AWidget);
 
+
+      TextOut(5,2,format('has%d,@%s',[AWidget.ChildCount, AWidget.ParentName]) ) ;
 
       // children
       if AWidget.ComponentCount>0 then
@@ -208,9 +227,18 @@ procedure TpgfMediator.Paint;
   end;
 
 begin
+  Bmp := TBitmap.Create;
+  Bmp.SetSize(LCLForm.Width, LCLForm.Height);
+  //Bmp.BeginUpdate;
   FlpForm.show();//allocate windowhandle
   PaintWidget(FlpForm);
   FlpForm.Hide();
+
+  //Bmp.EndUpdate;
+  LCLForm.Canvas.Draw(0,0,Bmp);
+  //lclForm.Canvas.Pen.Color:= clRed;
+  //LCLForm.Canvas.TextOut(10,10, format('W=%d, H=%d',[bmp.Width, bmp.Height]));
+  Bmp.Free;
 
 //  m_pgfForm.Invalidate;
   inherited Paint;
@@ -225,6 +253,7 @@ begin
        (NewBounds.Bottom - NewBounds.Top = 50) then
      newBounds := Bounds(newBounds.Left, newBounds.Top,
              TpgfWidget(AComponent).Width, TpgfWidget(AComponent).Height);
+
   end;
   inherited InitComponent(AComponent, NewParent, NewBounds);
 end;

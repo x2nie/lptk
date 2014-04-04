@@ -20,17 +20,23 @@ type
     FAlignRect : TpgfRect;
 
     FOnScreen : boolean;
+    FWidgetStyle: TWidgetStyle;
+    function GetParentName: string;
     procedure SetActiveWidget(const AValue: TpgfWidget);
     procedure SetEnabled(const AValue: boolean);
     procedure SetVisible(const AValue: boolean);
+    function GetWidgets(Index: integer): TpgfWidget;
+    procedure SetParent(const Value: TpgfWidget);
+
 
   protected
     FParent : TpgfWidget;
+    FChilds: TList; // list of TMyWidget
 
     FVisible : boolean;
 
     FEnabled : boolean;
-    FFocusable : boolean;
+    FFocusable : boolean; 
     FFocused   : boolean;
     FTabOrder  : integer;
 
@@ -99,16 +105,21 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     {designer need}
+    property Parent : TpgfWidget read FParent write SetParent;
+    function ChildCount: integer;
+    property Children[Index: integer]: TpgfWidget read GetWidgets;
     function HasParent: Boolean; override;
     function GetParentComponent: TComponent; override;
   public
     function FindFocusWidget(startwg : TpgfWidget; direction : TFocusSearchDirection) : TpgfWidget;
-
+    property WidgetStyle : TWidgetStyle read FWidgetStyle write FWidgetStyle;
   public
     procedure HandleAlignments(dwidth, dheight : TpgfCoord); virtual;
     
     procedure HandleShow; virtual;
     procedure HandleHide; virtual;
+
+    procedure Invalidate; virtual;
 
     procedure MoveAndResize(aleft, atop, awidth, aheight : TpgfCoord);
     procedure MoveAndResizeBy(dx,dy,dw,dh : TpgfCoord);
@@ -125,7 +136,7 @@ type
     OnKeyPress : TKeyPressNotifyEvent;
 
   public
-    property Parent : TpgfWidget read FParent write FParent;
+
 
     property ActiveWidget : TpgfWidget read FActiveWidget write SetActiveWidget;
 
@@ -138,6 +149,8 @@ type
 
 
   published
+    //debug
+    property ParentName : string read GetParentName;
 
     property Left;
     property Top;
@@ -197,6 +210,13 @@ begin
   if FActiveWidget <> nil then FActiveWidget.HandleSetFocus;
 end;
 
+function TpgfWidget.GetParentName: string;
+begin
+  result := 'nil!';
+  if hasParent then
+     result := Parent.Name;
+end;
+
 procedure TpgfWidget.SetVisible(const AValue: boolean);
 begin
   if FVisible=AValue then exit;
@@ -231,10 +251,11 @@ begin
   FAlign := alNone;
 
   OnKeyPress := nil;
-  
-  if (aowner <> nil) and (aowner is TpgfWidget)
-    then FParent := TpgfWidget(aowner)
-    else FParent := nil;
+
+  FParent := nil;
+  if (aowner <> nil) and (aowner is TpgfWidget) then
+     //FParent := TpgfWidget(aowner);
+     SetParent(TpgfWidget(aowner));
     
   if FParent <> nil then
   begin
@@ -242,11 +263,16 @@ begin
   end;
     
   inherited;
+  FChilds:=TList.Create;
+
 end;
 
 destructor TpgfWidget.Destroy;
 begin
   HandleHide;
+  Parent:=nil;
+  while ChildCount>0 do Children[ChildCount-1].Free;
+  FreeAndNil(FChilds);
   inherited;
 end;
 
@@ -463,7 +489,8 @@ begin
   //
 end;
 
-procedure TpgfWidget.HandleKeyPress(var keycode, shiftstate: word; var consumed: boolean);
+procedure TpgfWidget.HandleKeyPress(var keycode: word; var shiftstate: word;
+  var consumed: boolean);
 begin
   // nothing yet.
 end;
@@ -592,7 +619,8 @@ begin
   w := self;
   while pw <> nil do
   begin
-    if w.Visible and w.Enabled and w.Focusable then pw.ActiveWidget := w;
+    if w.Visible and w.Enabled and w.Focusable then
+       pw.ActiveWidget := w;
     w := pw;
     pw := pw.Parent;
   end;
@@ -937,17 +965,29 @@ begin
     if Components[i].Owner=Root then
       Proc(Components[i]);
   end;
-  {inherited GetChildren(Proc, Root);
-  if Root = Self then begin
+  //inherited GetChildren(Proc, Root);
+  {if Root = Self then begin
     for I := 0 to ComponentCount - 1 do
     begin
       OwnedComponent := Components[I];
       if not OwnedComponent.HasParent then Proc(OwnedComponent);
     end;
   end;}
+  {for I := 0 to ControlCount - 1 do
+  begin
+    Control := Controls[I];
+    if Control.Owner = Root then Proc(Control);
+  end;]}
   {for i:=0 to ChildCount-1 do
       if Children[i].Owner=Root then
         Proc(Children[i]);
+
+  if Root = Self then
+    for I := 0 to ComponentCount - 1 do
+    begin
+      OwnedComponent := Components[I];
+      if not OwnedComponent.HasParent then Proc(OwnedComponent);
+    end;
 
   if self is TMyForm then
   begin
@@ -971,6 +1011,36 @@ end;
 function TpgfWidget.HasParent: Boolean;
 begin
   Result:=Parent<>nil;
+end;
+
+function TpgfWidget.ChildCount: integer;
+begin
+  Result:=FChilds.Count;
+end;
+
+
+function TpgfWidget.GetWidgets(Index: integer): TpgfWidget;
+begin
+  Result:=TpgfWidget(FChilds[Index]);
+end;
+
+procedure TpgfWidget.SetParent(const Value: TpgfWidget);
+begin
+if FParent=Value then exit;
+  if FParent<>nil then begin
+    Invalidate;
+    FParent.FChilds.Remove(Self);
+  end;
+  FParent:=Value;
+  if FParent<>nil then begin
+    FParent.FChilds.Add(Self);
+  end;
+  Invalidate;
+end;
+
+procedure TpgfWidget.Invalidate;
+begin
+
 end;
 
 initialization

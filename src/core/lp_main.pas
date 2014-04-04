@@ -29,6 +29,43 @@ type
 
   TClipboardKeyType = (ckNone, ckCopy, ckPaste, ckCut);
 
+  TWidgetStyleType = (
+    wsAcceptsChildren,       // can have children in the designer
+    //csCaptureMouse,          // auto capture mouse when clicked
+    //csDesignInteractive,     // wants mouse events in design mode
+    wsClickEvents,           // handles mouse events
+    //csFramed,                // not implemented, has 3d frame
+    wsSetCaption            // if Name=Caption, changing the Name changes the Caption
+    {csOpaque,                // the control paints its area completely
+    csDoubleClicks,          // understands mouse double clicks
+    csTripleClicks,          // understands mouse triple clicks
+    csQuadClicks,            // understands mouse quad clicks
+    csFixedWidth,            // cannot change its width
+    csFixedHeight,           // cannot change its height (for example combobox)
+    csNoDesignVisible,       // is invisible in the designer
+    csReplicatable,          // PaintTo works
+    csNoStdEvents,           // standard events such as mouse, key, and click events are ignored.
+    csDisplayDragImage,      // display images from dragimagelist during drag operation over control
+    csReflector,             // not implemented, the controls respond to size, focus and dlg messages - it can be used as ActiveX control under Windows
+    csActionClient,          // Action is set
+    csMenuEvents,            // not implemented}
+    //wsFocusable                // control will take focus when clicked with mouse.
+    {csNeedsBorderPaint,      // not implemented
+    csParentBackground,      // tells WinXP to paint the theme background of parent on controls background
+    csDesignNoSmoothResize,  // when resizing control in the designer do not SetBounds while dragging
+    csDesignFixedBounds,     // can not be moved nor resized in designer
+    csHasDefaultAction,      // implements useful ExecuteDefaultAction
+    csHasCancelAction,       // implements useful ExecuteCancelAction
+    csNoDesignSelectable,    // can not be selected at design time
+    csOwnedChildrenNotSelectable, // child controls owned by this control are NOT selectable in the designer
+    csAutoSize0x0,           // if the preferred size is 0x0 then control is shrinked ot 0x0
+    csAutoSizeKeepChildLeft, // when AutoSize=true do not move children horizontally
+    csAutoSizeKeepChildTop,  // when AutoSize=true do not move children vertically
+    csRequiresKeyboardInput  // If the device has no physical keyboard then show the virtual keyboard when this control gets focus (therefore available only to TWinControl descendents)
+    }
+    );
+  TWidgetStyle = set of TWidgetStyleType;
+
 const
   AllAnchors = [anLeft,anRight,anTop,anBottom];
   
