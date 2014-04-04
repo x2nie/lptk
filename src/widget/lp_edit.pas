@@ -111,7 +111,7 @@ begin
   FDrawOffset := 0;
   PasswordMode := false;
 
-  FMouseCursor := CUR_EDIT;
+  FCursor := crIBeam;
 
   FOnChange := nil;
 end;

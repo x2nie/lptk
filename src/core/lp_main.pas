@@ -18,6 +18,12 @@ uses
   ;
   
 type
+  {Transfer from lp_defs}
+  TCursor = lp_defs.TCursor;
+
+
+
+type
   TOrientation = (orVertical, orHorizontal);
 
   TAlignment  = (taLeft, taRight, taCenter, taJustify);
@@ -68,6 +74,38 @@ type
 
 const
   AllAnchors = [anLeft,anRight,anTop,anBottom];
+
+  crDefault     = TCursor(0);
+  crNone        = TCursor(-1);
+  crArrow       = TCursor(-2);
+  crCross       = TCursor(-3);
+  crIBeam       = TCursor(-4);
+  crSize        = TCursor(-22);
+  crSizeNESW    = TCursor(-6); // diagonal north east - south west
+  crSizeNS      = TCursor(-7);
+  crSizeNWSE    = TCursor(-8);
+  crSizeWE      = TCursor(-9);
+  crSizeNW      = TCursor(-23);
+  crSizeN       = TCursor(-24);
+  crSizeNE      = TCursor(-25);
+  crSizeW       = TCursor(-26);
+  crSizeE       = TCursor(-27);
+  crSizeSW      = TCursor(-28);
+  crSizeS       = TCursor(-29);
+  crSizeSE      = TCursor(-30);
+  crUpArrow     = TCursor(-10);
+  crHourGlass   = TCursor(-11);
+  crDrag        = TCursor(-12);
+  crNoDrop      = TCursor(-13);
+  crHSplit      = TCursor(-14);
+  crVSplit      = TCursor(-15);
+  crMultiDrag   = TCursor(-16);
+  crSQLWait     = TCursor(-17);
+  crNo          = TCursor(-18);
+  crAppStart    = TCursor(-19);
+  crHelp        = TCursor(-20);
+  crHandPoint   = TCursor(-21);
+  crSizeAll     = TCursor(-22);
   
 type
   TNotifyEvent = procedure(Sender : TObject) of object;

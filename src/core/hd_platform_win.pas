@@ -177,6 +177,8 @@ type
     hcr_dir_nwse,
     hcr_dir_nesw,
     hcr_move,
+    hcr_wait,
+    hcr_hand,
     hcr_crosshair : HCURSOR;
 
     FFocusedWindow : THANDLE;
@@ -436,18 +438,19 @@ begin
 
     end;
 
-(*
+
     WM_SETCURSOR:
     begin
       //Writeln('Hittest: ',IntToHex((lParam and $FFFF),4));
       if (lParam and $FFFF) <= 1 then
       begin
-        ptkSetMouseCursor(wg.WinHandle, wg.MouseCursor);
-        result := 1;
+        //ptkSetMouseCursor(wg.WinHandle, wg.MouseCursor);
+        //result := 1;
+        w.DoSetCursor;
       end
       else Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
     end;
-*)
+
 
     WM_MOUSEMOVE,
     WM_LBUTTONDOWN,
@@ -704,6 +707,9 @@ begin
   hcr_MOVE     := LoadCursor(0, IDC_SIZEALL);
 
   hcr_CROSSHAIR := LoadCursor(0, IDC_CROSS);
+  hcr_wait      := LoadCursor(0, IDC_WAIT);
+  hcr_hand      := LoadCursor(0, IDC_HAND);
+  
 
   FInitialized := True;
 
@@ -1009,28 +1015,58 @@ procedure TpgfWindowImpl.DoSetCursor;
 var
   hc: HCURSOR;
 begin
-  if not HasHandle then
+  if not HandleIsValid then
     Exit; //==>
 
-  case FMouseCursor of
-    mcSizeEW:     hc := wapplication.hcr_dir_ew;
-    mcSizeNS:     hc := wapplication.hcr_dir_ns;
-    mcIBeam:      hc := wapplication.hcr_edit;
-    mcSizeNWSE,
-    mcSizeSENW:   hc := wapplication.hcr_dir_nwse;
-    mcSizeNESW,
-    mcSizeSWNE:   hc := wapplication.hcr_dir_nesw;
-//    mcSizeSWNE:   hc := wapplication.hcr_dir_swne;
-//    mcSizeSENW:   hc := wapplication.hcr_dir_senw;
-    mcMove:       hc := wapplication.hcr_move;
-    mcCross:      hc := wapplication.hcr_crosshair;
-    mcHourGlass:  hc := wapplication.hcr_wait;
-    mcHand:       hc := wapplication.hcr_hand;
+ { crDefault     = TCursor(0);
+    crNone        = TCursor(-1);
+    crArrow       = TCursor(-2);
+    crCross       = TCursor(-3);
+    crIBeam       = TCursor(-4);
+    crSize        = TCursor(-22);
+    crSizeNESW    = TCursor(-6); // diagonal north east - south west
+    crSizeNS      = TCursor(-7);
+    crSizeNWSE    = TCursor(-8);
+    crSizeWE      = TCursor(-9);
+    crSizeNW      = TCursor(-23);
+    crSizeN       = TCursor(-24);
+    crSizeNE      = TCursor(-25);
+    crSizeW       = TCursor(-26);
+    crSizeE       = TCursor(-27);
+    crSizeSW      = TCursor(-28);
+    crSizeS       = TCursor(-29);
+    crSizeSE      = TCursor(-30);
+    crUpArrow     = TCursor(-10);
+    crHourGlass   = TCursor(-11);
+    crDrag        = TCursor(-12);
+    crNoDrop      = TCursor(-13);
+    crHSplit      = TCursor(-14);
+    crVSplit      = TCursor(-15);
+    crMultiDrag   = TCursor(-16);
+    crSQLWait     = TCursor(-17);
+    crNo          = TCursor(-18);
+    crAppStart    = TCursor(-19);
+    crHelp        = TCursor(-20);
+    crHandPoint   = TCursor(-21);
+    crSizeAll     = TCursor(-22);  }
+
+  case FCursor of
+    crSizeWE:     hc := wdisp.hcr_dir_ew;
+    crSizeNS:     hc := wdisp.hcr_dir_ns;
+    crIBeam:      hc := wdisp.hcr_edit;
+    crSizeNWSE:   hc := wdisp.hcr_dir_nwse;
+    crSizeNESW:   hc := wdisp.hcr_dir_nesw;
+//    mcSizeSWNE:   hc := wdisp.hcr_dir_swne;
+//    mcSizeSENW:   hc := wdisp.hcr_dir_senw;
+    crSizeAll:       hc := wdisp.hcr_move;
+    crCross:      hc := wdisp.hcr_crosshair;
+    crHourGlass:  hc := wdisp.hcr_wait;
+    crHandPoint:  hc := wdisp.hcr_hand;
   else
-    hc := wapplication.hcr_default;
+    hc := wdisp.hcr_default;
   end;
 
-  SetCursor(hc);
+  Windows.SetCursor(hc);
 end;
 
 { TpgfCanvasImpl }
