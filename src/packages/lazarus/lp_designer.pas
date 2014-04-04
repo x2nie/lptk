@@ -45,12 +45,21 @@ type
 procedure Register;
 
 implementation
-uses Controls, lp_button,lp_progressbar, lp_trackbar, lp_edit;
+uses Controls, PropEdits, lp_propedits,
+  lp_button,lp_progressbar, lp_trackbar, lp_edit, lp_memo,
+  lp_listbox;
 
 procedure Register;
 begin
   FormEditingHook.RegisterDesignerMediator(TpgfMediator);
-  RegisterComponents('Standard',[TlpTImer, TlpButton, TlpEdit{, TpgfMemo}, TlpProgressbar, TlpTrackbar]);
+  RegisterComponents('Standard',[TlpTImer, TlpButton, TlpMemo, TlpEdit, TlpListBox,
+  TlpProgressbar, TlpTrackbar]);
+
+  RegisterPropertyEditor(TypeInfo(widestring), TpgfWidget, 'Caption', TStringMultilinePropertyEditor);
+  RegisterPropertyEditor(TypeInfo(widestring), TpgfWidget, 'Text', TStringMultilinePropertyEditor);
+  RegisterPropertyEditor(TypeInfo(lp_main.TCursor), TpgfWidget, 'Cursor', TCursorPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(string), TpgfWidget, 'FontDesc', TFontDescPropertyEditor);
+
 end;
 
 

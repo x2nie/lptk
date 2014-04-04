@@ -2,7 +2,7 @@
   {$mode delphi}{$H+}
 {$endif}
 
-unit hd_utils;
+unit lp_utils;
 
 interface
 

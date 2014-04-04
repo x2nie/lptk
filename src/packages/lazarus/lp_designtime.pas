@@ -8,7 +8,8 @@ interface
 
 uses
   lp_form, lp_main, lp_widget, lp_defs, lp_button, lp_trackbar, 
-  lp_progressbar, lp_descriptors, lp_designer, lp_edit, LazarusPackageIntf;
+  lp_progressbar, lp_descriptors, lp_designer, lp_edit, lp_listbox, lp_memo, 
+  lp_scrollbar, lp_utils, lp_propedits, LazarusPackageIntf;
 
 implementation
 

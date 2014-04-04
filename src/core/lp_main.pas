@@ -485,6 +485,7 @@ function wsToUtf8(const wstr : widestring) : string;
 procedure pgfInitTimers;
 procedure pgfCheckTimers;
 function pgfClosestTimer(ctime : TDateTime; amaxtime : integer) : integer;
+procedure GetFontDescValues(Proc: TGetStrProc);
 function Application: TApplication;
 
 implementation
@@ -1744,6 +1745,14 @@ end;
 procedure TpgfImages.ListImages(var sl: TStringList);
 begin
   if sl <> nil then sl.Assign(FImages);
+end;
+
+procedure GetFontDescValues(Proc: TGetStrProc);
+var
+  I: Integer;
+begin
+  for I := 0 to pgfNamedFonts.Count-1 do
+      Proc('#'+TNamedFontItem(pgfNamedFonts[I]).FontID);
 end;
 
 initialization

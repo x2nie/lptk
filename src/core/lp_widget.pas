@@ -156,6 +156,7 @@ type
     property Top;
     property Width;
     property Height;
+    property Cursor;
     property Align : TAlign read FAlign write FAlign;
     property Anchors : TAnchors read FAnchors write FAnchors;
     property Enabled : boolean read FEnabled write SetEnabled;
