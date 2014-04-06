@@ -35,6 +35,9 @@ type
 
   TClipboardKeyType = (ckNone, ckCopy, ckPaste, ckCut);
 
+  TlpMenuItemFlags = set of (mifSelected, mifHasFocus, mifSeparator,
+    mifEnabled, mifChecked, mifSubMenu);
+
   TWidgetStyleType = (
     wsAcceptsChildren,       // can have children in the designer
     //csCaptureMouse,          // auto capture mouse when clicked
@@ -72,6 +75,23 @@ type
     );
   TWidgetStyle = set of TWidgetStyleType;
 
+  { *******************************************
+      Public event properties: Event Types
+    *******************************************}
+  { Keyboard }
+  TKeyEvent = procedure(Sender: TObject; AKey: Word; AShift: TShiftState) of object;
+  TKeyCharEvent = procedure(Sender: TObject; AKeyChar: Char) of object;
+  TKeyPressEvent = procedure(Sender: TObject; var KeyCode: word; var ShiftState: TShiftState; var Consumed: boolean) of object;
+  { Mouse }
+  TMouseButton = (mbLeft, mbRight, mbMiddle);
+  TMouseButtonEvent = procedure(Sender: TObject; AButton: TMouseButton; AShift: TShiftState; const AMousePos: TPoint) of object;
+  TMouseMoveEvent = procedure(Sender: TObject; AShift: TShiftState; const AMousePos: TPoint) of object;
+  TMouseWheelEvent = procedure(Sender: TObject; AShift: TShiftState; AWheelDelta: Single; const AMousePos: TPoint) of object;
+  { Painting }
+  TPaintEvent = procedure(Sender: TObject{; const ARect: TfpgRect}) of object;
+  { Exceptions }
+  TExceptionEvent = procedure(Sender: TObject; E: Exception) of object;
+  THintEvent = procedure(Sender: TObject; var AHint: String) of object;
 const
   AllAnchors = [anLeft,anRight,anTop,anBottom];
 
@@ -352,6 +372,15 @@ type
     procedure DrawButtonFace(canvas : TpgfCanvas; x,y,w,h : TpgfCoord); virtual;
     procedure DrawControlFrame(canvas : TpgfCanvas; x, y, w, h : TpgfCoord); virtual;
     procedure DrawDirectionArrow(canvas : TpgfCanvas; x,y,w,h : TpgfCoord; direction : integer); virtual;
+    procedure   DrawString(ACanvas: TpgfCanvas; x, y: TpgfCoord; AText: string; AEnabled: boolean = True); virtual;
+
+    { Menus }
+    procedure   DrawMenuBar(ACanvas: TpgfCanvas; r: TpgfRect; ABackgroundColor: TpgfColor); virtual;
+    procedure   DrawMenuRow(ACanvas: TpgfCanvas; r: TpgfRect; AFlags: TlpMenuItemFlags); virtual;
+    procedure   DrawMenuItem(ACanvas: TpgfCanvas; r: TpgfRect; AFlags: TlpMenuItemFlags; AText: WideString); virtual;
+    procedure   DrawMenuItemSeparator(ACanvas: TpgfCanvas; r: TpgfRect); virtual;
+    procedure   DrawMenuItemImage(ACanvas: TpgfCanvas; x, y: TpgfCoord; r: TpgfRect; AFlags: TlpMenuItemFlags); virtual;
+    function    GetSeparatorSize: integer; virtual;
   end;
 
   TpgfDisplay = class(TpgfDisplayImpl)
@@ -395,6 +424,8 @@ type
     FInterval: integer;
     FOnTimer: TNotifyEvent;
     procedure SetEnabled(const AValue: boolean);
+  protected
+    procedure DoOnTimer; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -487,6 +518,11 @@ procedure pgfCheckTimers;
 function pgfClosestTimer(ctime : TDateTime; amaxtime : integer) : integer;
 procedure GetFontDescValues(Proc: TGetStrProc);
 function Application: TApplication;
+
+{ Points }
+function  PtInRect(const ARect: TpgfRect; const APoint: TPoint): Boolean;
+function  InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean; overload;
+function InflateRect(var Rect: TpgfRect; dx: Integer; dy: Integer): Boolean; overload;
 
 implementation
 
@@ -655,7 +691,7 @@ begin
   inherited Create(AOwner);
   Finterval := 1000;
   //FOnTimer := nil;
-  //FEnabled := false;
+  FEnabled := false;
   pgfTimers.Add(self);
 end;
 
@@ -683,7 +719,7 @@ begin
         FNextAlarm := FNextAlarm + interval * ONE_MILISEC;
     end;
 
-    if Assigned(FOnTimer) then FOnTimer(self);
+    DoOnTimer();
   end;
 end;
 
@@ -1597,6 +1633,85 @@ begin
 
 end;
 
+procedure TpgfStyle.DrawMenuBar(ACanvas: TpgfCanvas; r: TpgfRect; ABackgroundColor: TpgfColor);
+begin
+  ACanvas.Clear(ABackgroundColor);
+
+  // inner bottom line
+  ACanvas.SetColor(clShadow1);
+  ACanvas.DrawLine(r.Left, r.Bottom-1, r.Right+1, r.Bottom-1);   // bottom
+  // outer bottom line
+  ACanvas.SetColor({clWhite}$ffffff);
+  ACanvas.DrawLine(r.Left, r.Bottom, r.Right+1, r.Bottom);   // bottom
+end;
+
+procedure TpgfStyle.DrawMenuRow(ACanvas: TpgfCanvas; r: TpgfRect; AFlags: TlpMenuItemFlags);
+begin
+  ACanvas.FillRect(r);
+end;
+
+procedure TpgfStyle.DrawMenuItem(ACanvas: TpgfCanvas; r: TpgfRect;
+  AFlags: TlpMenuItemFlags; AText: WideString);
+begin
+  //
+end;
+
+procedure TpgfStyle.DrawMenuItemSeparator(ACanvas: TpgfCanvas; r: TpgfRect);
+begin
+  ACanvas.SetColor(clShadow1);
+  ACanvas.DrawLine(r.Left+1, r.Top+2, r.Right, r.Top+2);
+  ACanvas.SetColor(clHilite2);
+  ACanvas.DrawLine(r.Left+1, r.Top+3, r.Right, r.Top+3);
+end;
+
+procedure TpgfStyle.DrawMenuItemImage(ACanvas: TpgfCanvas; x, y: TpgfCoord; r: TpgfRect; AFlags: TlpMenuItemFlags);
+var
+  img: TpgfImage;
+  lx: TpgfCoord;
+  ly: TpgfCoord;
+begin
+  if mifChecked in AFlags then
+  begin
+    img := pgfImages.GetImage('stdimg.check');    // Do NOT localize
+    if mifSelected in AFlags then
+      img.Invert;  // invert modifies the original image, so we must restore it later
+    ACanvas.DrawImage(x, y, img);
+    if mifSelected in AFlags then
+      img.Invert;  // restore image to original state
+  end;
+  if mifSubMenu in AFlags then
+  begin
+    img := pgfImages.GetImage('sys.sb.right');    // Do NOT localize
+    lx := (r.height div 2) - 3;
+    lx := r.right-lx-2;
+    ly := y + ((r.Height-img.Height) div 2);
+    if mifSelected in AFlags then
+      img.Invert;  // invert modifies the original image, so we must restore it later
+    ACanvas.DrawImage(lx, ly, img);
+    if mifSelected in AFlags then
+      img.Invert;  // restore image to original state
+  end;
+end;
+
+procedure TpgfStyle.DrawString(ACanvas: TpgfCanvas; x, y: TpgfCoord;
+  AText: string; AEnabled: boolean);
+begin
+  if AText = '' then
+    Exit; //==>
+  if not AEnabled then
+  begin
+    ACanvas.SetTextColor(clHilite2);
+    ACanvas.DrawString(x+1, y+1, AText);
+    ACanvas.SetTextColor(clShadow1);
+  end;
+  ACanvas.DrawString(x, y, AText);
+end;
+
+function TpgfStyle.GetSeparatorSize: integer;
+begin
+  result := 2;
+end;
+
 { TpgfCaret }
 
 procedure TpgfCaret.OnTimerTime(sender: TObject);
@@ -1753,6 +1868,50 @@ var
 begin
   for I := 0 to pgfNamedFonts.Count-1 do
       Proc('#'+TNamedFontItem(pgfNamedFonts[I]).FontID);
+end;
+
+function  PtInRect(const ARect: TpgfRect; const APoint: TPoint): Boolean;
+begin
+  Result := (APoint.x >= ARect.Left) and
+            (APoint.y >= ARect.Top) and
+            (APoint.x <= ARect.Right) and
+            (APoint.y <= ARect.Bottom);
+end;            
+
+function  InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
+begin
+  if Assigned(@Rect) then
+  begin
+    with Rect do
+    begin
+      dec(Left, dx);
+      dec(Top, dy);
+      inc(Right, dx);
+      inc(Bottom, dy);
+    end;
+    Result := True;
+  end
+  else
+    Result := False;
+end;
+
+function InflateRect(var Rect: TpgfRect; dx: Integer; dy: Integer): Boolean;
+begin
+  if Assigned(@Rect) then
+  begin
+    dec(Rect.Left, dx);
+    dec(Rect.Top, dy);
+    inc(Rect.Width, 2*dx);
+    inc(Rect.Height, 2*dy);
+    Result := True;
+  end
+  else
+    Result := False;
+end;
+
+procedure TlpTimer.DoOnTimer;
+begin
+  if Assigned(FOnTimer) then FOnTimer(self);
 end;
 
 initialization

@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="9"/>
+    <BuildModes Active="Default"/>
+    <Units Count="11">
+      <Unit0>
+        <Filename Value="project1.dpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="project1"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="20" Y="6"/>
+        <UsageCount Value="33"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="unit1.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="lpForm1"/>
+        <HasResources Value="True"/>
+        <UnitName Value="Unit1"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="15"/>
+        <CursorPos X="72" Y="38"/>
+        <UsageCount Value="33"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <UnitName Value="lp_menu"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1377"/>
+        <CursorPos X="22" Y="1388"/>
+        <UsageCount Value="16"/>
+        <Bookmarks Count="1">
+          <Item0 X="38" Y="952" ID="9"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\..\core\lp_popupwindow.pas"/>
+        <UnitName Value="lp_popupwindow"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="366"/>
+        <CursorPos X="1" Y="380"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="..\..\core\lp_widget.pas"/>
+        <UnitName Value="lp_widget"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="426"/>
+        <CursorPos X="1" Y="437"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\..\core\lp_main.pas"/>
+        <UnitName Value="lp_main"/>
+        <EditorIndex Value="9"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="43" Y="29"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\..\core\hd_platform_win.pas"/>
+        <UnitName Value="hd_platform_win"/>
+        <EditorIndex Value="10"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="238"/>
+        <CursorPos X="1" Y="250"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\..\core\lp_defs.pas"/>
+        <UnitName Value="lp_defs"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="291"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="..\..\core\pgf_msgqueue.inc"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="135"/>
+        <CursorPos X="1" Y="145"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\..\core\lp_form.pas"/>
+        <UnitName Value="lp_form"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="35"/>
+        <CursorPos X="26" Y="45"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="..\..\widget\lp_button.pas"/>
+        <UnitName Value="lp_button"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="299"/>
+        <CursorPos X="62" Y="304"/>
+        <UsageCount Value="14"/>
+        <Loaded Value="True"/>
+      </Unit10>
+    </Units>
+    <General>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="..\..\core\lp_popupwindow.pas"/>
+        <Caret Line="46" Column="28" TopLine="26"/>
+      </Position1>
+      <Position2>
+        <Filename Value="..\..\core\lp_popupwindow.pas"/>
+        <Caret Line="254" Column="14" TopLine="222"/>
+      </Position2>
+      <Position3>
+        <Filename Value="..\..\core\lp_popupwindow.pas"/>
+        <Caret Line="264" Column="38" TopLine="232"/>
+      </Position3>
+      <Position4>
+        <Filename Value="..\..\core\lp_popupwindow.pas"/>
+        <Caret Line="378" Column="14" TopLine="346"/>
+      </Position4>
+      <Position5>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1570" Column="29" TopLine="1552"/>
+      </Position5>
+      <Position6>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="125" Column="28" TopLine="106"/>
+      </Position6>
+      <Position7>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1186" Column="35" TopLine="1172"/>
+      </Position7>
+      <Position8>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1189" Column="1" TopLine="1172"/>
+      </Position8>
+      <Position9>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1191" Column="1" TopLine="1172"/>
+      </Position9>
+      <Position10>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1192" Column="1" TopLine="1173"/>
+      </Position10>
+      <Position11>
+        <Filename Value="..\..\core\lp_popupwindow.pas"/>
+        <Caret Line="379" Column="1" TopLine="366"/>
+      </Position11>
+      <Position12>
+        <Filename Value="..\..\core\lp_popupwindow.pas"/>
+        <Caret Line="380" Column="1" TopLine="366"/>
+      </Position12>
+      <Position13>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1524" Column="1" TopLine="1507"/>
+      </Position13>
+      <Position14>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1525" Column="1" TopLine="1507"/>
+      </Position14>
+      <Position15>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1528" Column="1" TopLine="1509"/>
+      </Position15>
+      <Position16>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1530" Column="1" TopLine="1512"/>
+      </Position16>
+      <Position17>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1539" Column="1" TopLine="1528"/>
+      </Position17>
+      <Position18>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="879" Column="32" TopLine="878"/>
+      </Position18>
+      <Position19>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="900" Column="1" TopLine="882"/>
+      </Position19>
+      <Position20>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="907" Column="1" TopLine="896"/>
+      </Position20>
+      <Position21>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="908" Column="1" TopLine="896"/>
+      </Position21>
+      <Position22>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="909" Column="1" TopLine="896"/>
+      </Position22>
+      <Position23>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="910" Column="1" TopLine="896"/>
+      </Position23>
+      <Position24>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="915" Column="1" TopLine="897"/>
+      </Position24>
+      <Position25>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="987" Column="5" TopLine="969"/>
+      </Position25>
+      <Position26>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="983" Column="1" TopLine="969"/>
+      </Position26>
+      <Position27>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="536" Column="1" TopLine="517"/>
+      </Position27>
+      <Position28>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1177" Column="71" TopLine="1205"/>
+      </Position28>
+      <Position29>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="970" Column="48" TopLine="956"/>
+      </Position29>
+      <Position30>
+        <Filename Value="..\..\widget\lp_menu.pas"/>
+        <Caret Line="1194" Column="10" TopLine="1162"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectSession>
+  <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\..\widget\lp_menu.pas"/>
+        <Line Value="1361"/>
+      </Item1>
+    </BreakPoints>
+    <Watches Count="2">
+      <Item1>
+        <Expression Value="FFocusItem"/>
+      </Item1>
+      <Item2>
+        <Expression Value="FClicked"/>
+      </Item2>
+    </Watches>
+  </Debugging>
+  <EditorMacros Count="0"/>
+</CONFIG>

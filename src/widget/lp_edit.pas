@@ -50,11 +50,11 @@ type
 
     procedure HandlePaint; override;
 
-    procedure HandleKeyChar(var keycode: word; var shiftstate: word; var consumed : boolean); override;
+    procedure HandleKeyChar(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); override;
 
-    procedure HandleLMouseDown(x,y : integer; shiftstate : word); override;
+    procedure HandleLMouseDown(x,y : integer; shiftstate : TShiftState); override;
 
-    procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
+    procedure HandleMouseMove(x,y : integer; btnstate:word; shiftstate : TShiftState); override;
 
     function SelectionText : WideString;
 
@@ -289,7 +289,7 @@ begin
   Canvas.EndDraw;
 end;
 
-procedure TlpEdit.HandleKeyChar(var keycode: word; var shiftstate: word; var consumed : boolean);
+procedure TlpEdit.HandleKeyChar(var keycode: word; var shiftstate: TShiftState; var consumed : boolean);
 var
   prevval : WideString;
   s : WideString;
@@ -340,7 +340,7 @@ begin
           begin
             dec(FCursorPos);
 
-            if (shiftstate and ss_control) <> 0 then
+            if ssCtrl in shiftstate  then
             begin
               // word search...
 //                    while (FCursorPos > 0) and not ptkIsAlphaNum(copy(FText,FCursorPos,1))
@@ -359,7 +359,7 @@ begin
           begin
             inc(FCursorPos);
 
-            if (shiftstate and ss_control) <> 0 then
+            if ssCtrl in shiftstate  then
             begin
               // word search...
 //                    while (FCursorPos < Length(FText)) and ptkIsAlphaNum(copy(FText,FCursorPos+1,1))
@@ -388,7 +388,7 @@ begin
     begin
       AdjustCursor;
 
-      FSelecting := (shiftstate and ss_shift) <> 0;
+      FSelecting := ssShift in shiftstate;
 
       if FSelecting then
       begin
@@ -462,7 +462,7 @@ begin
               else inherited;
 end;
 
-procedure TlpEdit.HandleLMouseDown(x, y : integer; shiftstate : word);
+procedure TlpEdit.HandleLMouseDown(x, y : integer; shiftstate : Tshiftstate  );
 var
   s : WideString;
   n : integer;
@@ -496,7 +496,7 @@ begin
 
   FCursorPos := cp;
 
-  if (shiftstate and ss_shift) <> 0 then
+  if ssShift in shiftstate then
   begin
     FSelOffset  := FCursorPos - FSelStart;
   end
@@ -508,7 +508,7 @@ begin
   Repaint;
 end;
 
-procedure TlpEdit.HandleMouseMove(x, y: integer; btnstate, shiftstate: word);
+procedure TlpEdit.HandleMouseMove(x, y: integer; btnstate:Word; shiftstate: TShiftstate);
 var
   s : WideString;
   n : integer;

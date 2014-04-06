@@ -142,6 +142,7 @@ type
 
   public
     property WinHandle : TpgfWinHandle read FWinHandle;
+    function    WindowToScreen(ASource: TpgfWindowBase; const AScreenPos: TPoint): TPoint; override;
   protected
     procedure DoAllocateWindowHandle(aparent : TpgfWindowImpl);
     procedure DoReleaseWindowHandle;
@@ -216,7 +217,7 @@ type
 
 implementation
 
-uses lp_main, lp_widget, lp_form;
+uses lp_main, lp_widget, lp_form, lp_popup;
 
 var
   wdisp : TpgfDisplay;
@@ -335,7 +336,7 @@ var
   w : TpgfWindowImpl;
   kwg, mwg, wwg, pwg : TpgfWidget;
   kcode,i : integer;
-  sstate : integer;
+  sstate : TShiftState;
   h : THANDLE;
   p : PChar;
   pt : TPOINT;
@@ -385,10 +386,10 @@ begin
       kwg := FindKeyboardFocus;
       if kwg <> nil then w := kwg;
 
-      sstate := 0;
-      if GetKeyState(VK_SHIFT) < 0 then sstate := sstate + ss_shift;
-      if GetKeyState(VK_MENU) < 0 then sstate := sstate + ss_alt;
-      if GetKeyState(VK_CONTROL) < 0 then sstate := sstate + ss_control;
+      sstate := [];
+      if GetKeyState(VK_SHIFT) < 0 then sstate := sstate + [ssshift];
+      if GetKeyState(VK_MENU) < 0 then sstate := sstate + [ssalt];
+      if GetKeyState(VK_CONTROL) < 0 then sstate := sstate + [ssCtrl];
 
       kcode := (lParam shr 16) and $1FF;
 
@@ -471,10 +472,10 @@ begin
         mcode := 0;
       end;
 
-      {if (pgfPopupListFirst <> nil) and (mcode = PGFM_MOUSEDOWN) then
+      if (PopupListFirst <> nil) and (mcode = PGFM_MOUSEDOWN) then
       begin
-        pt.x := x;
-        pt.y := y;
+        pt.x := msgp.mouse.x;
+        pt.y := msgp.mouse.y;
 
         ClientToScreen(w.WinHandle, pt);
 
@@ -482,15 +483,17 @@ begin
         wwg := GetMyWidgetFromHandle(h);
 
         pwg := wwg;
-        while (pwg <> nil) and (pwg.ParentWindow <> nil) do pwg := pwg.ParentWindow;
+        while (pwg <> nil) and (pwg.ParentWindow <> nil) do
+          pwg := TpgfWidget(pwg.ParentWindow);
 
-        if ((pwg = nil) or (not PopupListFind(pwg))) and (not PopupDontCloseWidget(wwg)) then
+        if ((pwg = nil) or (not PopupListFind(pwg)))
+          and (not PopupDontCloseWidget(wwg)) then
         begin
           ClosePopups;
 
-          pgfSendMessage(nil, wwg, MSG_POPUPCLOSE, msgp );
+          //pgfSendMessage(nil, wwg, MSG_POPUPCLOSE, msgp );
         end;
-      end;}
+      end;
 
       case uMsg of
         WM_MOUSEMOVE:
@@ -505,9 +508,9 @@ begin
         WM_RBUTTONDOWN, WM_RBUTTONUP: msgp.mouse.buttons := MOUSE_RIGHT;
       end;
 
-      sstate := 0;
-      if (wParam and MK_CONTROL) <> 0 then sstate := sstate or ss_control;
-      if (wParam and MK_SHIFT)   <> 0 then sstate := sstate or ss_shift;
+      sstate := [];
+      if (wParam and MK_CONTROL) <> 0 then sstate := sstate + [ssCtrl];
+      if (wParam and MK_SHIFT)   <> 0 then sstate := sstate + [ssshift];
       msgp.mouse.shiftstate := sstate;
 
       if mcode <> 0 then pgfSendMessage(nil, w, mcode, msgp);
@@ -847,8 +850,12 @@ begin
   end
   else if FWindowType in [wtPopup] then
   begin
-    FWinStyle := WS_POPUP;
-    FWinStyleEx := WS_EX_TOOLWINDOW;
+    {FWinStyle := WS_POPUP;
+    FWinStyleEx := WS_EX_TOOLWINDOW;}
+    // This prevents the popup window from stealing the focus. eg: ComboBox dropdown
+    FParentWinHandle := GetDesktopWindow;
+    FWinStyle   := WS_CHILD;
+    FWinStyleEx := WS_EX_TOPMOST or WS_EX_TOOLWINDOW;
   end;
 
   if FWindowType = wtModalForm then
@@ -1069,6 +1076,17 @@ begin
   Windows.SetCursor(hc);
 end;
 
+function TpgfWindowImpl.WindowToScreen(ASource: TpgfWindowBase;
+  const AScreenPos: TPoint): TPoint;
+begin
+  if not TpgfWindowImpl(ASource).HandleIsValid then
+    Exit; //==>
+
+  Result.X := AScreenPos.X;
+  Result.Y := AScreenPos.Y;
+  ClientToScreen(TpgfWindowImpl(ASource).WinHandle, Result);
+end;
+
 { TpgfCanvasImpl }
 
 constructor TpgfCanvasImpl.Create;
@@ -1239,11 +1257,15 @@ procedure TpgfCanvasImpl.DoGetWinRect(var r: TpgfRect);
 var
   wr : windows.TRECT;
 begin
+  if assigned(FDrawWindow) and  FDrawWindow.HandleIsValid then
+  begin
   GetClientRect(FDrawWindow.FWinHandle,wr);
   r.top := wr.Top;
   r.left := wr.Left;
   r.width := wr.Right - wr.Left + 1;
   r.height := wr.Bottom - wr.Top + 1;
+
+  end;
 end;
 
 procedure TpgfCanvasImpl.DoSetClipRect(const rect: TpgfRect);

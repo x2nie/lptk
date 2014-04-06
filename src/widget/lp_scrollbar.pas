@@ -12,7 +12,7 @@ uses
 type
   TScrollNotifyEvent = procedure(Sender: TObject; position : integer) of object;
 
-  TwgScrollBar = class(TpgfWidget)
+  TlpScrollBar = class(TpgfWidget)
   protected
 
     FSliderPos, FSliderLength : TpgfCoord;
@@ -23,9 +23,9 @@ type
     procedure DrawButton(x,y,w,h : TpgfCoord; const imgname : string);
     procedure DrawSlider(recalc : boolean);
 
-    procedure HandleLMouseDown(x,y : integer; shiftstate : word); override;
-    procedure HandleLMouseUp(x,y : integer; shiftstate : word); override;
-    procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
+    procedure HandleLMouseDown(x,y : integer; shiftstate : Tshiftstate); override;
+    procedure HandleLMouseUp(x,y : integer; shiftstate : Tshiftstate); override;
+    procedure HandleMouseMove(x,y : integer; btnstate:Word; shiftstate : Tshiftstate); override;
 
     procedure HandlePaint; override;
 
@@ -49,9 +49,9 @@ type
 
 implementation
 
-{ TwgScrollBar }
+{ TlpScrollBar }
 
-constructor TwgScrollBar.Create(AOwner: TComponent);
+constructor TlpScrollBar.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   Orientation := orVertical;
@@ -65,7 +65,7 @@ begin
   FSliderLength := 10;
 end;
 
-procedure TwgScrollBar.HandlePaint;
+procedure TlpScrollBar.HandlePaint;
 begin
   Canvas.BeginDraw;
 
@@ -85,14 +85,14 @@ begin
   Canvas.EndDraw;
 end;
 
-procedure TwgScrollBar.RepaintSlider;
+procedure TlpScrollBar.RepaintSlider;
 begin
   if not HasHandle then Exit;
 
   DrawSlider(true);
 end;
 
-procedure TwgScrollBar.DrawButton(x, y, w, h: TpgfCoord; const imgname : string);
+procedure TlpScrollBar.DrawButton(x, y, w, h: TpgfCoord; const imgname : string);
 var
   img : TpgfImage;
 begin
@@ -106,7 +106,7 @@ begin
   end;
 end;
 
-procedure TwgScrollBar.DrawSlider(recalc : boolean);
+procedure TlpScrollBar.DrawSlider(recalc : boolean);
 var
   area : TpgfCoord;
   mm : TpgfCoord;
@@ -155,7 +155,7 @@ begin
   end;
 end;
 
-procedure TwgScrollBar.HandleLMouseDown(x, y: integer; shiftstate: word);
+procedure TlpScrollBar.HandleLMouseDown(x, y: integer; shiftstate: Tshiftstate);
 begin
   inherited;
 
@@ -192,7 +192,7 @@ begin
   end;
 end;
 
-procedure TwgScrollBar.HandleLMouseUp(x, y: integer; shiftstate: word);
+procedure TlpScrollBar.HandleLMouseUp(x, y: integer; shiftstate: Tshiftstate);
 begin
   inherited;
   FSliderDragging := false;
@@ -204,7 +204,7 @@ begin
 *)
 end;
 
-procedure TwgScrollBar.HandleMouseMove(x, y: integer; btnstate, shiftstate: word);
+procedure TlpScrollBar.HandleMouseMove(x, y: integer; btnstate:Word; shiftstate: Tshiftstate);
 var
   d, area : integer;
 
@@ -249,7 +249,7 @@ begin
   end;
 end;
 
-procedure TwgScrollBar.PositionChange(d: integer);
+procedure TlpScrollBar.PositionChange(d: integer);
 begin
   Position := Position + d;
   if Position < Min then Position := Min;

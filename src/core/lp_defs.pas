@@ -134,12 +134,12 @@ type
   TpgfMsgParMouse = record
     x,y : TpgfCoord;
     buttons : word;
-    shiftstate : word;
+    shiftstate : TShiftState;
   end;
 
   TpgfMsgParKeyboard = record
     keycode : word;
-    shiftstate : word;
+    shiftstate : TShiftState;
   end;
 
   TpgfMessageParams = record
@@ -241,7 +241,7 @@ type
     // make some setup before the window shows
     procedure AdjustWindowStyle; virtual;    // forms modify the window creation parameters
     procedure SetWindowParameters; virtual;  // invoked after the window is created
-    
+    function    WindowToScreen(ASource: TpgfWindowBase; const AScreenPos: TPoint): TPoint; virtual; abstract;
     property Cursor: TCursor read FCursor write SetCursor;
   end;
 

@@ -13,6 +13,8 @@ type
   { TpgfForm }
 
   TlpForm = class(TpgfWidget)
+  private
+    FText: widestring;
   protected
     FPrevModalForm : TlpForm;
     FModalResult : integer;
@@ -23,7 +25,7 @@ type
     //FCaption : widestring;
     FSizeable : boolean;
 
-    FBackgroundColor : TpgfColor;
+    //FBackgroundColor : TpgfColor;
 
     procedure AdjustWindowStyle; override;
     procedure SetWindowParameters; override;
@@ -41,7 +43,8 @@ type
     procedure HandlePaint; override;
 
     procedure HandleClose; virtual;
-
+    procedure   HandleMove(x, y: TpgfCoord); override;
+    procedure   HandleResize(awidth, aheight: TpgfCoord); override;    
   public
     constructor Create(aowner : TComponent); override;
 
@@ -70,7 +73,7 @@ function WidgetParentForm(wg : TpgfWidget) : TlpForm;
 
 implementation
 
-uses lp_main;
+uses lp_main, lp_popupwindow;
 
 function WidgetParentForm(wg : TpgfWidget) : TlpForm;
 var
@@ -142,7 +145,7 @@ begin
   //FCaption := '';
   FSizeable := true;
   FParentForm := nil;
-  FBackgroundColor := clWindowBackground;
+  //FBackgroundColor := clWindowBackground;
   FMinWidth := 32;
   FMinHeight := 32;
   FWidth := 320;
@@ -211,6 +214,7 @@ end;
 
 procedure TlpForm.MsgDeActivate(var msg: TpgfMessageRec);
 begin
+  //ClosePopups;
   if ActiveWidget <> nil then ActiveWidget.KillFocus;
 end;
 
@@ -238,6 +242,20 @@ begin
   begin
     Halt(0);
   end;
+end;
+
+procedure TlpForm.HandleMove(x, y: TpgfCoord);
+begin
+  ClosePopups;
+  inherited HandleMove(x, y);
+
+end;
+
+procedure TlpForm.HandleResize(awidth, aheight: TpgfCoord);
+begin
+  ClosePopups;
+  inherited HandleResize(awidth, aheight);
+
 end;
 
 initialization

@@ -47,13 +47,18 @@ procedure Register;
 implementation
 uses Controls, PropEdits, lp_propedits,
   lp_button,lp_progressbar, lp_trackbar, lp_edit, lp_memo,
-  lp_listbox;
+  lp_listbox, //lp_combobox,
+  lp_menu
+
+  ;
 
 procedure Register;
 begin
   FormEditingHook.RegisterDesignerMediator(TpgfMediator);
   RegisterComponents('Standard',[TlpTImer, TlpButton, TlpMemo, TlpEdit, TlpListBox,
-  TlpProgressbar, TlpTrackbar]);
+  TlpProgressbar, TlpTrackbar, //TlpCombobox
+  TlpMenuBar, TlpPopupMenu
+  ]);
 
   RegisterPropertyEditor(TypeInfo(widestring), TpgfWidget, 'Caption', TStringMultilinePropertyEditor);
   RegisterPropertyEditor(TypeInfo(widestring), TpgfWidget, 'Text', TStringMultilinePropertyEditor);

@@ -1,11 +1,13 @@
-unit wgchoicelist;
+unit lp_combobox;
 
-{$include pgf_config.inc}
+{$ifdef FPC}
+  {$mode delphi}{$H+}
+{$endif}
 
 interface
 
 uses
-  Classes, SysUtils, pgf_defs, pgf_main, pgf_widget, pgf_popup, wglistbox;
+  Classes, SysUtils, lp_defs, lp_main, lp_widget, lp_popup, lp_listbox;
 
 type
 
@@ -29,7 +31,7 @@ type
 
   { TwgChoiceList }
 
-  TwgChoiceList = class(TpgfWidget)
+  TlpCombobox = class(TpgfWidget)
   private
     FFocusItem: integer;
     function GetFontName: string;
@@ -84,15 +86,15 @@ type
 
   end;
 
-function CreateChoiceList(AOwner : TComponent; x, y, w : TpgfCoord; list8 : TStringList) : TwgChoiceList;
+function CreateChoiceList(AOwner : TComponent; x, y, w : TpgfCoord; list8 : TStringList) : TlpCombobox;
 
 implementation
 
-function CreateChoiceList(AOwner : TComponent; x, y, w : TpgfCoord; list8 : TStringList) : TwgChoiceList;
+function CreateChoiceList(AOwner : TComponent; x, y, w : TpgfCoord; list8 : TStringList) : TlpCombobox;
 var
   n : integer;
 begin
-  result := TwgChoiceList.Create(AOwner);
+  result := TlpCombobox.Create(AOwner);
   Result.Left := x;
   Result.Top := y;
   Result.Width := w;
@@ -102,9 +104,9 @@ begin
   end;
 end;
 
-{ TwgChoiceList }
+{ TlpCombobox }
 
-procedure TwgChoiceList.ListSelect(sender: TObject);
+procedure TlpCombobox.ListSelect(sender: TObject);
 begin
   FocusItem := FListPopup.ListBox.FocusItem;
   FListPopup.Close;
@@ -112,7 +114,7 @@ begin
   if Assigned(OnChange) then OnChange(self);
 end;
 
-constructor TwgChoiceList.Create(AOwner: TComponent);
+constructor TlpCombobox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FFont := PgfGetFont('#List');
@@ -124,6 +126,8 @@ begin
 
   FListPopup := TChoiceListPopup.Create(nil);
 
+  if not (csDesigning in ComponentState) then
+  begin
   FListPopup.ListBox.SetItemref(FItems);
   FListPopup.ListBox.OnSelect := ListSelect;
   FListPopup.ListBox.HotTrack := true;
@@ -131,6 +135,8 @@ begin
   FListPopup.ListBox.PopupFrame := true;
 
   FListPopup.CallerWidget := self;
+
+  end;
 
   DropDownRows := 8;
 
@@ -145,15 +151,16 @@ begin
 
 end;
 
-destructor TwgChoiceList.Destroy;
+destructor TlpCombobox.Destroy;
 begin
   FItems.Free;
-  FListPopup.Free;
+  if assigned(FListPopup) then
+     FListPopup.Free;
   FFont.Free;
   inherited Destroy;
 end;
 
-procedure TwgChoiceList.HandlePaint;
+procedure TlpCombobox.HandlePaint;
 var
   r : TpgfRect;
 begin
@@ -202,7 +209,7 @@ begin
   Canvas.EndDraw;
 end;
 
-procedure TwgChoiceList.DropDown;
+procedure TlpCombobox.DropDown;
 var
   rc : integer;
 begin
@@ -218,14 +225,14 @@ begin
   FListPopup.ListBox.FocusItem := self.FocusItem;
 end;
 
-procedure TwgChoiceList.HandleLMouseDown(x, y : integer; shiftstate : word);
+procedure TlpCombobox.HandleLMouseDown(x, y : integer; shiftstate : word);
 begin
   inherited;
   
   if not FListPopup.HasHandle then DropDown else FListPopup.Close;
 end;
 
-procedure TwgChoiceList.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
+procedure TlpCombobox.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
 begin
   inherited HandleKeyPress(keycode, shiftstate, consumed);
 
@@ -239,19 +246,19 @@ begin
   end;
 end;
 
-function TwgChoiceList.Text : widestring;
+function TlpCombobox.Text : widestring;
 begin
   if (FocusItem > 0) and (FocusItem <= FItems.Count)
     then result := FItems.Strings[FocusItem-1]
     else result := '';
 end;
 
-function TwgChoiceList.Text8: string;
+function TlpCombobox.Text8: string;
 begin
   result := wstoutf8(Text);
 end;
 
-procedure TwgChoiceList.SetFocusItem(const Value: integer);
+procedure TlpCombobox.SetFocusItem(const Value: integer);
 begin
   FFocusItem := Value;
   if FFocusItem < 1 then FFocusItem := 1;
@@ -259,19 +266,19 @@ begin
   if FWinHandle > 0 then RePaint;
 end;
 
-function TwgChoiceList.GetFontName: string;
+function TlpCombobox.GetFontName: string;
 begin
   result := FFont.FontDesc;
 end;
 
-procedure TwgChoiceList.SetFontName(const AValue: string);
+procedure TlpCombobox.SetFontName(const AValue: string);
 begin
   FFont.Free;
   FFont := PgfGetFont(AValue);
   RePaint;
 end;
 
-procedure TwgChoiceList.SetBackgroundColor(color : TpgfColor);
+procedure TlpCombobox.SetBackgroundColor(color : TpgfColor);
 begin
   FBackgroundColor := color;
   RePaint;

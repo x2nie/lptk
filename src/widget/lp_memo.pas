@@ -39,8 +39,8 @@ type
 
     FFirstLine : integer;
 
-    FVScrollBar : TwgScrollBar;
-    FHScrollBar : TwgScrollBar;
+    FVScrollBar : TlpScrollBar;
+    FHScrollBar : TlpScrollBar;
 
     FWrapping   : boolean;
 
@@ -79,10 +79,10 @@ type
     procedure SetCursorLine(aValue : integer);
   protected
 
-    procedure HandleKeyChar(var keycode: word; var shiftstate: word; var consumed : boolean); override;
+    procedure HandleKeyChar(var keycode: word; var shiftstate: Tshiftstate; var consumed : boolean); override;
 
-    procedure HandleLMouseDown(x,y : integer; shiftstate : word); override;
-    procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
+    procedure HandleLMouseDown(x,y : integer; shiftstate : Tshiftstate); override;
+    procedure HandleMouseMove(x,y : integer; btnstate:Word; shiftstate : Tshiftstate); override;
 
     procedure HandleResize(dwidth, dheight : integer); override;
 
@@ -201,10 +201,10 @@ begin
   FDrawOffset := 0;
   FMouseDragging := false;
 
-  FVScrollBar := TwgScrollBar.Create(self);
+  FVScrollBar := TlpScrollBar.Create(self);
   FVScrollBar.Orientation := orVertical;
   FVScrollBar.OnScroll := VScrollBarMove;
-  FHScrollBar := TwgScrollBar.Create(self);
+  FHScrollBar := TlpScrollBar.Create(self);
   FHScrollBar.Orientation := orHorizontal;
   FHScrollBar.OnScroll := HScrollBarMove;
 
@@ -685,7 +685,7 @@ begin
   Canvas.EndDraw;
 end;
 
-procedure TlpMemo.HandleKeyChar(var keycode: word; var shiftstate: word; var consumed : boolean);
+procedure TlpMemo.HandleKeyChar(var keycode: word; var shiftstate: Tshiftstate; var consumed : boolean);
 var
   prevval : WideString;
   s, ls, ls2 : WideString;
@@ -728,7 +728,7 @@ begin
 
     // checking for movement keys:
     consumed := true;
-    FSelecting := (shiftstate and ss_shift) <> 0;
+    FSelecting := ssShift in shiftstate ;
 
     case keycode of
       KEY_LEFT:
@@ -737,7 +737,7 @@ begin
                 begin
                   dec(FCursorPos);
 
-                  if (shiftstate and ss_control) <> 0 then
+                  if ssCtrl in shiftstate then
                   begin
                     // word search...
 (*
@@ -757,7 +757,7 @@ begin
                 begin
                   inc(FCursorPos);
 
-                  if (shiftstate and ss_control) <> 0 then
+                  if ssCtrl in shiftstate  then
                   begin
                     // word search...
 (*
@@ -932,7 +932,7 @@ begin
 
 end;
 
-procedure TlpMemo.HandleLMouseDown(x, y : integer; shiftstate : word);
+procedure TlpMemo.HandleLMouseDown(x, y : integer; shiftstate : Tshiftstate);
 var
   n : integer;
   cpx : integer;
@@ -968,7 +968,7 @@ begin
   FCursorPos  := cp;
   FCursorLine := lnum;
 
-  if (shiftstate and ss_shift) <> 0 then
+  if ssShift in shiftstate then
   begin
     FSelEndLine := lnum;
     FSelEndpos  := cp;
@@ -982,7 +982,7 @@ begin
   Repaint;
 end;
 
-procedure TlpMemo.HandleMouseMove(x, y: integer; btnstate, shiftstate: word);
+procedure TlpMemo.HandleMouseMove(x, y: integer; btnstate:Word; shiftstate: Tshiftstate);
 var
   n : integer;
   cpx : integer;

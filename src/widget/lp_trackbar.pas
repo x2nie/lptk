@@ -32,8 +32,8 @@ type
 	    procedure DoChange;
 	protected
 		FBackgroundColor: TpgfColor;
-	    procedure HandleLMouseUp(x,y : integer; shiftstate : word); override;
-	    procedure HandleKeyPress(var KeyCode : word; var shiftstate : word; var consumed : boolean); override;
+	    procedure HandleLMouseUp(x,y : integer; shiftstate : TShiftState); override;
+	    procedure HandleKeyPress(var KeyCode : word; var shiftstate : TShiftState; var consumed : boolean); override;
 	public	    
 	    onChange : TTrackbarChange;
 	    procedure HandlePaint; override;
@@ -77,7 +77,7 @@ begin
     if assigned(onChange) then OnChange(self,Position);
 end;
 
-procedure TlpTrackbar.HandleLMouseUp(x,y : integer; shiftstate : word);
+procedure TlpTrackbar.HandleLMouseUp(x,y : integer; shiftstate : TShiftState);
 var
     p : integer;
     tmax, tmin : integer;
@@ -112,7 +112,7 @@ begin
     if Position <> OldPos then DoChange;
 end;
 
-procedure TlpTrackbar.HandleKeyPress(var KeyCode : word; var shiftstate : word; var consumed : boolean);
+procedure TlpTrackbar.HandleKeyPress(var KeyCode : word; var shiftstate : TShiftState; var consumed : boolean);
 var
     oldpos : integer;
 begin

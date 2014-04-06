@@ -30,7 +30,7 @@ type
   protected
     FFont : TpgfFont;
     FBackgroundColor: TpgfColor;
-    FScrollBar : TwgScrollBar;
+    FScrollBar : TlpScrollBar;
     FFocusItem : integer;
     FMouseDragging : boolean;
     FFirstItem : integer;
@@ -58,12 +58,12 @@ type
     function ItemCount : integer; virtual;
     function RowHeight : integer; virtual;
     procedure DrawItem(num : integer; rect : TpgfRect; flags : integer); virtual;
-    procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
-    procedure HandleLMouseDown(x,y : integer; shiftstate : word); override;
-    procedure HandleLMouseUp(x,y : integer; shiftstate : word); override;
-    procedure HandleRMouseDown(x,y : integer; shiftstate : word); override;
-    procedure HandleRMouseUp(x,y : integer; shiftstate : word); override;
-    procedure HandleMouseMove(x,y : integer; btnstate, shiftstate : word); override;
+    procedure HandleKeyPress(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); override;
+    procedure HandleLMouseDown(x,y : integer; shiftstate : TShiftState); override;
+    procedure HandleLMouseUp(x,y : integer; shiftstate : TShiftState); override;
+    procedure HandleRMouseDown(x,y : integer; shiftstate : TShiftState); override;
+    procedure HandleRMouseUp(x,y : integer; shiftstate : TShiftState); override;
+    procedure HandleMouseMove(x,y : integer; btnstate:word; shiftstate : TShiftState); override;
     procedure HandleWindowScroll(direction, amount : integer); //* override;
     procedure HandleResize(dwidth, dheight : integer); override;
     property PopupFrame : boolean read FPopupFrame write SetPopupFrame;
@@ -93,7 +93,7 @@ type
 implementation
 
 
-{ TwgScrollBar }
+{ TlpScrollBar }
 
 procedure TlpListBox.SetFocusItem(const AValue: integer);
 begin
@@ -222,7 +222,7 @@ begin
   inherited Create(AOwner);
   FFont := PgfGetFont('#List');
   FBackgroundColor := clListBox;
-  FScrollBar := TwgScrollBar.Create(self);
+  FScrollBar := TlpScrollBar.Create(self);
   FScrollBar.OnScroll := {$ifdef FIXME}@{$endif}ScrollBarMove;
   FFocusable := true;
   FFocusItem := 1;
@@ -338,7 +338,7 @@ begin
   Canvas.DrawString(rect.left+4, rect.top+1,s);
 end;
 
-procedure TlpListBox.HandleKeyPress(var keycode: word; var shiftstate: word; var consumed: boolean);
+procedure TlpListBox.HandleKeyPress(var keycode: word; var shiftstate: TShiftState; var consumed: boolean);
 begin
   inherited HandleKeyPress(keycode, shiftstate, consumed);
 
@@ -405,7 +405,7 @@ begin
 
 end;
 
-procedure TlpListBox.HandleLMouseDown(x, y: integer; shiftstate: word);
+procedure TlpListBox.HandleLMouseDown(x, y: integer; shiftstate : TShiftState);
 begin
   inherited HandleLMouseDown(x, y, shiftstate);
   if ItemCount < 1 then Exit;
@@ -419,7 +419,7 @@ begin
 //  DoSelect;
 end;
 
-procedure TlpListBox.HandleLMouseUp(x, y: integer; shiftstate: word);
+procedure TlpListBox.HandleLMouseUp(x, y: integer; shiftstate : TShiftState);
 begin
   inherited HandleLMouseUp(x, y, shiftstate);
 
@@ -432,7 +432,7 @@ begin
   DoChange;
   DoSelect;
 end;
-procedure TlpListBox.HandleRMouseDown(x, y: integer; shiftstate: word);
+procedure TlpListBox.HandleRMouseDown(x, y: integer; shiftstate : TShiftState);
 begin
   inherited HandleRMouseDown(x, y, shiftstate);
 
@@ -446,7 +446,7 @@ begin
 //  DoSelect;
 end;
 
-procedure TlpListBox.HandleRMouseUp(x, y: integer; shiftstate: word);
+procedure TlpListBox.HandleRMouseUp(x, y: integer; shiftstate : TShiftState);
 begin
   inherited HandleRMouseUp(x, y, shiftstate);
 
@@ -460,7 +460,7 @@ begin
   DoSelect;
 end;
 
-procedure TlpListBox.HandleMouseMove(x,y : integer; btnstate, shiftstate : word);
+procedure TlpListBox.HandleMouseMove(x,y : integer; btnstate:word; shiftstate : TShiftState);
 var
   oldf : integer;
 begin

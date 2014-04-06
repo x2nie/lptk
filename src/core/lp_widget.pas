@@ -18,12 +18,30 @@ type
   TpgfWidget = class(TpgfWindow)
   private
     FAlignRect : TpgfRect;
+    FOnClick: TNotifyEvent;
+    FOnDoubleClick: TMouseButtonEvent;
+    FOnEnter: TNotifyEvent;
+    FOnExit: TNotifyEvent;
+    FOnKeyPress: TKeyPressEvent;
+    FOnMouseDown: TMouseButtonEvent;
+    FOnMouseEnter: TNotifyEvent;
+    FOnMouseExit: TNotifyEvent;
+    FOnMouseMove: TMouseMoveEvent;
+    FOnMouseScroll: TMouseWheelEvent;
+    FOnMouseUp: TMouseButtonEvent;
+    FOnPaint: TPaintEvent;
+    FOnResize: TNotifyEvent;
 
     FOnScreen : boolean;
+
     FWidgetStyle: TWidgetStyle;
+    function GetOnShowHint: THintEvent;
     function GetParentName: string;
     procedure SetActiveWidget(const AValue: TpgfWidget);
+    procedure SetBackgroundColor(AValue: TpgfColor);
     procedure SetEnabled(const AValue: boolean);
+    procedure SetOnShowHint(AValue: THintEvent);
+    procedure SetTextColor(AValue: TpgfColor);
     procedure SetVisible(const AValue: boolean);
     function GetWidgets(Index: integer): TpgfWidget;
     procedure SetParent(const Value: TpgfWidget);
@@ -32,7 +50,8 @@ type
   protected
     FParent : TpgfWidget;
     FChilds: TList; // list of TMyWidget
-
+    FBackgroundColor: TpgfColor;
+    FTextColor: TpgfColor;
     FVisible : boolean;
 
     FEnabled : boolean;
@@ -51,7 +70,21 @@ type
     procedure SetText(AValue: widestring); virtual;
 
     property Text : widestring read FText write SetText;
-
+    { property events }
+    property    OnClick: TNotifyEvent read FOnClick write FOnClick;
+    property    OnDoubleClick: TMouseButtonEvent read FOnDoubleClick write FOnDoubleClick;
+    property    OnEnter: TNotifyEvent read FOnEnter write FOnEnter;
+    property    OnExit: TNotifyEvent read FOnExit write FOnExit;
+    property    OnKeyPress: TKeyPressEvent read FOnKeyPress write FOnKeyPress;
+    property    OnMouseDown: TMouseButtonEvent read FOnMouseDown write FOnMouseDown;
+    property    OnMouseEnter: TNotifyEvent read FOnMouseEnter write FOnMouseEnter;
+    property    OnMouseExit: TNotifyEvent read FOnMouseExit write FOnMouseExit;
+    property    OnMouseMove: TMouseMoveEvent read FOnMouseMove write FOnMouseMove;
+    property    OnMouseUp: TMouseButtonEvent read FOnMouseUp write FOnMouseUp;
+    property    OnMouseScroll: TMouseWheelEvent read FOnMouseScroll write FOnMouseScroll;
+    property    OnPaint: TPaintEvent read FOnPaint write FOnPaint;
+    property    OnResize: TNotifyEvent read FOnResize write FOnResize;
+    property    OnShowHint: THintEvent read GetOnShowHint write SetOnShowHint;
   public
     constructor Create(aowner : TComponent); override;
     destructor Destroy; override;
@@ -81,20 +114,21 @@ type
 
     procedure HandleMove(x, y : TpgfCoord); virtual;
 
-    procedure HandleKeyChar(var keycode: word; var shiftstate: word; var consumed : boolean); virtual;
-    procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); virtual;
-    procedure HandleKeyRelease(var keycode: word; var shiftstate: word; var consumed : boolean); virtual;
+    procedure HandleKeyChar(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); virtual;
+    procedure HandleKeyPress(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); virtual;
+    procedure HandleKeyRelease(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); virtual;
 
     procedure HandleSetFocus; virtual;
     procedure HandleKillFocus; virtual;
 
-    procedure HandleLMouseDown(x,y : integer; shiftstate : word); virtual;
-    procedure HandleRMouseDown(x,y : integer; shiftstate : word); virtual;
-    procedure HandleLMouseUp(x,y : integer; shiftstate : word); virtual;
-    procedure HandleRMouseUp(x,y : integer; shiftstate : word); virtual;
+    procedure HandleLMouseDown(x,y : integer; shiftstate : TShiftState); virtual;
+    procedure HandleRMouseDown(x,y : integer; shiftstate : TShiftState); virtual;
+    procedure HandleLMouseUp(x,y : integer; shiftstate : TShiftState); virtual;
+    procedure HandleRMouseUp(x,y : integer; shiftstate : TShiftState); virtual;
 
-    procedure HandleMouseMove(x,y : integer; btnstate : word; shiftstate : word); virtual;
-    procedure HandleDoubleClick(x,y : integer; button : word; shiftstate : word); virtual;
+    procedure HandleMouseMove(x,y : integer; btnstate : word; shiftstate : TShiftState); virtual;
+    procedure HandleDoubleClick(x,y : integer; button : word; shiftstate : TShiftState); virtual;
+    procedure   HandleMouseScroll(x, y: integer; shiftstate: TShiftState; delta: smallint); virtual;
 
     procedure HandleMouseEnter; virtual;
     procedure HandleMouseExit; virtual;
@@ -133,7 +167,7 @@ type
 
   public
 
-    OnKeyPress : TKeyPressNotifyEvent;
+    //OnKeyPress : TKeyPressNotifyEvent;
 
   public
 
@@ -145,6 +179,8 @@ type
 
     property Focusable : boolean read FFocusable write FFocusable;
     property Focused   : boolean read FFocused write FFocused;
+    property    BackgroundColor: TpgfColor read FBackgroundColor write SetBackgroundColor default clWindowBackground;
+    property    TextColor: TpgfColor read FTextColor write SetTextColor default clText1;
 
 
 
@@ -160,7 +196,7 @@ type
     property Align : TAlign read FAlign write FAlign;
     property Anchors : TAnchors read FAnchors write FAnchors;
     property Enabled : boolean read FEnabled write SetEnabled;
-    property TabOrder  : integer read FTabOrder write FTabOrder;
+    property TabOrder  : integer read FTabOrder write FTabOrder default 0;
     property Visible : boolean read FVisible write SetVisible;
   end;
 
@@ -194,6 +230,18 @@ begin
   RePaint;
 end;
 
+procedure TpgfWidget.SetOnShowHint(AValue: THintEvent);
+begin
+
+end;
+
+procedure TpgfWidget.SetTextColor(AValue: TpgfColor);
+begin
+  if FTextColor=AValue then Exit;
+  FTextColor:=AValue;
+  RePaint;
+end;
+
 procedure TpgfWidget.SetText(AValue: widestring);
 begin
   if FText=AValue then Exit;
@@ -211,11 +259,23 @@ begin
   if FActiveWidget <> nil then FActiveWidget.HandleSetFocus;
 end;
 
+procedure TpgfWidget.SetBackgroundColor(AValue: TpgfColor);
+begin
+  if FBackgroundColor=AValue then Exit;
+  FBackgroundColor:=AValue;
+  RePaint;
+end;
+
 function TpgfWidget.GetParentName: string;
 begin
   result := 'nil!';
   if hasParent then
      result := Parent.Name;
+end;
+
+function TpgfWidget.GetOnShowHint: THintEvent;
+begin
+
 end;
 
 procedure TpgfWidget.SetVisible(const AValue: boolean);
@@ -237,6 +297,7 @@ end;
 constructor TpgfWidget.Create(aowner: TComponent);
 begin
   FOnScreen := false;
+  FBackgroundColor := clWindowBackground;  
 
   FVisible := true;
 
@@ -284,7 +345,8 @@ end;
 
 procedure TpgfWidget.MsgKeyChar(var msg: TpgfMessageRec);
 var
-  key, ss : word;
+  key : word;
+  ss : TShiftState;
   consumed : boolean;
   wg : TpgfWidget;
 begin
@@ -314,7 +376,8 @@ end;
 
 procedure TpgfWidget.MsgKeyPress(var msg: TpgfMessageRec);
 var
-  key, ss : word;
+  key : word;
+  ss : TShiftState;
   consumed : boolean;
   wg : TpgfWidget;
 begin
@@ -344,7 +407,8 @@ end;
 
 procedure TpgfWidget.MsgKeyRelease(var msg: TpgfMessageRec);
 var
-  key, ss : Word;
+  key : Word;
+  ss : TShiftState;
   consumed : boolean;
   wg : TpgfWidget;
 begin
@@ -490,13 +554,13 @@ begin
   //
 end;
 
-procedure TpgfWidget.HandleKeyPress(var keycode: word; var shiftstate: word;
+procedure TpgfWidget.HandleKeyPress(var keycode: word; var shiftstate: TShiftState;
   var consumed: boolean);
 begin
   // nothing yet.
 end;
 
-procedure TpgfWidget.HandleKeyChar(var keycode: word; var shiftstate: word; var consumed: boolean);
+procedure TpgfWidget.HandleKeyChar(var keycode: word; var shiftstate: TShiftState; var consumed: boolean);
 var
   wg : TpgfWidget;
   dir : integer;
@@ -510,7 +574,7 @@ begin
   dir := 0;
 
   case keycode of
-    KEY_TAB: if (shiftstate and ss_shift) <> 0 then dir := -1 else dir := 1;
+    KEY_TAB: if (ssShift in shiftstate )  then dir := -1 else dir := 1;
 
     KEY_ENTER, KEY_DOWN, KEY_RIGHT: dir := 1;
 
@@ -563,7 +627,7 @@ begin
   end;
 end;
 
-procedure TpgfWidget.HandleKeyRelease(var keycode: word; var shiftstate: word; var consumed: boolean);
+procedure TpgfWidget.HandleKeyRelease(var keycode: word; var shiftstate: TShiftState; var consumed: boolean);
 begin
   // nothing yet.
 end;
@@ -610,7 +674,7 @@ begin
   if ActiveWidget <> nil then ActiveWidget.KillFocus;
 end;
 
-procedure TpgfWidget.HandleLMouseDown(x, y: integer; shiftstate: word);
+procedure TpgfWidget.HandleLMouseDown(x, y: integer; shiftstate: TShiftState);
 var
   pw : TpgfWidget;
   w : TpgfWidget;
@@ -627,27 +691,33 @@ begin
   end;
 end;
 
-procedure TpgfWidget.HandleRMouseDown(x, y: integer; shiftstate: word);
+procedure TpgfWidget.HandleRMouseDown(x, y: integer; shiftstate: TShiftState);
 begin
   //
 end;
 
-procedure TpgfWidget.HandleLMouseUp(x, y: integer; shiftstate: word);
+procedure TpgfWidget.HandleLMouseUp(x, y: integer; shiftstate: TShiftState);
 begin
   //
 end;
 
-procedure TpgfWidget.HandleRMouseUp(x, y: integer; shiftstate: word);
+procedure TpgfWidget.HandleRMouseUp(x, y: integer; shiftstate: TShiftState);
 begin
   //
 end;
 
-procedure TpgfWidget.HandleMouseMove(x, y: integer; btnstate: word; shiftstate: word);
+procedure TpgfWidget.HandleMouseMove(x, y: integer; btnstate: word; shiftstate: TShiftState);
 begin
   //
 end;
 
-procedure TpgfWidget.HandleDoubleClick(x, y: integer; button: word; shiftstate: word);
+procedure TpgfWidget.HandleDoubleClick(x, y: integer; button: word; shiftstate: TShiftState);
+begin
+  //
+end;
+
+procedure TpgfWidget.HandleMouseScroll(x, y: integer; shiftstate: TShiftState;
+  delta: smallint);
 begin
   //
 end;

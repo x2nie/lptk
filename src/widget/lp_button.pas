@@ -48,12 +48,12 @@ type
   protected
     procedure HandlePaint; override;
 
-    procedure HandleKeyPress(var keycode: word; var shiftstate: word; var consumed : boolean); override;
-    procedure HandleKeyChar(var keycode: word; var shiftstate: word; var consumed : boolean); override;
-    procedure HandleKeyRelease(var keycode: word; var shiftstate: word; var consumed : boolean); override;
+    procedure HandleKeyPress(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); override;
+    procedure HandleKeyChar(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); override;
+    procedure HandleKeyRelease(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); override;
 
-    procedure HandleLMouseDown(X, Y: Integer; ShiftState: Word); override;
-    procedure HandleLMouseUp(x,y : integer; shiftstate : word); override;
+    procedure HandleLMouseDown(X, Y: Integer; ShiftState: TShiftState); override;
+    procedure HandleLMouseUp(x,y : integer; shiftstate : TShiftState); override;
 
     procedure HandleMouseExit; override;
     procedure HandleMouseEnter; override;
@@ -339,7 +339,7 @@ end;
 
 
 
-procedure TlpButton.HandleKeyPress(var keycode : word; var shiftstate : word; var consumed : boolean);
+procedure TlpButton.HandleKeyPress(var keycode : word; var shiftstate : TShiftState; var consumed : boolean);
 begin
   if (keycode = KEYSC_ENTER) or (keycode = KEYSC_SPACE) then
   begin
@@ -349,7 +349,7 @@ begin
   else inherited;
 end;
 
-procedure TlpButton.HandleKeyChar(var keycode: word; var shiftstate: word;
+procedure TlpButton.HandleKeyChar(var keycode: word; var shiftstate: TShiftState;
   var consumed: boolean);
 begin
   if (keycode = KEY_ENTER) or (keycode = KEY_SPACE)
@@ -357,7 +357,7 @@ begin
     else inherited;
 end;
 
-procedure TlpButton.HandleKeyRelease(var keycode : word; var shiftstate : word; var consumed : boolean);
+procedure TlpButton.HandleKeyRelease(var keycode : word; var shiftstate : TShiftState; var consumed : boolean);
 begin
   if (keycode = KEYSC_ENTER) or (keycode = KEYSC_SPACE) then
   begin
@@ -367,13 +367,13 @@ begin
   else inherited;
 end;
 
-procedure TlpButton.HandleLMouseDown(X, Y: Integer; ShiftState: Word);
+procedure TlpButton.HandleLMouseDown(X, Y: Integer; ShiftState: TShiftState);
 begin
   inherited;
   DoPush;
 end;
 
-procedure TlpButton.HandleLMouseUp(x, y : integer; shiftstate : word);
+procedure TlpButton.HandleLMouseUp(x, y : integer; shiftstate : TShiftState);
 begin
   inherited;
   DoRelease;
