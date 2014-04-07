@@ -252,7 +252,9 @@ var
   
 begin
   {$IFDEF DEBUG}
-  writeln(Amenu.Text, '.PopupOpened!');
+  if assigned(AMenu) then
+  writeln(Amenu.Text, '.PopupOpened!')
+  else   writeln( 'NIL.PopupOpened!');
   {$ENDIF}
   if Assigned(uClosePopupTimer ) and (uClosePopupPopup = AMenu) then
   begin
@@ -261,20 +263,7 @@ begin
   uClosePopupTimer.Enabled:= False;
   uClosePopupPopup := nil;
   end;
-  //correct parent selection
-  if AMenu.OpenerPopup  <> nil then
-  begin
-    for i := 0 to AMenu.OpenerPopup.VisibleCount -1 do
-    begin
-      if AMenu.OpenerPopup.VisibleItem(i).SubMenu = AMenu then
-      begin
-         AMenu.OpenerPopup.FFocusItem:= i;
-         AMenu.OpenerPopup.RePaint;
-         break;
-      end;
-    end;
 
-  end;
 end;
 
 
@@ -502,6 +491,8 @@ begin
   inherited HandleMouseMove(x, y, btnstate, shiftstate);
 
   newf := CalcMouseCol(x);
+
+
 
   // process menu options
   if mnuo_nofollowingmouse in FMenuOptions then
@@ -953,7 +944,8 @@ begin
   writeln(Name, '.HandleMouseMove');
   {$ENDIF}
   //mouse enter doesn't work!
-  PopupOpened(self);
+  //PopupOpened(self);
+
 
 
 
@@ -974,7 +966,22 @@ begin
       end;
   end;
 
+    //immediately  correct parent selection
+  //if Assigned(Amenu) and assigned(AMenu.OpenerPopup)  then
+  if  {Assigned(CurrentPopup) and} Assigned(OpenerPopup)  then
+  begin
+    for n := 0 to OpenerPopup.VisibleCount -1 do
+    begin
+      if OpenerPopup.VisibleItem(n).SubMenu = self then
+      begin
+        PopupOpened(self);
+         OpenerPopup.FFocusItem:= n;
+         OpenerPopup.RePaint;
+         break;
+      end;
+    end;
 
+  end;
 
   inherited HandleMouseMove(x, y, btnstate, shiftstate);
 
@@ -991,8 +998,7 @@ begin
   FFocusItem := newf;
   Repaint;
 
-  if assigned(currentPopup) and (ncp <> FFocusItem) then
-     PopupStartClosing(currentPopup);
+
 
   //DoSelect;
 
@@ -1000,22 +1006,36 @@ begin
 //get current popup
   //CurrentPopup := nil;
   //if uFocusedPopupMenu <> self then
-  begin
+  //begin
     //currentPopup := uFocusedPopupMenu
       //for n := 0 to VisibleCount-1 do
-      begin
+      //begin
 
         //Show the submenu without waiting the click.
-         mi := VisibleItem(FFocusItem);
-         if (mi.SubMenu <> nil) and not mi.SubMenu.HasHandle
-         then
-         begin
-            //CurrentPopup := mi.SubMenu;
-            //break;
-            DoSelect;
-         end;
-      end;
-  end;
+  mi := VisibleItem(FFocusItem);
+
+  {
+  if assigned(currentPopup) and {(ncp <> FFocusItem) and}
+      (mi.SubMenu <> currentPopup) then
+     PopupStartClosing(currentPopup)
+  else
+     PopupOpened(mi.SubMenu); //cancel
+     }
+  if assigned(currentPopup) and {(ncp <> FFocusItem) and}
+         (mi.SubMenu <> currentPopup) then
+        PopupStartClosing(currentPopup)
+     else
+        PopupOpened(mi.SubMenu); //cancel
+
+  if (mi.SubMenu <> nil) and not mi.SubMenu.HasHandle then
+
+    begin
+      //CurrentPopup := mi.SubMenu;
+      //break;
+      DoSelect;
+    end;
+
+  
 end;
 
 procedure TlpPopupMenu.HandleLMouseDown(x, y: integer; shiftstate: TShiftState);
@@ -1361,7 +1381,7 @@ begin
   {$IFDEF DEBUG}
   writeln(Classname, '.HandleMouseEnter');
   {$ENDIF}
-  PopupOpened(self);
+  //PopupOpened(self);
   inherited HandleMouseEnter;
 end;
 

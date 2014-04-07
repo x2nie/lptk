@@ -214,7 +214,7 @@ end;
 
 procedure TlpForm.MsgDeActivate(var msg: TpgfMessageRec);
 begin
-  //ClosePopups;
+  ClosePopups;
   if ActiveWidget <> nil then ActiveWidget.KillFocus;
 end;
 
