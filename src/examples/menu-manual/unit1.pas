@@ -37,12 +37,12 @@ implementation
 
 procedure TlpForm1.AfterCreate;
 begin
-  lpMenuBar1:= CreateMenuBar(self, 10,10,100,20);
+  lpMenuBar1:= CreateMenuBar(self, 10,10,200,20);
     sub3 := TlpPopupMenu.Create(self);
     with sub3 do
     begin
       Name := 'Sub__3Menu';
-      SetPosition(264, 60, 120, 20);
+      SetPosition(264, 60, 220, 20);
       AddMenuItem('&Open', 'Ctrl-O', nil);
       AddMenuItem('&Save', 'Ctrl-S', nil);
       AddMenuItem('S&ave As', 'Ctrl+Shift+S', nil);

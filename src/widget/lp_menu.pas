@@ -94,6 +94,9 @@ type
   
   // Actual Menu Items are stored in TComponent's Components property
   // Visible only items are stored in FItems just before a paint
+
+  { TlpPopupMenu }
+
   TlpPopupMenu = class(TfpgPopupWindow)
   private
     FBeforeShow: TNotifyEvent;
@@ -128,6 +131,7 @@ type
     function    ItemHeight(mi: TfpgMenuItem): integer; virtual;
     procedure   PrepareToShow;
     ///x2nie procedure   DoKeyShortcut(const AOrigin: TpgfWidget; const keycode: word; const shiftstate: TShiftState; var consumed: boolean; const IsChildOfOrigin: boolean = False); override;
+    procedure   DoPopupOpen(APopup: TlpPopupMenu); virtual;
   public
     OpenerPopup: TlpPopupMenu;
     OpenerMenuBar: TlpMenuBar;
@@ -201,6 +205,8 @@ implementation
 
 type
   TClosePopupTimer = class(TlpTimer)
+  private
+    FClosing : Boolean;
   protected
     procedure DoOnTimer; override;
   end;
@@ -219,10 +225,23 @@ const
 
 procedure TClosePopupTimer.DoOnTimer;
 begin
-  if Assigned(uClosePopupPopup) then
-    uClosePopupPopup.Close;
-  uClosePopupPopup := nil;
   self.Enabled := False;
+  if Assigned(uClosePopupPopup) then
+  begin
+    if uClosePopupTimer.FClosing then
+        uClosePopupPopup.Close
+    else
+    begin
+      if Assigned(uClosePopupPopup.OpenerPopup) then
+        //TODO: SIMPLIFY THIS
+        uClosePopupPopup.OpenerPopup.DoPopupOpen(uClosePopupPopup);
+    end;
+
+  end;
+
+
+  uClosePopupPopup := nil;
+
 end;
 
 //Slowly closing submenu
@@ -241,30 +260,55 @@ begin
     uClosePopupTimer.Interval:=1000;
   end;
   uClosePopupTimer.Enabled := False; //cancel prior task
+  uClosePopupTimer.FClosing := True;
   uClosePopupPopup := AMenu;
   uClosePopupTimer.Enabled:= True;
 end;
 
-//cancel the slowly closing submenu
-procedure PopupOpened(AMenu : TlpPopupMenu);
-var
-  i : integer;
-  
+//Slowly closing submenu
+procedure PopupStartOpening(AMenu : TlpPopupMenu);
 begin
   {$IFDEF DEBUG}
   if assigned(AMenu) then
-  writeln(Amenu.Text, '.PopupOpened!')
-  else   writeln( 'NIL.PopupOpened!');
+    writeln(Amenu.Text, '.PopupStartOpening!')
+  else
+    writeln( 'NIL.PopupStartOpening!');
   {$ENDIF}
-  if Assigned(uClosePopupTimer ) and (uClosePopupPopup = AMenu) then
+
+  if AMenu = uClosePopupPopup then
+    exit;
+
+  if not Assigned(uClosePopupTimer) then
+  begin
+    uClosePopupTimer := TClosePopupTimer.Create(nil);
+    uClosePopupTimer.Interval:=300;
+  end;
+  uClosePopupTimer.Enabled := False; //cancel prior task
+  uClosePopupTimer.FClosing := False;
+   uClosePopupPopup := AMenu;
+
+  if assigned(AMenu) then
   begin
 
-
-  uClosePopupTimer.Enabled:= False;
-  uClosePopupPopup := nil;
+    uClosePopupTimer.Enabled:= True;
   end;
-
 end;
+
+//cancel the slowly closing submenu
+procedure PopupCancelOpening();
+begin
+    {$IFDEF DEBUG}
+  writeln( '.PopupStartClosing!');
+  {$ENDIF}
+  if Assigned(uClosePopupTimer )  then
+  begin
+    uClosePopupTimer.Enabled:= False;
+  end;
+  uClosePopupPopup := nil;
+end;
+
+
+
 
 
 
@@ -875,13 +919,14 @@ begin
   mi := VisibleItem(FFocusItem);
   if mi.SubMenu <> nil then
   begin
-    CloseSubMenus;
+    {CloseSubMenus;
     // showing the submenu
     mi.SubMenu.ShowAt(self, Width-5, GetItemPosY(FFocusItem)); // 5 is the menu overlap in pixels
     mi.SubMenu.OpenerPopup := self;
     mi.SubMenu.OpenerMenuBar := OpenerMenuBar;
     uFocusedPopupMenu := mi.SubMenu;
-    RePaint;
+    RePaint;}
+    DoPopupOpen(mi.SubMenu);
   end
   else
   begin
@@ -974,7 +1019,7 @@ begin
     begin
       if OpenerPopup.VisibleItem(n).SubMenu = self then
       begin
-        PopupOpened(self);
+        PopupCancelOpening();
          OpenerPopup.FFocusItem:= n;
          OpenerPopup.RePaint;
          break;
@@ -1021,19 +1066,37 @@ begin
   else
      PopupOpened(mi.SubMenu); //cancel
      }
-  if assigned(currentPopup) and {(ncp <> FFocusItem) and}
-         (mi.SubMenu <> currentPopup) then
-        PopupStartClosing(currentPopup)
-     else
-        PopupOpened(mi.SubMenu); //cancel
 
-  if (mi.SubMenu <> nil) and not mi.SubMenu.HasHandle then
+  //slowly closing non current submenu
+  if assigned(currentPopup) and (currentPopup <> mi.SubMenu ) then
+        PopupStartClosing(currentPopup)
+  else
+        //PopupOpened(mi.SubMenu); //cancel
+    PopupCancelOpening();
+
+
+
+  
+  //Open focused submenu
+  if (mi.SubMenu <> nil) then
 
     begin
       //CurrentPopup := mi.SubMenu;
       //break;
-      DoSelect;
-    end;
+      //DoSelect;
+        //DoSelect; Exit;
+
+      //open if not yet already opend
+      //if not mi.SubMenu.HasHandle then
+      begin
+        mi.SubMenu.OpenerPopup := self;
+        PopupStartOpening(mi.SubMenu);
+      end;
+      //PopupStartOpening(mi.SubMenu);
+    end
+  else
+      //PopupStartOpening(nil);
+      //PopupOpened(mi.SubMenu); //cancel
 
   
 end;
@@ -1453,6 +1516,30 @@ begin
   
   uFocusedPopupMenu := self;
 end;
+
+procedure TlpPopupMenu.DoPopupOpen(APopup: TlpPopupMenu);
+var n : integer;
+begin
+  if APopup.HasHandle then
+    exit; //-->
+    
+  CloseSubMenus;
+  //for n := 0 to OpenerPopup.VisibleCount -1 do
+  begin
+    //if VisibleItem(n).SubMenu = APopup then
+    begin
+      //FFocusItem := n;
+      // showing the submenu
+      APopup.OpenerPopup := self;
+      APopup.OpenerMenuBar := OpenerMenuBar;
+      APopup.ShowAt(self, Width-5, GetItemPosY(FFocusItem)); // 5 is the menu overlap in pixels
+
+      uFocusedPopupMenu := APopup;
+      RePaint;
+      //break;
+    end;
+  end;
+end;  
 
 {procedure TfpgPopupMenu.DoKeyShortcut(const AOrigin: TpgfWidget;
   const keycode: word; const shiftstate: TShiftState; var consumed: boolean; const IsChildOfOrigin: boolean = False);
