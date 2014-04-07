@@ -257,9 +257,11 @@ begin
   if not Assigned(uClosePopupTimer) then
   begin
     uClosePopupTimer := TClosePopupTimer.Create(nil);
-    uClosePopupTimer.Interval:=1000;
+
   end;
+
   uClosePopupTimer.Enabled := False; //cancel prior task
+  uClosePopupTimer.Interval:=1000;    
   uClosePopupTimer.FClosing := True;
   uClosePopupPopup := AMenu;
   uClosePopupTimer.Enabled:= True;
@@ -281,9 +283,10 @@ begin
   if not Assigned(uClosePopupTimer) then
   begin
     uClosePopupTimer := TClosePopupTimer.Create(nil);
-    uClosePopupTimer.Interval:=300;
+
   end;
   uClosePopupTimer.Enabled := False; //cancel prior task
+    uClosePopupTimer.Interval:=150;  
   uClosePopupTimer.FClosing := False;
    uClosePopupPopup := AMenu;
 
