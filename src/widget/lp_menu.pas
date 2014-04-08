@@ -267,7 +267,8 @@ begin
   uClosePopupTimer.Interval:=1000;    
   uClosePopupTimer.FClosing := True;
   uClosePopupPopup := AMenu;
-  uClosePopupTimer.Enabled:= True;
+  if assigned(AMenu) then
+    uClosePopupTimer.Enabled:= True;
 end;
 
 //Slowly closing submenu
@@ -1336,7 +1337,7 @@ begin
     if mi.HotKeyDef <> '' then
     begin
       s := mi.HotKeyDef;
-      pgfStyle.DrawString(Canvas, rect.Right-FMenuFont.TextWidth(s)-FTextMargin, rect.Top, s, mi.Enabled);
+      pgfStyle.DrawString(Canvas, rect.Right-FMenuFont.TextWidth(s)-FTextMargin-10, rect.Top, s, mi.Enabled);
     end;
 
     // process menu item submenu arrow image
