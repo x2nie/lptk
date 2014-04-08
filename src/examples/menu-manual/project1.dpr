@@ -3,7 +3,7 @@ program project1;
 {$ifdef fpc}
 {$mode delphi}{$H+}
 {$endif}
- {$apptype console}
+ {.$apptype console}
 uses
   lp_defs, lp_main, lp_form, Unit1 
   { you can add units after this };

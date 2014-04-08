@@ -9,7 +9,7 @@ unit lp_defs;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, Types;
   
 type
   TpgfCoord = integer;     // we might use floating point coordinates in the future...

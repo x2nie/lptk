@@ -8,7 +8,7 @@ interface
 
 uses
   Classes, SysUtils,
-  lp_defs,
+  lp_defs,Types,
 {$ifdef Win32}
   hd_platform_win
 {$endif}
@@ -20,7 +20,10 @@ uses
 type
   {Transfer from lp_defs}
   TCursor = lp_defs.TCursor;
-
+    PPoint = Types.PPoint;
+  TPoint = Types.TPoint;
+  PRect = Types.PRect;
+  TRect = Types.TRect;
 
 
 type
@@ -527,7 +530,9 @@ function InflateRect(var Rect: TpgfRect; dx: Integer; dy: Integer): Boolean; ove
 implementation
 
 uses
-  hd_imgfmt_bmp, hd_stdimages, lp_form;
+  hd_imgfmt_bmp,
+  hd_stdimages,
+  lp_form;
 
 var
   pgfCaretCanvas : TpgfCanvas;

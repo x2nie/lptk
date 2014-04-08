@@ -5,7 +5,10 @@
 }
 unit lp_command_intf;
 
-{$mode objfpc}{$H+}
+{$ifdef FPC}
+{$mode delphi}{$H+}
+{$endif}
+
 
 interface
 

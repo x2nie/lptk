@@ -18,7 +18,9 @@
 
 unit lp_popupwindow;
 
+{$ifdef fpc}
 {$mode objfpc}{$H+}
+{$endif}
 
 {.$Define DEBUG}
 

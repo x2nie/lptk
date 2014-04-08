@@ -17,9 +17,12 @@
 
 unit lp_menu;
 
-{$mode objfpc}{$H+}
+{$ifdef FPC}
+{$mode delphi}{$H+}
+{$endif}
 
-{$Define DEBUG}
+
+{.$Define DEBUG}
 
 {
   TODO:
@@ -427,7 +430,7 @@ begin
   else
     ACanvas.SetFont(pgfStyle.MenuFont);
 
-  {achar := '&';
+  (*achar := '&';
   s := Text;
 
   repeat
@@ -463,7 +466,7 @@ begin
   // Draw the remaining text after the & sign
   if UTF8Length(s) > 0 then
     pgfStyle.DrawString(ACanvas, x, y, s, Enabled);
-    }//x2nie
+    *)//x2nie
   pgfStyle.DrawString(ACanvas, x, y, text, Enabled);
 end;
 
@@ -632,7 +635,7 @@ var
   i: integer;
   mi: TfpgMenuItem;
 begin
-  {s := KeycodeToText(keycode, shiftstate);
+  (*s := KeycodeToText(keycode, shiftstate);
 
   // handle MenuBar (Alt+?) shortcuts only
   if (length(s) = 5) and (copy(s, 1, 4) = 'Alt+') then
@@ -663,7 +666,7 @@ begin
       end;
     end;
   end;
-  }//x2nie
+  *)//x2nie
 end;
 
 procedure TlpMenuBar.HandlePaint;
@@ -871,7 +874,7 @@ begin
   begin
     with VisibleItem(n) do
     begin
-      {$Note Should UpperCase take note of UTF-8? }
+      {//$Note Should UpperCase take note of UTF-8? }
       if Enabled and (UpperCase(s) = UpperCase(GetAccelChar)) then
       begin
         Result := n;
@@ -1062,13 +1065,13 @@ begin
         //Show the submenu without waiting the click.
   mi := VisibleItem(FFocusItem);
 
-  {
+  (*
   if assigned(currentPopup) and {(ncp <> FFocusItem) and}
       (mi.SubMenu <> currentPopup) then
      PopupStartClosing(currentPopup)
   else
      PopupOpened(mi.SubMenu); //cancel
-     }
+     *)
 
   //slowly closing non current submenu
   if assigned(currentPopup) and (currentPopup <> mi.SubMenu ) then
@@ -1432,7 +1435,7 @@ begin
   begin
     with VisibleItem(n) do
     begin
-      {$Note Do we need to use UTF-8 upper case? }
+      {//$Note Do we need to use UTF-8 upper case? }
       if Enabled and (UpperCase(s) = UpperCase(GetAccelChar)) then
       begin
         result := n;
@@ -1544,7 +1547,7 @@ begin
   end;
 end;  
 
-{procedure TfpgPopupMenu.DoKeyShortcut(const AOrigin: TpgfWidget;
+(*procedure TfpgPopupMenu.DoKeyShortcut(const AOrigin: TpgfWidget;
   const keycode: word; const shiftstate: TShiftState; var consumed: boolean; const IsChildOfOrigin: boolean = False);
 var
   s: WideString;
@@ -1575,7 +1578,7 @@ begin
     end;
   end;
 
-end;        }
+end;        *)//x2nie
 
 function TlpPopupMenu.CalcMouseRow(y: integer): integer;
 var
@@ -1628,7 +1631,7 @@ begin
   inherited Destroy;
 end;
 
-{$Note See if we can move this to HandleHide + not make Close virtual! }
+{//$Note See if we can move this to HandleHide + not make Close virtual! }
 procedure TlpPopupMenu.Close;
 var
   n: integer;

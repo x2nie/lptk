@@ -31,7 +31,7 @@ var
 
 implementation
 
-{$R *.lfm}
+{$R *.dfm}
 
 { TlpForm1 }
 
