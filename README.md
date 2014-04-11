@@ -1,4 +1,4 @@
-hd_toolkit
+LPTK LitePascal Toolkit
 ==========
 
-Hobbies dream toolkit. another pascal gui framework
+Based on Nagy Viktor's Light Pascal Toolkit (PasGF)
