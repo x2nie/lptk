@@ -1,0 +1,47 @@
+package lp_d7;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'LP_D7'}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  designide,
+  vcl,
+  vclactnband,
+  vclx;
+
+contains
+  lp_defs in '..\..\core\lp_defs.pas',
+  hd_imgfmt_bmp in '..\..\core\hd_imgfmt_bmp.pas',
+  lp_main in '..\..\core\lp_main.pas',
+  hd_platform_win in '..\..\core\hd_platform_win.pas',
+  hd_stdimages in '..\..\core\hd_stdimages.pas',
+  lp_widget in '..\..\core\lp_widget.pas',
+  lp_form in '..\..\core\lp_form.pas',
+  lp_app_wizard in 'lp_app_wizard.pas',
+  lp_DesignWindows in 'lp_DesignWindows.pas',
+  lp_form_designer in 'lp_form_designer.pas';
+
+end.

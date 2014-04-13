@@ -62,31 +62,37 @@ type
     FCommand: ICommand;
     FEnabled: boolean;
     FHint: WideString;
-    FHotKeyDef: TfpgHotKeyDef;
+    //FHotKeyDef: TfpgHotKeyDef;
     FOnClick: TNotifyEvent;
     FSeparator: boolean;
     FSubMenu: TlpPopupMenu;
     FText: WideString;
     FVisible: boolean;
     FChecked: boolean;
+    FShortCut: TShortCut;
+    FAccelKey: Word;
+    FAccelPos: Word;
     procedure   SetEnabled(const AValue: boolean);
-    procedure   SetHotKeyDef(const AValue: TfpgHotKeyDef);
     procedure   SetSeparator(const AValue: boolean);
     procedure   SetText(const AValue: WideString);
     procedure   SetVisible(const AValue: boolean);
     procedure   SetChecked(const AValue: boolean);
+    function IsShortCutStored: Boolean;
+    procedure SetShortCut(const Value: TShortCut);
   public
     constructor Create(AOwner: TComponent); override;
     procedure   Click;
     function    Selectable: boolean;
-    function    GetAccelChar: string;
+    //function    GetAccelChar: string;
     procedure   DrawText(ACanvas: TpgfCanvas; x, y: TpgfCoord; const AImgWidth: integer);
     function    GetCommand: ICommand;
     procedure   SetCommand(ACommand: ICommand);
     property    Checked: boolean read FChecked write SetChecked;
     property    Text: WideString read FText write SetText;
+    property    AccelKey : Word read FAccelKey; //for later (fast) comparing on keypress.
     property    Hint: WideString read FHint write FHint;
-    property    HotKeyDef: TfpgHotKeyDef read FHotKeyDef write SetHotKeyDef;
+    //property    HotKeyDef: TfpgHotKeyDef read FHotKeyDef write SetHotKeyDef;
+    property    ShortCut: TShortCut read FShortCut write SetShortCut stored IsShortCutStored default 0;
     property    Separator: boolean read FSeparator write SetSeparator;
     property    Visible: boolean read FVisible write SetVisible;
     property    Enabled: boolean read FEnabled write SetEnabled;
@@ -112,7 +118,7 @@ type
     function    VisibleCount: integer;
     function    VisibleItem(ind: integer): TfpgMenuItem;
     function    MenuFocused: boolean;
-    function    SearchItemByAccel(s: string): integer;
+    function    SearchItemByAccel(AAccelKey: Word): integer;
   protected
     FMenuFont: TpgfFont;
     FMenuAccelFont: TpgfFont;
@@ -133,7 +139,8 @@ type
     procedure   DrawRow(line: integer; const AItemFocused: boolean); virtual;
     function    ItemHeight(mi: TfpgMenuItem): integer; virtual;
     procedure   PrepareToShow;
-    ///x2nie procedure   DoKeyShortcut(const AOrigin: TpgfWidget; const keycode: word; const shiftstate: TShiftState; var consumed: boolean; const IsChildOfOrigin: boolean = False); override;
+    //procedure   DoKeyShortcut(const AOrigin: TpgfWidget; const keycode: word; const shiftstate: TShiftState; var consumed: boolean; const IsChildOfOrigin: boolean = False); override;
+    procedure HandleShortcut(const AOrigin: TpgfWidget; const keycode: word; const shiftstate: TShiftState; var Handled: boolean; const IsChildOfOrigin: boolean = False); override;
     procedure   DoPopupOpen(APopup: TlpPopupMenu); virtual;
   public
     OpenerPopup: TlpPopupMenu;
@@ -184,7 +191,7 @@ type
     function    CalcMouseCol(x: integer): integer;
     function    GetItemPosX(index: integer): integer;
     function    MenuFocused: boolean;
-    function    SearchItemByAccel(s: string): integer;
+    function    SearchItemByAccel(AAccelKey: Word): integer;
     procedure   ActivateMenu;
     procedure   DeActivateMenu;
     procedure   DrawColumn(col: integer; focus: boolean); virtual;
@@ -204,7 +211,13 @@ function CreateMenuBar(AOwner: TpgfWidget; x, y, w, h: TpgfCoord): TlpMenuBar; o
 function CreateMenuBar(AOwner: TpgfWidget): TlpMenuBar; overload;
 
 
+
+
+
+
 implementation
+
+
 
 type
   TClosePopupTimer = class(TlpTimer)
@@ -344,10 +357,32 @@ end;
 { TfpgMenuItem }
 
 procedure TfpgMenuItem.SetText(const AValue: WideString);
+var i,z  : integer;
 begin
   if FText = AValue then
     Exit; //==>
   FText := AValue;
+
+
+  GetAccelKey(FText, FAccelKey, FAccelPos);
+
+  {FAccelKey := 0;
+  FAccelPos := 0;
+  z := Length(FText);
+  for i := 1 to z do
+  begin
+    if FText[i] = '&' then
+    begin
+      if (i < Length) and not (FText[i+1] in ['&',' ']) then
+      begin
+        FAccelKey := ord(FText[i+1]);
+        FAccelPos := i;
+        break;
+      end;
+
+    end;
+  end; }
+
 end;
 
 procedure TfpgMenuItem.SetVisible(const AValue: boolean);
@@ -362,11 +397,11 @@ begin
   FChecked := AValue;
 end;
 
-procedure TfpgMenuItem.SetHotKeyDef(const AValue: TfpgHotKeyDef);
+{procedure TfpgMenuItem.SetHotKeyDef(const AValue: TfpgHotKeyDef);
 begin
   if FHotKeyDef=AValue then exit;
   FHotKeyDef:=AValue;
-end;
+end;}
 
 procedure TfpgMenuItem.SetEnabled(const AValue: boolean);
 begin
@@ -384,7 +419,7 @@ constructor TfpgMenuItem.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   Text := '';
-  HotKeyDef := '';
+  //HotKeyDef := '';
   FSeparator := False;
   FVisible := True;
   FEnabled := True;
@@ -406,7 +441,7 @@ begin
   Result := Enabled and Visible and (not Separator);
 end;
 
-function TfpgMenuItem.GetAccelChar: string;
+(*function TfpgMenuItem.GetAccelChar: string;
 var
   p: integer;
 begin
@@ -418,7 +453,7 @@ begin
   else
     Result := '';}//x2nie
   result := Text;
-end;
+end;*)
 
 procedure TfpgMenuItem.DrawText(ACanvas: TpgfCanvas; x, y: TpgfCoord; const AImgWidth: integer);
 var
@@ -636,16 +671,20 @@ var
   i: integer;
   mi: TfpgMenuItem;
 begin
-  (*s := KeycodeToText(keycode, shiftstate);
+  //s := KeycodeToText(keycode, shiftstate);
 
   // handle MenuBar (Alt+?) shortcuts only
-  if (length(s) = 5) and (copy(s, 1, 4) = 'Alt+') then
+  //if (length(s) = 5) and (copy(s, 1, 4) = 'Alt+') then
+  if (ShiftState = [ssAlt]) and (keyCode <> 0 ) then
   begin
-    s := KeycodeToText(keycode, []);
-    i := SearchItemByAccel(s);
+    //s := KeycodeToText(keycode, []);
+    i := SearchItemByAccel(KeyCode);
     if i <> -1 then
     begin
       consumed := True;
+      ActivateMenu;
+      FLastItemClicked := i;
+      FClicked := True;
       FFocusItem := i;
       DoSelect;
     end;
@@ -661,13 +700,12 @@ begin
       begin
         { process the sub menus }
         if mi.SubMenu <> nil then
-          mi.SubMenu.DoKeyShortcut(nil, keycode, shiftstate, consumed);
+          mi.SubMenu.HandleShortcut(nil, keycode, shiftstate, consumed);
         if consumed then
           Exit;
       end;
     end;
   end;
-  *)//x2nie
 end;
 
 procedure TlpMenuBar.HandlePaint;
@@ -740,7 +778,7 @@ var
   r: TpgfRect;
   mi: TfpgMenuItem;
 begin
-  r.SetRect(2, 1, 1, Height-4);
+  r.SetRect(0, 1, 1, Height-2);
 
   for n := 0 to VisibleCount-1 do  { so we can calculate menu item position }
   begin
@@ -819,7 +857,7 @@ begin
     begin
       ActivateMenu;
       // showing the submenu
-      mi.SubMenu.ShowAt(self, GetItemPosX(FocusItem)+2, pgfStyle.MenuFont.Height+4);
+      mi.SubMenu.ShowAt(self, GetItemPosX(FocusItem), pgfStyle.MenuFont.Height+4);
       mi.SubMenu.OpenerPopup      := nil;
       mi.SubMenu.OpenerMenuBar    := self;
       mi.SubMenu.DontCloseWidget  := self;
@@ -866,7 +904,7 @@ begin
   end;
 end;
 
-function TlpMenuBar.SearchItemByAccel(s: string): integer;
+function TlpMenuBar.SearchItemByAccel(AAccelKey: Word): integer;
 var
   n: integer;
 begin
@@ -876,7 +914,8 @@ begin
     with VisibleItem(n) do
     begin
       {//$Note Should UpperCase take note of UTF-8? }
-      if Enabled and (UpperCase(s) = UpperCase(GetAccelChar)) then
+      //if Enabled and (UpperCase(s) = UpperCase(GetAccelChar)) then
+      if Enabled and (AccelKey = AAccelKey) then
       begin
         Result := n;
         Exit; //==>
@@ -905,7 +944,7 @@ function TlpMenuBar.AddMenuItem(const AMenuTitle: string; OnClickProc: TNotifyEv
 begin
   Result := TfpgMenuItem.Create(self);
   Result.Text       := AMenuTitle;
-  Result.HotKeyDef  := '';
+  //Result.HotKeyDef  := '';
   Result.OnClick    := OnClickProc;
   Result.Separator  := False;
 end;
@@ -1170,7 +1209,7 @@ begin
 
   consumed := true;
   case keycode of
-    key_Up:
+    keyUp:
         begin // up
           trycnt := 2;
           i := FFocusItem-1;
@@ -1189,7 +1228,7 @@ begin
             FFocusItem := i;
         end;
         
-    KEY_Down:
+    KEYDown:
         begin // down
           trycnt := 2;
           i := FFocusItem+1;
@@ -1205,7 +1244,7 @@ begin
           if i < VisibleCount then
             FFocusItem := i;
         end;
-        
+
     KEY_Enter:
         begin
           DoSelect;
@@ -1217,7 +1256,7 @@ begin
             OpenerMenubar.HandleKeyPress(keycode, shiftstate, consumed);
         end;
 
-    KEY_Right:
+    KEYRight:
         begin
           if OpenerMenubar <> nil then
             OpenerMenubar.HandleKeyPress(keycode, shiftstate, consumed);
@@ -1248,11 +1287,12 @@ begin
 
   FollowFocus;
 
-  if (not consumed) and ((keycode and $8000) <> $8000) then
+  if (not consumed) and (shiftstate = []) //and ((keycode and $8000) <> $8000)
+  then
   begin
     // normal char
-    s := chr(keycode and $00FF) + chr((keycode and $FF00) shr 8);
-    i := SearchItemByAccel(s);
+    //s := chr(keycode and $00FF) + chr((keycode and $FF00) shr 8);
+    i := SearchItemByAccel(KeyCode);
     if i >= 0 then
     begin
       FFocusItem := i;
@@ -1334,9 +1374,9 @@ begin
     Canvas.SetColor(Canvas.TextColor);  // reset text default color
 
     // process menu item Hot Key text
-    if mi.HotKeyDef <> '' then
+    if mi.ShortCut <> 0 then
     begin
-      s := mi.HotKeyDef;
+      s := ShortCutToText(mi.ShortCut);
       pgfStyle.DrawString(Canvas, rect.Right-FMenuFont.TextWidth(s)-FTextMargin-10, rect.Top, s, mi.Enabled);
     end;
 
@@ -1427,7 +1467,7 @@ begin
   Result := (uFocusedPopupMenu = self);
 end;
 
-function TlpPopupMenu.SearchItemByAccel(s: string): integer;
+function TlpPopupMenu.SearchItemByAccel(AAccelKey: Word): integer;
 var
   n: integer;
 begin
@@ -1437,7 +1477,8 @@ begin
     with VisibleItem(n) do
     begin
       {//$Note Do we need to use UTF-8 upper case? }
-      if Enabled and (UpperCase(s) = UpperCase(GetAccelChar)) then
+      //if Enabled and (UpperCase(s) = UpperCase(GetAccelChar)) then
+      if Enabled and (AccelKey = AAccelKey) then
       begin
         result := n;
         Exit; //==>
@@ -1510,7 +1551,7 @@ begin
     if mi.SubMenu <> nil then
       x := FMenuFont.Height
     else
-      x := FMenuFont.TextWidth(mi.HotKeyDef);
+      x := FMenuFont.TextWidth(ShortCutToText(mi.ShortCut));
     if hkw < x then
       hkw := x;
   end;
@@ -1548,14 +1589,18 @@ begin
   end;
 end;  
 
-(*procedure TfpgPopupMenu.DoKeyShortcut(const AOrigin: TpgfWidget;
-  const keycode: word; const shiftstate: TShiftState; var consumed: boolean; const IsChildOfOrigin: boolean = False);
+procedure TlpPopupMenu.HandleShortcut(const AOrigin: TpgfWidget; const keycode: word;
+  const shiftstate: TShiftState; var Handled: boolean; const IsChildOfOrigin: boolean = False); 
 var
   s: WideString;
   i: integer;
   mi: TfpgMenuItem;
+  sc : TShortCut;
 begin
-  s := KeycodeToText(keycode, shiftstate);
+  //s := KeycodeToText(keycode, shiftstate);
+  sc := KeyToShortCut(keyCode, ShiftState);
+  if sc = 0 then
+    exit;
   for i := 0 to ComponentCount-1 do
   begin
     if Components[i] is TfpgMenuItem then
@@ -1567,19 +1612,19 @@ begin
       begin
         { process the sub menus }
         if mi.SubMenu <> nil then
-          mi.SubMenu.DoKeyShortcut(nil, keycode, shiftstate, consumed)
-        else if mi.HotKeyDef = s then
+          mi.SubMenu.HandleShortcut(nil, keycode, shiftstate, Handled)
+        else if mi.ShortCut = sc then
         begin
-          consumed := True;
+          Handled := True;
           mi.Click;
         end;
-        if consumed then
+        if Handled then
           Exit;
       end;
     end;
   end;
 
-end;        *)//x2nie
+end;
 
 function TlpPopupMenu.CalcMouseRow(y: integer): integer;
 var
@@ -1672,7 +1717,7 @@ begin
   if AMenuName <> '-' then
   begin
     result.Text := AMenuName;
-    result.hotkeydef := hotkeydef;
+    result.ShortCut := TextToShortCut(hotkeydef);
     result.OnClick := OnClickProc;
   end
   else
@@ -1708,6 +1753,21 @@ begin
 end;
 
 
+
+function TfpgMenuItem.IsShortCutStored: Boolean;
+begin
+  Result := true;// (ActionLink = nil) or not FActionLink.IsShortCutLinked;
+end;
+
+procedure TfpgMenuItem.SetShortCut(const Value: TShortCut);
+begin
+  if FShortCut <> Value then
+  begin
+    FShortCut := Value;
+    //MenuChanged(True);//dlpi
+    //ShortCutChanged;///lz
+  end;
+end;
 
 initialization
   uFocusedPopupMenu := nil;

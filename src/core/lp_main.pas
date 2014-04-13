@@ -16,7 +16,8 @@ uses
   hd_platform_x11
 {$endif}
   ;
-  
+  // The special keys, based on the well-known keyboard scan codes
+  {$I keys.inc}  
 type
   {Transfer from lp_defs}
   TCursor = lp_defs.TCursor;
@@ -361,7 +362,7 @@ type
     property TextColor : TpgfColor read FColorText;
   end;
   
-  TpgfStyle = class
+  TpgfStyle = class(TlpComponent)
   public
     DefaultFont : TpgfFont;
 
@@ -370,7 +371,7 @@ type
     MenuDisabledFont : TpgfFont;
   public
     // style initialization
-    constructor Create; virtual;
+    constructor Create(AOwner: TComponent); override;
 
     procedure DrawButtonFace(canvas : TpgfCanvas; x,y,w,h : TpgfCoord); virtual;
     procedure DrawControlFrame(canvas : TpgfCanvas; x, y, w, h : TpgfCoord); virtual;
@@ -491,6 +492,36 @@ procedure pgfRunMessageLoop;
 
 function pgfGetFont(const afontdesc : string) : TpgfFont;
 
+
+//-----------------------------------------------------------------------------
+// Keys and shortcuts
+
+type
+  TMenuKeyCap = (mkcBkSp, mkcTab, mkcEsc, mkcEnter, mkcSpace, mkcPgUp,
+    mkcPgDn, mkcEnd, mkcHome, mkcLeft, mkcUp, mkcRight, mkcDown, mkcIns,
+    mkcDel, mkcShift, mkcCtrl, mkcAlt, mkcMeta);
+
+var
+  MenuKeyCaps: array[TMenuKeyCap] of string;
+  MenuKeyCapsInited: boolean = false;
+
+const
+  // TShortCut additions:
+    scMeta = $1000;
+
+{ ShortCut }
+function  KeyToShortCut(const Key: Word; const Shift: TShiftState): TShortCut;
+procedure ShortCutToKey(const ShortCut : TShortCut; out Key: Word; out Shift : TShiftState);
+function ShortCutToText(const ShortCut: TShortCut): string ; overload;
+function ShortCutToText(const Key: Word; const Shift: TShiftState): string ; overload;
+//function ShortCutToText(Key: Word; Shift : TShiftState ): string; overload;
+
+function TextToShortCut(const ShortCutText: string): TShortCut;
+//function KeycodeToText(AKey: Word; AShiftState: TShiftState): string;
+procedure InitializeMenuKeyCaps;
+function GetSpecialShortCutName(ShortCut: TShortCut): string;
+procedure GetAccelKey(AText : Widestring; out AAccelKey: Word; out AAccelPos: Word);
+
 // internal message queue
 
 const
@@ -532,6 +563,7 @@ implementation
 uses
   hd_imgfmt_bmp,
   hd_stdimages,
+  lp_constants,
   lp_form;
 
 var
@@ -553,6 +585,362 @@ type
     constructor Create(AFontID, AFontDesc : string);
   end;
 
+
+//LCLType.KeyToShortCut(Key,Shift);
+function KeyToShortCut(const Key: Word; const Shift: TShiftState): TShortCut;
+begin
+  Result := Key;
+  if (Result and $FF00) <> 0 then begin
+    Result:=0;
+    exit;
+  end;
+
+  if ssShift in Shift then Inc(Result,scShift);
+  if ssCtrl in Shift then Inc(Result,scCtrl);
+  if ssAlt in Shift then Inc(Result,scAlt);
+  if ssMeta in Shift then Inc(Result,scMeta);
+end;
+
+procedure ShortCutToKey(const ShortCut: TShortCut; out Key: Word;
+  out Shift : TShiftState);
+begin
+  Key := ShortCut and $FF;
+  Shift := [];
+  if ShortCut and scShift <> 0 then Include(Shift,ssShift);
+  if ShortCut and scAlt <> 0 then Include(Shift,ssAlt);
+  if ShortCut and scCtrl <> 0 then Include(Shift,ssCtrl);
+  if ShortCut and scMeta <> 0 then Include(Shift,ssMeta);
+end;
+
+function ShortCutToText(const Key: Word; const Shift: TShiftState): string ;
+var
+  Name: string;
+  //Key: Byte;
+begin
+  InitializeMenuKeyCaps;
+  //Key := ShortCut and $FF;
+  case Key of
+    $08, $09:
+      Name := MenuKeyCaps[TMenuKeyCap(Ord(mkcBkSp) + Key - $08)];
+    $0D: Name := MenuKeyCaps[mkcEnter];
+    $1B: Name := MenuKeyCaps[mkcEsc];
+    $20..$28:
+      Name := MenuKeyCaps[TMenuKeyCap(Ord(mkcSpace) + Key - $20)];
+    $2D..$2E:
+      Name := MenuKeyCaps[TMenuKeyCap(Ord(mkcIns) + Key - $2D)];
+    $30..$39: Name := Chr(Key - $30 + Ord('0'));
+    $41..$5A: Name := Chr(Key - $41 + Ord('A'));
+    $60..$69: Name := Chr(Key - $60 + Ord('0'));
+    $70..$87: Name := 'F' + IntToStr(Key - $6F);
+  //else
+//    Name := GetSpecialShortCutName(ShortCut );
+  end;
+  if Name <> '' then
+  begin
+    Result := '';
+    if ssShift in Shift then Result := Result + MenuKeyCaps[mkcShift];
+    if ssCtrl in Shift then Result := Result + MenuKeyCaps[mkcCtrl];
+    if ssMeta in Shift then Result := Result + MenuKeyCaps[mkcMeta];
+    if ssAlt in Shift then Result := Result + MenuKeyCaps[mkcAlt];
+    Result := Result + Name;
+  end
+  else Result := '';
+end;
+function ShortCutToText(const ShortCut: TShortCut): string ;
+var
+  Name: string;
+  Key: Byte;
+begin
+  InitializeMenuKeyCaps;
+  Key := ShortCut and $FF;
+  case Key of
+    $08, $09:
+      Name := MenuKeyCaps[TMenuKeyCap(Ord(mkcBkSp) + Key - $08)];
+    $0D: Name := MenuKeyCaps[mkcEnter];
+    $1B: Name := MenuKeyCaps[mkcEsc];
+    $20..$28:
+      Name := MenuKeyCaps[TMenuKeyCap(Ord(mkcSpace) + Key - $20)];
+    $2D..$2E:
+      Name := MenuKeyCaps[TMenuKeyCap(Ord(mkcIns) + Key - $2D)];
+    $30..$39: Name := Chr(Key - $30 + Ord('0'));
+    $41..$5A: Name := Chr(Key - $41 + Ord('A'));
+    $60..$69: Name := Chr(Key - $60 + Ord('0'));
+    $70..$87: Name := 'F' + IntToStr(Key - $6F);
+  else
+    Name := GetSpecialShortCutName(ShortCut);
+  end;
+  if Name <> '' then
+  begin
+    Result := '';
+    if ShortCut and scShift <> 0 then Result := Result + MenuKeyCaps[mkcShift];
+    if ShortCut and scCtrl <> 0 then Result := Result + MenuKeyCaps[mkcCtrl];
+    if ShortCut and scMeta <> 0 then Result := Result + MenuKeyCaps[mkcMeta];
+    if ShortCut and scAlt <> 0 then Result := Result + MenuKeyCaps[mkcAlt];
+    Result := Result + Name;
+  end
+  else Result := '';
+end;
+
+
+procedure InitializeMenuKeyCaps;
+begin
+  if MenuKeyCapsInited=false then
+  begin
+    MenuKeyCaps[mkcBkSp]:=rsKeyBkSp;
+    MenuKeyCaps[mkcTab]:=rsKeyTab;
+    MenuKeyCaps[mkcEsc]:=rsKeyEsc;
+    MenuKeyCaps[mkcEnter]:=rsKeyEnter;
+    MenuKeyCaps[mkcSpace]:=rsKeySpace;
+    MenuKeyCaps[mkcPgUp]:=rsKeyPgUp;
+    MenuKeyCaps[mkcPgDn]:=rsKeyPgDn;
+    MenuKeyCaps[mkcEnd]:=rsKeyEnd;
+    MenuKeyCaps[mkcHome]:=rsKeyHome;
+    MenuKeyCaps[mkcLeft]:=rsKeyLeft;
+    MenuKeyCaps[mkcUp]:=rsKeyUp;
+    MenuKeyCaps[mkcRight]:=rsKeyRight;
+    MenuKeyCaps[mkcDown]:=rsKeyDown;
+    MenuKeyCaps[mkcIns]:=rsKeyIns;
+    MenuKeyCaps[mkcDel]:=rsKeyDel;
+    MenuKeyCaps[mkcShift]:=rsKeyShift;
+    MenuKeyCaps[mkcCtrl]:=rsKeyCtrl;
+    MenuKeyCaps[mkcAlt]:=rsKeyAlt;
+    MenuKeyCaps[mkcMeta]:=rsKeyMeta;
+    MenuKeyCapsInited:=true;
+  end;
+end;
+
+function GetSpecialShortCutName(ShortCut: TShortCut): string;
+begin
+  // ToDo
+  Result := '';
+end;
+
+procedure GetAccelKey(AText : Widestring; out AAccelKey: Word; out AAccelPos: Word);
+var
+  i,Z : integer;
+  C : Char;
+  w : widestring;
+begin
+  AAccelKey := 0;
+  AAccelPos := 0;
+  Z := Length(AText);
+  for i := 1 to z do
+  begin
+    if AText[i] = '&' then
+    begin
+      if (i < Z) and not (AText[i+1] in ['&',' ']) then
+      begin
+        w := AText[i+1];
+        w := UpperCase(w);
+        AAccelKey := ord(w[1]);
+        AAccelPos := i + 1;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+function TextToShortCut(const ShortCutText: string): TShortCut;
+
+  function CompareFront(var StartPos: integer; const Front: string): Boolean;
+  begin
+    if (Front<>'') and (StartPos+length(Front)-1<=length(ShortCutText))
+    and (AnsiStrLIComp(@ShortCutText[StartPos], PChar(Front), Length(Front))= 0)
+    then begin
+      Result:=true;
+      inc(StartPos,length(Front));
+    end else
+      Result:=false;
+  end;
+
+var
+  Key: TShortCut;
+  Shift: TShortCut;
+  StartPos: integer;
+  Name: string;
+begin
+  Result := 0;
+  Shift := 0;
+  StartPos:=1;
+  InitializeMenuKeyCaps;
+  while True do
+  begin
+    if CompareFront(StartPos, MenuKeyCaps[mkcShift]) then
+      Shift := Shift or scShift
+    else if CompareFront(StartPos, '^') then
+      Shift := Shift or scCtrl
+    else if CompareFront(StartPos, MenuKeyCaps[mkcCtrl]) then
+      Shift := Shift or scCtrl
+    else if CompareFront(StartPos, MenuKeyCaps[mkcAlt]) then
+      Shift := Shift or scAlt
+    else if CompareFront(StartPos, MenuKeyCaps[mkcMeta]) then
+      Shift := Shift or scMeta
+    else
+      Break;
+  end;
+  if ShortCutText = '' then Exit;
+  for Key := $08 to $FF do begin // Copy range from table in ShortCutToText
+    Name:=ShortCutToText(Key);
+    if (Name<>'') and (length(Name)=length(ShortCutText)-StartPos+1)
+    and (AnsiStrLIComp(@ShortCutText[StartPos], PChar(Name), length(Name)) = 0)
+    then begin
+      Result := Key or Shift;
+      Exit;
+    end;
+  end;
+end;
+
+(*
+function KeycodeToText(AKey: Word; AShiftState: TShiftState): string;
+
+  function GetASCIIText: String;
+  var
+    c: Char;
+  begin
+    result := '';
+    c := Chr(AKey and $ff);
+    case c of
+      #13:  Result := Result + rsKeyEnter;
+      #127: Result := Result + rsKeyDel;
+      else
+        Result := Result + c;
+    end;
+  end;
+
+var
+  s: String;
+begin
+  SetLength(Result, 0);
+
+  { The order of these three are imprortant - don't change them }
+  if ssCtrl in AShiftState then
+    Result := Result + rsKeyCtrl;
+  if ssAlt in AShiftState then
+    Result := Result + rsKeyAlt;
+  if ssShift in AShiftState then
+    Result := Result + rsKeyShift;
+  if ssMeta in AShiftState then
+    Result := Result + rskeyMeta;
+
+  if (AKey > Ord(' ')) and (AKey < 255) then
+  begin
+    Result := Result + GetASCIIText;
+    Exit; //==>
+  end;
+
+  case AKey of
+    keyNul:           s := 'Null';
+    keyBackSpace:     s := rsKeyBksp;
+    keyTab:           s := rsKeyTab;
+    keyLinefeed:      s := 'Linefeed';
+    keyReturn:        s := rsKeyEnter;
+    keyEscape:        s := rsKeyEsc;
+    Ord(' '):         s := rsKeySpace;
+    keyDelete:        s := rsKeyDel;
+    keyVoid:          s := 'Void';
+    keyBreak:         s := 'Break';
+    keyScrollForw:    s := 'ScrollForw';
+    keyScrollBack:    s := 'ScrollBack';
+    keyBoot:          s := 'Boot';
+    keyCompose:       s := 'Compose';
+    keySAK:           s := 'SAK';
+    keyUndo:          s := 'Undo';
+    keyRedo:          s := 'Redo';
+    keyMenu:          s := 'Menu';
+    keyCancel:        s := 'Cancel';
+    keyPrintScreen:   s := 'PrtScr';
+    keyExecute:       s := 'Exec';
+    keyFind:          s := 'Find';
+    keyBegin:         s := 'Begin';
+    keyClear:         s := 'Clear';
+    keyInsert:        s := rsKeyIns;
+    keySelect:        s := 'Select';
+    keyMacro:         s := 'Macro';
+    keyHelp:          s := 'Help';
+    keyDo:            s := 'Do';
+    keyPause:         s := 'Pause';
+    keySysRq:         s := 'SysRq';
+    keyModeSwitch:    s := 'ModeSw';
+    keyUp:            s := rsKeyUp;
+    keyDown:          s := rsKeyDown;
+    keyLeft:          s := rsKeyLeft;
+    keyRight:         s := rsKeyRight;
+    keyPrior:         s := rsKeyPgUp;
+    keyNext:          s := rsKeyPgDn;
+    keyHome:          s := rsKeyHome;
+    keyEnd:           s := rsKeyEnd;
+    keyF0..keyF64:    s := 'F' + IntToStr(AKey - keyF0);
+    keyP0..keyP9:     s := 'KP' + Chr(AKey - keyP0 + Ord('0'));
+    keyPA..keyPF:     s := 'KP' + Chr(AKey - keyPA + Ord('A'));
+    keyPPlus, keyPMinus, keyPSlash, keyPStar, keyPEqual, keyPSeparator,
+      keyPDecimal, keyPParenLeft, keyPParenRight, keyPSpace, keyPEnter,
+      keyPTab:        s := 'KP' + GetASCIIText;
+    keyPPlusMinus:    s := 'KPPlusMinus';
+    keyPBegin:        s := 'KPBegin';
+    keyPF1..keyPF9:   s := 'KPF' + IntToStr(AKey - keyPF1);
+    keyShiftL:        s := 'ShiftL';
+    keyShiftR:        s := 'ShiftR';
+    keyCtrlL:         s := 'CtrlL';
+    keyCtrlR:         s := 'CtrlR';
+    keyAltL:          s := 'AltL';
+    keyAltR:          s := 'AltR';
+    keyMetaL:         s := 'MetaL';
+    keyMetaR:         s := 'MetaR';
+    keySuperL:        s := 'SuperL';
+    keySuperR:        s := 'SuperR';
+    keyHyperL:        s := 'HyperL';
+    keyHyperR:        s := 'HyperR';
+    keyAltGr:         s := 'AltGr';
+    keyCaps:          s := 'Caps';
+    keyNum:           s := 'Num';
+    keyScroll:        s := 'Scroll';
+    keyShiftLock:     s := 'ShiftLock';
+    keyCtrlLock:      s := 'CtrlLock';
+    keyAltLock:       s := 'AltLock';
+    keyMetaLock:      s := 'MetaLock';
+    keySuperLock:     s := 'SuperLock';
+    keyHyperLock:     s := 'HyperLock';
+    keyAltGrLock:     s := 'AltGrLock';
+    keyCapsLock:      s := 'CapsLock';
+    keyNumLock:       s := 'NumLock';
+    keyScrollLock:    s := 'ScrollLock';
+    keyDeadRing:      s := 'DeadRing';
+    keyDeadCaron:     s := 'DeadCaron';
+    keyDeadOgonek:    s := 'DeadOgonek';
+    keyDeadIota:      s := 'DeadIota';
+    keyDeadDoubleAcute:     s := 'DeadDoubleAcute';
+    keyDeadBreve:           s := 'DeadBreve';
+    keyDeadAboveDot:        s := 'DeadAboveDot';
+    keyDeadBelowDot:        s := 'DeadBelowDot';
+    keyDeadVoicedSound:     s := 'DeadVoicedSound';
+    keyDeadSemiVoicedSound: s := 'DeadSemiVoicedSound';
+    keyDeadAcute:           s := 'DeadAcute';
+    keyDeadCedilla:         s := 'DeadCedilla';
+    keyDeadCircumflex:      s := 'DeadCircumflex';
+    keyDeadDiaeresis:       s := 'DeadDiaeresis';
+    keyDeadGrave:           s := 'DeadGrave';
+    keyDeadTilde:           s := 'DeadTilde';
+    keyDeadMacron:          s := 'DeadMacron';
+
+    keyEcuSign:       s := 'Ecu';
+    keyColonSign:     s := 'Colon';
+    keyCruzeiroSign:  s := 'Cruzeiro';
+    keyFFrancSign:    s := 'FFranc';
+    keyLiraSign:      s := 'Lira';
+    keyMillSign:      s := 'Mill';
+    keyNairaSign:     s := 'Naira';
+    keyPesetaSign:    s := 'Peseta';
+    keyRupeeSign:     s := 'Rupee';
+    keyWonSign:       s := 'Won';
+    keyNewSheqelSign: s := 'NewShequel';
+    keyDongSign:      s := 'Dong';
+    keyEuroSign:      s := 'Euro';
+  else
+    s := '#' + IntToHex(AKey, 4);
+  end;
+  Result := Result + s;
+end;  *)
+  
 { TApplication }
 function Application: TApplication;
 begin
@@ -736,7 +1124,7 @@ begin
 
   pgfNamedFonts := TList.Create;
 
-  pgfStyle := TpgfStyle.Create;
+  pgfStyle := TpgfStyle.Create(nil);
 
   pgfCaret := TpgfCaret.Create(nil);
   
@@ -1486,6 +1874,7 @@ end;
 
 constructor TpgfStyle.Create;
 begin
+  inherited;
   // Style description
 
   pgfSetNamedFont('Label1',        'Arial-10');

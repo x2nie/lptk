@@ -44,7 +44,8 @@ type
 
     procedure HandleClose; virtual;
     procedure   HandleMove(x, y: TpgfCoord); override;
-    procedure   HandleResize(awidth, aheight: TpgfCoord); override;    
+    procedure   HandleResize(awidth, aheight: TpgfCoord); override;
+    procedure HandleShortcut(const AOrigin: TpgfWidget; const keycode: word; const shiftstate: TShiftState; var Handled: boolean; const IsChildOfOrigin: boolean = False); override;
   public
     constructor Create(aowner : TComponent); override;
 
@@ -71,9 +72,16 @@ var
 
 function WidgetParentForm(wg : TpgfWidget) : TlpForm;
 
+
+
+
 implementation
 
-uses lp_main, lp_popupwindow;
+uses lp_main, lp_popupwindow, lp_menu;
+
+type
+  TlpMenuBarAccess = class(TlpMenuBar);
+  TpgfWidgetAccess = class(TpgfWidget);
 
 function WidgetParentForm(wg : TpgfWidget) : TlpForm;
 var
@@ -256,6 +264,83 @@ begin
   ClosePopups;
   inherited HandleResize(awidth, aheight);
 
+end;
+
+procedure TlpForm.HandleShortcut(const AOrigin: TpgfWidget;
+  const keycode: word; const shiftstate: TShiftState; var Handled: boolean;
+  const IsChildOfOrigin: boolean);
+var
+  wg: TpgfWidget;
+  menu: TlpMenuBar;
+  i: integer;
+
+  c: TComponent;
+
+  function AskMenuBars(AWidget: TpgfWidget): Boolean;
+  var
+    n: integer;
+    w: TpgfWidget;
+    m: TlpMenuBarAccess;
+    ss: TShiftState;
+    key: word;
+  begin
+    Result := False;
+    for n := 0 to AWidget.ChildCount-1 do
+    begin
+      w := AWidget.Children[n];
+      if (w <> nil) and (w <> self) and (w <> AOrigin) and (w is TlpMenuBar) then
+      begin
+        m := TlpMenuBarAccess(w);
+        key := KeyCode;
+        ss := ShiftState;
+        m.HandleKeyPress(key, ss, Handled);
+        if Handled then
+        begin
+          Result := True;
+          exit;
+        end;
+      end;
+      if w.ChildCount > 0 then
+        Result := AskMenuBars(w);
+      if Result then
+        exit;
+    end;
+  end;
+
+begin
+  //writeln('TlpForm.HandleShortcut ',ShortCutToText(keycode, shiftstate));
+  // find the first TpgfMenuBar - if it exits
+  AskMenuBars(self);
+  {if (wg <> nil) then
+  begin
+    menu := wg as TlpMenuBar;
+    key := keycode;
+    ss := shiftstate;
+    TpgfMenuBarFriend(wg).HandleKeyPress(key, ss, Handled);
+  end;}
+
+  if Handled then
+    Exit;
+  // now send to each widget on the form - excluding AOrigin and MenuBar widgets
+  for i := 0 to ComponentCount-1 do
+  begin
+    c := TComponent(Components[i]);
+    if c is TpgfWidget then
+      wg := TpgfWidget(c)
+    else
+      wg := nil;
+    if (wg <> nil) and (wg <> self) and (wg <> AOrigin) and (wg <> menu) and (not (wg is TlpPopupMenu)) then
+    begin
+      if (not wg.Visible) or (not wg.Enabled) then
+        continue
+      else
+      begin
+        TpgfWidgetAccess(wg).HandleShortcut(AOrigin, keycode, shiftstate, Handled);
+        if Handled then
+          Exit;
+      end;
+    end;
+  end;
 end;
 
 initialization

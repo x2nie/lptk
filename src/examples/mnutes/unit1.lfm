@@ -1,23 +1,25 @@
 object lpForm1: TlpForm1
-  Left = 387
-  Top = 176
-  Width = 496
+  Left = 328
+  Top = 110
+  Width = 320
   Height = 240
   Cursor = 0
   Align = alNone
   Anchors = [anLeft, anTop]
   Enabled = True
+  TabOrder = 0
   Visible = True
-  object lpEdit1: TlpEdit
-    Left = 8
-    Top = 72
-    Width = 464
-    Height = 22
-    Cursor = -4
+  Caption = 'lpForm1'
+  object lpMenuBar1: TlpMenuBar
+    Left = -24
+    Top = 0
+    Width = 0
+    Height = 0
+    Cursor = 0
     Align = alNone
     Anchors = [anLeft, anTop]
     Enabled = True
+    TabOrder = 0
     Visible = True
-    FontName = '#Edit1'
   end
 end

@@ -4,19 +4,16 @@ unit Unit1;
 {$mode objfpc}{$H+}
 {$endif}
 
-{$apptype console}
+
 interface
 
 uses
-  Classes, SysUtils, lp_defs, lp_main, lp_form, lp_menu, lp_edit;
+  Classes, SysUtils, lp_defs, lp_main, lp_form, lp_menu;
 
 type
-
-  { TlpForm1 }
-
   TlpForm1 = class(TlpForm)
-    lpEdit1: TlpEdit;
   private
+    { private declarations }
     { private declarations }
     lpMenuBar1: TlpMenuBar;
         { private declarations }
@@ -33,9 +30,7 @@ var
 
 implementation
 
-{$R *.dfm}
-
-{ TlpForm1 }
+{$R *.lfm}
 
 procedure TlpForm1.AfterCreate;
 begin
@@ -101,8 +96,13 @@ begin
 end;
 
 procedure TlpForm1.MenuClick(Sender: TObject);
+var s : widestring;
+  k : Word; ss : TShiftState;
 begin
-  lpEdit1.Text := format('Menu %s',[TfpgMenuItem(Sender).Text, ShortCutToText(TfpgMenuItem(Sender).ShortCut)]);
+  s := format('Menu %s |%s',[TfpgMenuItem(Sender).Text, ShortCutToText(TfpgMenuItem(Sender).ShortCut)]);
+  writeln(s);
+  //ShortCutToKey(TfpgMenuItem(Sender).ShortCut, k, ss);
+  //writeln('Translated Shortcut=>>',ShortCutToText(k,ss));
 end;
 
 end.

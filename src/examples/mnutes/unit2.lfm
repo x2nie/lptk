@@ -1,0 +1,42 @@
+object lpForm2: TlpForm2
+  Left = 310
+  Top = 139
+  Width = 320
+  Height = 240
+  Cursor = 0
+  Align = alNone
+  Anchors = [anLeft, anTop]
+  Enabled = True
+  Visible = True
+  Caption = 'lpForm2'
+  object lpMenuBar1: TlpMenuBar
+    Left = 26
+    Top = 29
+    Width = 217
+    Height = 51
+    Cursor = 0
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+      Visible = True
+  end
+  object lpButton1: TlpButton
+    Left = 184
+    Top = 145
+    Width = 96
+    Height = 24
+    Cursor = 0
+    Align = alNone
+    Anchors = [anLeft, anTop]
+    Enabled = True
+      Visible = True
+    Text = 'lpButton1'
+    FontDesc = '#Label1'
+    ImageMargin = 3
+    ImageSpacing = -1
+    GroupIndex = 0
+    AllowAllUp = False
+    ModalResult = 0
+    OnClick = lpButton1Click
+  end
+end

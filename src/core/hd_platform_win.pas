@@ -229,6 +229,7 @@ type
   WndProc = TFNWndProc;
 {$endif}
 
+{$INCLUDE lp_keys_gdi.inc}
 function pgfColorToWin(col : TpgfColor) : TpgfColor;
 var
   c : dword;
@@ -350,7 +351,7 @@ var
 
   PaintStruct: TPaintStruct;
 begin
-//  writeln('WND=',IntToHex(hwnd,8),' MSG=',IntToHex(uMsg,4),' wp=',IntToHex(wparam,8), ' lp=',IntToHex(lparam,8));
+  //writeln('WND=',IntToHex(hwnd,8),' MSG=',IntToHex(uMsg,4),' wp=',IntToHex(wparam,8), ' lp=',IntToHex(lparam,8));
 
   if uMsg = WM_CREATE then
   begin
@@ -379,7 +380,9 @@ begin
 
     WM_CHAR,
     WM_KEYUP,
-    WM_KEYDOWN:
+    WM_SYSKEYUP,
+    WM_KEYDOWN,
+    WM_SYSKEYDOWN:
     begin
       //Writeln('KeyMsg: ',umsg,' wp=',IntToHex(wParam,4),' lp=',IntToHex(lparam,8));
 
@@ -391,14 +394,59 @@ begin
       if GetKeyState(VK_MENU) < 0 then sstate := sstate + [ssalt];
       if GetKeyState(VK_CONTROL) < 0 then sstate := sstate + [ssCtrl];
 
-      kcode := (lParam shr 16) and $1FF;
+      kcode := (lParam shr 16) and $FF;// $1FF;
 
-      msgp.keyboard.keycode := kcode;
-      msgp.keyboard.shiftstate := sstate;
+      //msgp.keyboard.keycode := kcode;
+      //msgp.keyboard.shiftstate := sstate;
 
-      if uMsg = WM_KEYDOWN then
+//          msgp.keyboard.shiftstate := WinkeystateToShiftstate(lparam);
+          msgp.keyboard.shiftstate := GetKeyboardShiftState;  
+          msgp.keyboard.keycode := VirtKeyToKeycode(wParam);
+           (*
+          if (uMsg = WM_KEYDOWN) or (uMsg = WM_SYSKEYDOWN) then
+          begin
+            pgfSendMessage(nil, w, PGFM_KEYPRESS, msgp);
+
+            // generating WM_CHAR
+            fillchar(wmsg, sizeof(wmsg), 0);
+
+            wmsg.hwnd    := hwnd;
+            wmsg.message := uMsg;
+            wmsg.wParam  := wParam;
+            wmsg.lParam  := lParam;
+
+            Windows.TranslateMessage(@wmsg);
+            // TranslateMessage sends WM_CHAR ocassionally
+            // but NOBODY KNOWS WHEN!
+
+            if (wParam = $2e {VK_DELETE}) then
+            begin
+              msgp.keyboard.keychar := #127;
+              msgp.keyboard.keycode := 0;
+              pgfSendMessage(nil, w, PGFM_KEYCHAR, msgp);
+            end;
+
+          end
+          else if (uMsg = WM_KEYUP) or (uMsg = WM_SYSKEYUP) then
+            pgfSendMessage(nil, w, PGFM_KEYRELEASE, msgp)
+          else if uMsg = WM_CHAR then
+          begin
+            tmpW := WideChar(wParam);
+            msgp.keyboard.keychar := UTF8Encode(tmpW);
+            pgfSendMessage(nil, w, PGFM_KEYCHAR, msgp);
+          end;
+          
+          // Allow Alt+F4 and other system key combinations
+          if (uMsg = WM_SYSKEYUP) or (uMsg = WM_SYSKEYDOWN) then
+            Result := Windows.DefWindowProc(hwnd, uMsg, wParam, lParam);
+          *)
+
+
+      //If uMsg = WM_KEYDOWN then
+      if (uMsg = WM_KEYDOWN) or (uMsg = WM_SYSKEYDOWN) then
       begin
         //Writeln('PGFM_KEYPRESS: ',IntToHex(kcode,4),' (',kcode,')');
+        //Writeln('KEYPRESS: ',ShortCutToText( KeyToShortCut(msgP.keyboard.keycode, msgP.keyboard.shiftstate)));
 
         pgfSendMessage(nil, w, PGFM_KEYPRESS, msgp);
 
@@ -423,9 +471,11 @@ begin
         $25..$28:  // arrows
           begin
             msgp.keyboard.keycode := kcode or $FF00; // scan code + $FF00
+
             pgfSendMessage(nil, w, PGFM_KEYCHAR, msgp);
           end;
-        end;
+        end;//CASE
+        //Writeln('KEYPRESS: ',ShortCutToText( msgP.keyboard.keycode, msgP.keyboard.shiftstate));
       end
       else if uMsg = WM_KEYUP then
       begin

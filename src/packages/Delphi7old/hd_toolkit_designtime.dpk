@@ -1,0 +1,45 @@
+package hd_toolkit_designtime;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'HD Toolkit'}
+{$DESIGNONLY}
+{$IMPLICITBUILD OFF}
+{$DEFINE HDDESIGNTIME}
+
+requires
+  rtl,
+  vcl,
+  designide;
+
+contains
+  hd_widget in '..\..\core\hd_widget.pas',
+  hd_defs in '..\..\core\hd_defs.pas',
+  hd_form in '..\..\core\hd_form.pas',
+  hd_main in '..\..\core\hd_main.pas',
+  hd_platform_designtime in '..\..\core\hd_platform_designtime.pas',
+  wglabel in '..\..\widget\wglabel.pas',
+  wgbutton in '..\..\widget\wgbutton.pas',
+  hd_register in 'hd_register.pas';
+
+end.

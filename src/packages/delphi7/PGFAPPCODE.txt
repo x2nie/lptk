@@ -1,0 +1,48 @@
+program %s;
+
+
+{$ifdef fpc}
+{$mode delphi}{$H+}
+{$endif}
+
+uses
+  lp_defs, lp_main, lp_form, Unit1 
+  { you can add units after this };
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.CreateForm(TlpForm1, lpForm1);
+  Application.Run;
+end.
+|unit %s;
+
+{$ifdef fpc}
+{$mode delphi}
+{$endif}
+
+interface
+
+uses  
+  Classes, SysUtils, pgf_defs, pgf_main, pgf_form, pgf_widget;
+
+type
+  T%s = class(T%s)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  %1:s: T%1:s;
+
+implementation
+
+{$R *.dfm}
+
+
+end.
+|
+|

@@ -67,6 +67,7 @@ type
     FText  : widestring;
 
     procedure DoAlign(aalign : TAlign);
+
     procedure SetText(AValue: widestring); virtual;
 
     property Text : widestring read FText write SetText;
@@ -117,7 +118,7 @@ type
     procedure HandleKeyChar(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); virtual;
     procedure HandleKeyPress(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); virtual;
     procedure HandleKeyRelease(var keycode: word; var shiftstate: TShiftState; var consumed : boolean); virtual;
-
+    procedure HandleShortcut(const AOrigin: TpgfWidget; const keycode: word; const shiftstate: TShiftState; var Handled: boolean; const IsChildOfOrigin: boolean = False); virtual;
     procedure HandleSetFocus; virtual;
     procedure HandleKillFocus; virtual;
 
@@ -207,7 +208,7 @@ function FindKeyboardFocus : TpgfWidget;
 
 implementation
 
-uses lp_form;
+uses lp_form, lp_menu;
 
 function FindKeyboardFocus : TpgfWidget;
 begin
@@ -378,8 +379,8 @@ procedure TpgfWidget.MsgKeyPress(var msg: TpgfMessageRec);
 var
   key : word;
   ss : TShiftState;
-  consumed : boolean;
-  wg : TpgfWidget;
+  Handled : boolean;
+  wg, wlast : TpgfWidget;
 begin
 {
   if FFormDesigner <> nil then
@@ -391,10 +392,17 @@ begin
   key := msg.params.keyboard.keycode;
   ss := msg.params.keyboard.shiftstate;
 
-  consumed := false;
-  HandleKeyPress(key, ss, consumed);
+  Handled := false;
 
-  if not consumed then
+
+    { can we handle it ourselves? }
+    HandleKeyPress(key, ss, Handled);
+
+    { process our children }
+    if not Handled then
+      HandleShortcut(self, key, ss, Handled, True);
+
+  {if not consumed then
   begin
     wg := Parent;
     while (not consumed) and (wg <> nil) do
@@ -402,7 +410,51 @@ begin
       wg.HandleKeyPress(key, ss, consumed);
       wg := wg.Parent;
     end;
+  end;}
+
+if not Handled then
+  begin
+    { Work its way to the top level form. The recursive calling of
+      HandleKeyPress() also gives tab-to-change-focus a chance to work. }
+    wg := Parent;
+    wlast := wg;
+    while (not Handled) and (wg <> nil) do
+    begin
+      wg.HandleKeyPress(key, ss, Handled);
+      wlast := wg;
+      wg := wg.Parent;
+    end;
+    wg := wlast;
   end;
+
+
+  if not Handled then
+  begin
+    { Now let the top level form do keyboard shortcut processing. }
+    if Assigned(wg) then
+      wg.HandleShortcut(self, key, ss, Handled);
+
+    { Forms aren't focusable, so Form.HandleKeyPress() will not suffice. Give
+      the Form a chance to fire its OnKeyPress event. }
+    if not Handled then
+    begin
+      if (wg is TlpForm) and Assigned(TlpForm(wg).OnKeyPress) then
+        wg.OnKeyPress(self, key, ss, Handled);
+    end;
+
+    { now try the Application MainForm - if not the same as top-level form }
+    if not Handled then
+    begin
+      { only do this if the top-level form is not Modal }
+      if (wg is TlpForm) and (TlpForm(wg).WindowType <> wtModalForm) then
+///        if wg <> fpgApplication.MainForm then
+///          TfpgFormFriend(fpgApplication.MainForm).DoKeyShortcut(self, key, ss, consumed);
+    end;
+  end;
+
+  { now finaly, lets give fpgApplication a chance }
+///  if (not consumed) and Assigned(fpgApplication.OnKeyPress) then
+///    fpgApplication.OnKeyPress(self, key, ss, consumed);  
 end;
 
 procedure TpgfWidget.MsgKeyRelease(var msg: TpgfMessageRec);
@@ -1018,6 +1070,34 @@ begin
   end;
 
   alist.Free;
+end;
+
+procedure TpgfWidget.HandleShortcut(const AOrigin: TpgfWidget;
+  const keycode: word; const shiftstate: TShiftState; var Handled: boolean;
+  const IsChildOfOrigin: boolean);
+var
+  wg: TpgfWidget;
+  i: integer;
+begin
+  //writeln(Classname, ' - ', Name, '.DoKeyShortcut() - ' + KeycodeToText(keycode, shiftstate));
+  { process children of self }
+  for i := 0 to ChildCount-1 do
+  begin
+      wg := Children[i];
+    if (wg <> nil) and (wg <> self) and (wg <> AOrigin) then
+    begin
+      { ignore the MenuBar now, because it will be processed later by the top-level Form }
+      if IsChildOfOrigin and (wg is TlpMenuBar) then
+      begin
+        continue;
+      end
+      else
+        wg.HandleShortcut(AOrigin, keycode, shiftstate, Handled);
+      if Handled then
+        Exit;
+    end;
+  end;
+
 end;
 
 procedure TpgfWidget.SetPosition(aleft, atop, awidth, aheight: TpgfCoord);
