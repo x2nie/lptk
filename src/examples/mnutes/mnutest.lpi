@@ -47,6 +47,7 @@
         <IsPartOfProject Value="True"/>
         <ComponentName Value="lpForm2"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
       </Unit1>
     </Units>

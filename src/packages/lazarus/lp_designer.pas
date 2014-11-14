@@ -7,8 +7,11 @@ interface
 uses
   LCLProc, LCLType, Classes, SysUtils, FormEditingIntf, LCLIntf, Graphics,
   ProjectIntf, lp_defs, lp_main, lp_widget, lp_form{, hd_edit, hd_memo}
-  ,LResources;
+  ,LResources, LCLVersion;
 
+{.$IF LCL_FULLVERSION >= 1030000} //for laz 1.3.0.0 (major,minor,release,patch)
+     {.$DEFINE HasOiNodeGetImageIndex}
+{.$endif}
 type
 
   { TpgfMediator }
@@ -31,7 +34,10 @@ type
     function ParentAcceptsChild(Parent: TComponent;
                 Child: TComponentClass): boolean; override;
   public
+    {$IF LCL_FULLVERSION >= 1030000} //for laz 1.3.0.0 (major,minor,release,patch)
+    {.$ifdef HasOiNodeGetImageIndex}
     procedure OiNodeGetImageIndex(APersistent: TPersistent; var AIndex: integer); override;
+    {$endif}
   public
     // needed by TpgfWidget
     constructor Create(AOwner: TComponent); override;
@@ -289,6 +295,7 @@ begin
     //and (TpgfWidget(Parent).AcceptChildsAtDesignTime);
 end;
 
+{$IF LCL_FULLVERSION >= 1030000} //for laz 1.3.0.0 (major,minor,release,patch)
 procedure TpgfMediator.OiNodeGetImageIndex(APersistent: TPersistent;
   var AIndex: integer);
 begin
@@ -312,6 +319,7 @@ begin
          AIndex := 2;
     end;
 end;
+{$endif}
 
 constructor TpgfMediator.Create(AOwner: TComponent);
 begin

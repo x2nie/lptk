@@ -1,6 +1,6 @@
 object lpForm1: TlpForm1
-  Left = 322
-  Top = 139
+  Left = 463
+  Top = 111
   Width = 360
   Height = 278
   Cursor = 0

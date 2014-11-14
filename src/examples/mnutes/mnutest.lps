@@ -9,24 +9,27 @@
         <Filename Value="mnutest.dpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mnutest"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
         <UsageCount Value="27"/>
+        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="unit2.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="lpForm2"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="33"/>
         <CursorPos X="1" Y="41"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="unit1.pas"/>
@@ -35,7 +38,7 @@
         <UnitName Value="Unit1"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="63"/>
+        <TopLine Value="58"/>
         <CursorPos X="69" Y="81"/>
         <UsageCount Value="27"/>
         <Loaded Value="True"/>
@@ -107,7 +110,7 @@
       </Unit10>
       <Unit11>
         <Filename Value="unit1.lfm"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
@@ -117,21 +120,22 @@
       </Unit11>
       <Unit12>
         <Filename Value="unit2.lfm"/>
+        <ComponentName Value="lpForm2"/>
         <HasResources Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="10"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
         <ExtraEditorCount Value="5"/>
         <ExtraEditor1>
-          <EditorIndex Value="9"/>
+          <EditorIndex Value="3"/>
           <WindowIndex Value="0"/>
-          <TopLine Value="23"/>
+          <TopLine Value="1"/>
           <CursorPos X="1" Y="1"/>
         </ExtraEditor1>
         <ExtraEditor2>
-          <EditorIndex Value="8"/>
+          <EditorIndex Value="4"/>
           <WindowIndex Value="0"/>
           <TopLine Value="1"/>
           <CursorPos X="1" Y="1"/>
@@ -151,7 +155,7 @@
         <ExtraEditor5>
           <EditorIndex Value="7"/>
           <WindowIndex Value="0"/>
-          <TopLine Value="1"/>
+          <TopLine Value="23"/>
           <CursorPos X="1" Y="1"/>
         </ExtraEditor5>
         <UsageCount Value="10"/>
@@ -162,7 +166,12 @@
     <General>
       <ActiveWindowIndexAtStart Value="0"/>
     </General>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="1" HistoryIndex="0">
+      <Position1>
+        <Filename Value="mnutest.dpr"/>
+        <Caret Line="1" Column="27" TopLine="1"/>
+      </Position1>
+    </JumpHistory>
   </ProjectSession>
   <Debugging>
     <BreakPoints Count="1">

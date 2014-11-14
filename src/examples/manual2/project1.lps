@@ -9,7 +9,7 @@
         <Filename Value="project1.dpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="project1"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="21" Y="6"/>
@@ -20,6 +20,7 @@
         <Filename Value="unit1.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="lpForm1"/>
+        <HasResources Value="True"/>
         <UnitName Value="Unit1"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
@@ -42,18 +43,15 @@
       <Unit3>
         <Filename Value="..\..\core\lp_main.pas"/>
         <UnitName Value="lp_main"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="22"/>
+        <TopLine Value="364"/>
         <CursorPos X="1" Y="41"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="..\..\core\lp_form.pas"/>
         <UnitName Value="lp_form"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="292"/>
         <CursorPos X="5" Y="311"/>
@@ -63,7 +61,7 @@
       <Unit5>
         <Filename Value="..\..\core\hd_platform_win.pas"/>
         <UnitName Value="hd_platform_win"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="395"/>
         <CursorPos X="50" Y="402"/>
@@ -82,7 +80,7 @@
       </Unit6>
       <Unit7>
         <Filename Value="..\..\core\lp_keys_gdi.inc"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="292"/>
         <CursorPos X="49" Y="298"/>
@@ -91,7 +89,7 @@
       </Unit7>
       <Unit8>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\objpas\classes\classesh.inc"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="97"/>
         <CursorPos X="5" Y="108"/>
@@ -100,7 +98,7 @@
       </Unit8>
       <Unit9>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\wininc\defines.inc"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4702"/>
         <CursorPos X="6" Y="4719"/>
@@ -110,10 +108,11 @@
       <Unit10>
         <Filename Value="..\..\core\lp_defs.pas"/>
         <UnitName Value="lp_defs"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="72"/>
-        <CursorPos X="60" Y="93"/>
+        <TopLine Value="279"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit10>
@@ -239,8 +238,8 @@
         <Caret Line="790" Column="15" TopLine="781"/>
       </Position29>
       <Position30>
-        <Filename Value="..\..\core\lp_main.pas"/>
-        <Caret Line="374" Column="23" TopLine="359"/>
+        <Filename Value="project1.dpr"/>
+        <Caret Line="6" Column="21" TopLine="1"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>

@@ -8,7 +8,7 @@ interface
 
 uses
   Classes, SysUtils, lp_defs, lp_main, lp_form, lp_button, lp_progressbar,
-  lp_trackbar;
+  lp_trackbar, lp_memo, lp_edit;
 
 type
 
@@ -16,6 +16,7 @@ type
 
   Tfrm1 = class(TlpForm)
     lpButton1: TlpButton;
+    lpEdit1: TlpEdit;
     lpProgressbar1: TlpProgressbar;
     lpTimer1: TlpTimer;
     lpTrackbar1: TlpTrackbar;
