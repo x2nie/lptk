@@ -15,6 +15,15 @@ interface
 uses
   Classes, SysUtils, X, XLib, Xutil;
 
+const
+  {$IF Defined(DARWIN)}
+    libXft = 'libXft.dylib';
+    {$linklib Xft}
+  {$ELSE}
+    libXft = 'libXft.so';
+    fclib = 'fontconfig';
+  {$IFEND}
+  
 type
   TPicture = longword;
 
@@ -28,7 +37,7 @@ type
                descent  : integer;
                height   : integer;
                max_advance_width : integer;
-
+               
                ptr1, ptr2 : Pointer;
              end;
   PXftFont = ^TXftFont;
@@ -44,7 +53,7 @@ type
                 pixel : longword;
                 color : TXRenderColor;
               end;
-
+              
   TXGlyphInfo = packed record
                   width   : word;
                   height  : word;
@@ -83,6 +92,25 @@ const
   FcTypeFTFace       = 7;
   FcTypeLangSet      = 8;
 
+function  XftDrawCreate(display : PXDisplay; win : TXID; vis : PVisual; colorm : longint) : PXftDraw; cdecl; external libXft;
+procedure XftDrawChange(xftd : PXftDraw; win : TXID); cdecl; external libXft;
+procedure XftDrawDestroy(draw : PXftDraw); cdecl; external libXft;
+function  XftDrawPicture(draw : PXftDraw) : TPicture; cdecl; external libXft;
+function  XftFontOpenName(display : PXDisplay; scr : integer; par3 : PChar) : PXftFont; cdecl; external libXft;
+procedure XftFontClose(display : PXDisplay; fnt : PXftFont); cdecl; external libXft;
+procedure XftDrawStringUtf8(draw : PXftDraw; var col : TXftColor; fnt : PXftFont; x,y : integer; txt : PChar; len : integer); cdecl; external libXft;
+procedure XftDrawString8(draw : PXftDraw; var col : TXftColor; fnt : PXftFont; x,y : integer; txt : PChar; len : integer); cdecl; external libXft;
+procedure XftDrawString16(draw : PXftDraw; var col : TXftColor; fnt : PXftFont; x,y : integer; txt : PChar; len : integer); cdecl; external libXft;
+procedure XftTextExtentsUtf8(display : PXDisplay; fnt : PXftFont; txt : PChar; len : integer; var extents : TXGlyphInfo); cdecl; external libXft;
+procedure XftTextExtents8(display : PXDisplay; fnt : PXftFont; txt : PChar; len : integer; var extents : TXGlyphInfo); cdecl; external libXft;
+procedure XftTextExtents16(display : PXDisplay; fnt : PXftFont; txt : PChar; len : integer; var extents : TXGlyphInfo); cdecl; external libXft;
+//function XftGlyphExists(display : PXDisplay; fnt : PXftFont; ch : integer) : longbool; cdecl; external libXft;
+//procedure XftDrawSetClipRectangles(draw : PXftDraw; xorigin, yorigin : integer; rect : PXRectangle; rnum : integer); cdecl; external libXft;
+procedure XftDrawSetClip(draw : PXftDraw; rg : TRegion); cdecl; external libXft;
+function  XftListFonts(display : PXDisplay; screen : integer; params : array of const) : PFcFontSet; cdecl; external libXft;
+function  XftNameUnparse(pat : PFcPattern; dest : PChar; destlen : integer) : boolean; cdecl; external libXft;
+procedure FcFontSetDestroy(fsp : PFcFontSet); cdecl; external fclib;
+{x2nie can't compile this way
 function XftDrawCreate(display : PXDisplay; win : TXID; vis : PVisual; colorm : longint) : PXftDraw; cdecl;
 procedure XftDrawChange(xftd : PXftDraw; win : TXID); cdecl;
 procedure XftDrawDestroy(draw : PXftDraw); cdecl;
@@ -104,12 +132,16 @@ procedure XftTextExtents8(display : PXDisplay; fnt : PXftFont; txt : PChar; len 
 
 procedure XftDrawSetClip(draw : PXftDraw; rg : TRegion); cdecl;
 
-function XftListFonts(display : PXDisplay; screen : integer; params : array of const) : PFcFontSet; cdecl; external 'libxft.so'; //* pbm
+function XftListFonts(display : PXDisplay; screen : integer; params : array of const) : PFcFontSet; cdecl;
 function XftNameUnparse(pat : PFcPattern; dest : PChar; destlen : integer) : boolean; cdecl;
 procedure FcFontSetDestroy(fsp : PFcFontSet); cdecl;
+}
+
+
 
 implementation
 
+{x2nie can't compile this way
 function XftDrawCreate(display : PXDisplay; win : TXID; vis : PVisual; colorm : longint) : PXftDraw; cdecl; external;
 procedure XftDrawChange(xftd : PXftDraw; win : TXID); cdecl; external;
 procedure XftDrawDestroy(draw : PXftDraw); cdecl; external;
@@ -131,8 +163,10 @@ procedure XftTextExtents8(display : PXDisplay; fnt : PXftFont; txt : PChar; len 
 
 procedure XftDrawSetClip(draw : PXftDraw; rg : TRegion); cdecl; external;
 
+function XftListFonts(display : PXDisplay; screen : integer; params : array of const) : PFcFontSet; cdecl; external;
 function XftNameUnparse(pat : PFcPattern; dest : PChar; destlen : integer) : boolean; cdecl; external;
 procedure FcFontSetDestroy(fsp : PFcFontSet); cdecl; external;
+}
 
 end.
 

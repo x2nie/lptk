@@ -24,6 +24,7 @@ type
     FAnchors: TAnchors;
     FEnabled: boolean;
     procedure SetActiveWidget(const AValue: TWidget);
+    procedure SetParent(const AValue: TWidget);
     procedure SetAnchors(const AValue: TAnchors);
     procedure SetEnabled(const AValue: boolean);
 
@@ -116,6 +117,7 @@ type
     procedure HandleMouseEnter; virtual;
     procedure HandleMouseExit; virtual;
 
+    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
 
     constructor Create(AOwner : TComponent); override;
@@ -141,7 +143,7 @@ type
     procedure SetFocus;
     procedure KillFocus;
 
-    property Parent : TWidget read FParent write FParent;
+    property Parent : TWidget read FParent write SetParent;
 
     property Visible : boolean read FVisible write SetVisible;
     property Enabled : boolean read FEnabled write SetEnabled;
@@ -166,6 +168,9 @@ type
     property Canvas : TGfxCanvas read GetCanvas;
 
     property MouseCursor : integer read FMouseCursor write SetMouseCursor;
+
+    function GetParentComponent: TComponent; override;
+    function HasParent: Boolean; override;
 
   public
     property FormDesigner : TObject read FFormDesigner write FFormDesigner;
@@ -322,6 +327,7 @@ end;
 constructor TWidget.Create(AOwner : TComponent);
 begin
   inherited;
+ {$IFNDEF LPTK_LFM}
   FWinHandle := 0;
   FOnScreen := false;
 
@@ -357,6 +363,7 @@ begin
   if (Owner <> nil) and (Owner is TWidget) then FParent := TWidget(Owner)
                                            else FParent := nil;
 
+  {$endif}
   RegisterValidDest(self);
 
   OnKeyPress := nil;
@@ -708,7 +715,16 @@ var
   rwidth, rheight : integer;
 
   r : TRect;
+{$else}
+var
+  pwh : TWinHandle;
+  wh  : TWinHandle;
+  attr : TXSetWindowAttributes;
+  mask : longword;
+  bcolor : longword;
+{$endif}
 begin
+{$ifdef Win32}
   if WinHandle > 0 then Exit;
 
   ws := WS_OVERLAPPEDWINDOW;
@@ -778,14 +794,8 @@ begin
 
   Windows.UpdateWindow(wh);
 
-{$else}
-var
-  pwh : TWinHandle;
-  wh  : TWinHandle;
-  attr : TXSetWindowAttributes;
-  mask : longword;
-  bcolor : longword;
-begin
+
+{$else win32}
   if WinHandle > 0 then Exit;
 
   if FParent <> nil then pwh := FParent.WinHandle else pwh := GfxRootWindow;
@@ -795,7 +805,7 @@ begin
   if FWPOverride then
   begin
 
-    attr.Override_Redirect := longint(1);
+    attr.Override_Redirect := tbool(1);//x2nie longbool(1);
     attr.background_pixel := bColor;
     mask := CWOverrideRedirect; // or CWBackPixel;
 
@@ -988,18 +998,20 @@ procedure TWidget.MsgPaint(var msg: TMessageRec);
 var
   PaintStruct: TPaintStruct;
 //  dc : HDC;
+{$endif}
 begin
+  {$ifdef Win32}
   Windows.BeginPaint(FWinHandle, {$ifdef FPC}@{$endif} PaintStruct);
 
   RePaint;
 
   Windows.EndPaint(FWinHandle, {$ifdef FPC}@{$endif} PaintStruct);
-end;
-{$else}
-begin
+
+
+  {$else}
   RePaint;
+  {$endif}
 end;
-{$endif}
 
 procedure TWidget.MsgKeyPress(var msg: TMessageRec);
 var
@@ -1152,6 +1164,38 @@ end;
 procedure TWidget.SetFocus;
 begin
   DoSetFocus;
+end;
+
+procedure TWidget.GetChildren(Proc: TGetChildProc; Root: TComponent);
+// this method is called by TWriter to retrieve the child components to write
+var
+  I: Integer;
+  OwnedComponent: TComponent;
+begin
+  //DebugLn(['TWidget.GetChildren ComponentCount=',ComponentCount]);
+  inherited GetChildren(Proc, Root);
+  if Root = Self then begin
+    for I := 0 to ComponentCount - 1 do
+    begin
+      OwnedComponent := Components[I];
+      if not OwnedComponent.HasParent then Proc(OwnedComponent);
+    end;
+  end;
+end;
+procedure TWidget.SetParent(const AValue: TWidget);
+begin
+  self.FParent := Avalue;
+end;
+
+Function  TWidget.GetParentComponent: TComponent;
+begin
+  Result:=TComponent(FParent);
+end;
+
+
+Function  TWidget.HasParent: Boolean;
+begin
+  Result:=Assigned(FParent);
 end;
 
 initialization

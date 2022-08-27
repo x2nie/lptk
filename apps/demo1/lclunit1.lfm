@@ -1,0 +1,9 @@
+object Form1: TForm1
+  Left = 477
+  Top = 157
+  Width = 357
+  Height = 273
+  Anchors = [anLeft, anTop]
+  Visible = True
+  WindowTitle = 'T'#0'F'#0'o'#0'r'#0'm'#0'1'#0
+end

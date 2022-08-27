@@ -13,7 +13,9 @@ unit gfxform;
 interface
 
 uses
-  Classes, SysUtils, messagequeue, GfxBase, GfxWidget, schar16;
+  Classes, SysUtils, messagequeue, GfxBase, GfxWidget, schar16
+ {$IFNDEF LPTKLFM},LResources{$ENDIF}
+  ;
   
 type
   TWindowPosition = (wpUser, wpAuto, wpScreenCenter);
@@ -76,7 +78,7 @@ type
     property ParentForm : TGfxForm read FParentForm write FParentForm;
 
   published
-
+    property Visible;
     property WindowTitle : string read FWindowTitle write SetWindowTitle;
 
   end;
@@ -319,10 +321,26 @@ begin
 
   FPrevModalForm := nil;
 
-
+  {$IFNDEF LPTK_LFM}
   inherited Create(AOwner);
   // do not put anything after inherited !!!!
   // it will call AfterCreate!
+  {$ELSE}
+  // init the component with an IDE resource
+  //DebugLn(['TMyComponentClass.Create ',DbgSName(TheOwner)]);
+  GlobalNameSpace.BeginWrite;
+  try
+    inherited Create(AOwner);
+    if (ClassType <> TGfxForm) and not (csDesigning in ComponentState)
+    then begin
+      if not InitResourceComponent(Self, TDataModule) then begin
+        raise EResNotFound.Create('Resource missing for class '+ClassName);
+      end;
+    end;
+  finally
+    GlobalNameSpace.EndWrite;
+  end;
+  {$ENDIF}
 end;
 
 procedure TGfxForm.Show;

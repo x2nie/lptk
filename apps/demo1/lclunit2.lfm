@@ -1,0 +1,8 @@
+object GfxForm1: TGfxForm1
+  Left = 894
+  Top = 219
+  Width = 100
+  Height = 100
+  Anchors = [anLeft, anTop]
+  WindowTitle = 'T'#0'G'#0'f'#0'x'#0'F'#0'o'#0'r'#0'm'#0'1'#0
+end

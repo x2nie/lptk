@@ -1,0 +1,7 @@
+lib/
+*.o
+*.ppu
+backup/
+
+*.lps
+*.dbg

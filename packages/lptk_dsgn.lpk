@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <Name Value="LPTK_Dsgn"/>
+    <Type Value="DesignTime"/>
+    <Author Value="x2nie, Nagy Viktor"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <SearchPaths>
+        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Description Value="LPTK 2 (Design time only)"/>
+    <Version Major="2" Build="1"/>
+    <Files>
+      <Item>
+        <Filename Value="registerlptkcontrols.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="registerlptkcontrols"/>
+      </Item>
+      <Item>
+        <Filename Value="lptk_mediator.pas"/>
+        <UnitName Value="lptk_mediator"/>
+      </Item>
+      <Item>
+        <Filename Value="lptk_form_descriptor.pas"/>
+        <UnitName Value="lptk_form_descriptor"/>
+      </Item>
+    </Files>
+    <RequiredPkgs>
+      <Item>
+        <PackageName Value="IDEIntf"/>
+      </Item>
+      <Item>
+        <PackageName Value="LPTK"/>
+      </Item>
+      <Item>
+        <PackageName Value="FCL"/>
+      </Item>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
